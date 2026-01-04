@@ -63,19 +63,6 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-4">
         <FormField
           control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="$0.00" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="type"
           render={({ field }) => (
             <FormItem className="space-y-3">
@@ -99,6 +86,19 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                     <FormLabel className="font-normal">Expense</FormLabel>
                   </FormItem>
                 </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="$0.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
