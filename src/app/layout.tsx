@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { PageTransition } from '@/components/fintrack/page-transition';
+import { TransactionsProvider } from '@/contexts/transactions-context';
 
 export const metadata: Metadata = {
   title: 'FinTrack',
@@ -21,8 +22,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <PageTransition>{children}</PageTransition>
-        <Toaster />
+        <TransactionsProvider>
+          <PageTransition>{children}</PageTransition>
+          <Toaster />
+        </TransactionsProvider>
       </body>
     </html>
   );

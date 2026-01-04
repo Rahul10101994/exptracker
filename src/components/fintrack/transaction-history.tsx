@@ -1,36 +1,17 @@
+"use client";
+
 import Link from 'next/link';
-import { Music, ArrowUpCircle, MoreHorizontal, Tv } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-const transactions = [
-  {
-    icon: <Music className="h-6 w-6 text-transaction-spotify-fg" />,
-    name: 'Spotify',
-    category: 'Subscription',
-    date: '28 May',
-    amount: '-$12.99',
-    bgColor: 'bg-transaction-spotify-bg'
-  },
-  {
-    icon: <ArrowUpCircle className="h-6 w-6 text-transaction-income-fg" />,
-    name: 'Income',
-    category: 'Freelance',
-    date: '25 May',
-    amount: '+$2,500.00',
-    bgColor: 'bg-transaction-income-bg'
-  },
-  {
-    icon: <Tv className="h-6 w-6 text-transaction-netflix-fg" />,
-    name: 'Netflix',
-    category: 'Subscription',
-    date: '22 May',
-    amount: '-$15.99',
-    bgColor: 'bg-transaction-netflix-bg'
-  },
-];
+import { useTransactions } from '@/contexts/transactions-context';
 
 export function TransactionHistory() {
+  const { transactions, getIconForCategory } = useTransactions();
+
+  // Show only the 3 most recent transactions
+  const recentTransactions = transactions.slice(0, 3);
+
   return (
     <Card className="shadow-lg border-0">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -41,23 +22,26 @@ export function TransactionHistory() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {transactions.map((transaction, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
-                  {transaction.icon}
+          {recentTransactions.map((transaction, index) => {
+            const Icon = getIconForCategory(transaction.category);
+            return (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
+                    <Icon className={`h-6 w-6 ${transaction.fgColor}`} />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{transaction.name}</p>
+                    <p className="text-sm text-muted-foreground">{transaction.category} &bull; {new Date(transaction.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold">{transaction.name}</p>
-                  <p className="text-sm text-muted-foreground">{transaction.category} &bull; {transaction.date}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
+                  <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <p className="font-semibold">{transaction.amount}</p>
-                <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </CardContent>
     </Card>

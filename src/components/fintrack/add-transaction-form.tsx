@@ -32,11 +32,13 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
+import { useTransactions } from "@/contexts/transactions-context";
 
 const formSchema = z.object({
   type: z.enum(["income", "expense"], {
     required_error: "You need to select a transaction type.",
   }),
+  name: z.string().min(1, "Please enter a name."),
   amount: z.coerce.number().positive("Amount must be positive"),
   date: z.date({
     required_error: "A date is required.",
@@ -66,6 +68,7 @@ const categories = {
 const accounts = ["Bank", "Cash", "Card"];
 
 export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
+  const { addTransaction } = useTransactions();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -76,12 +79,12 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const transactionType = form.watch("type");
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    addTransaction(values);
     toast({
       title: "Transaction Added",
       description: `Successfully added ${values.type} of $${values.amount}.`,
     });
-    form.reset({ amount: 0, date: new Date() });
+    form.reset({ name: "", amount: 0, date: new Date() });
     if (onSubmit) {
       onSubmit();
     }
@@ -127,6 +130,20 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
             </FormItem>
           )}
         />
+
+        <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Spotify" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
