@@ -1,128 +1,115 @@
-"use client"
 
-import * as React from "react"
-import { PieChart, Pie, Cell, Legend } from "recharts"
+"use client";
+
+import * as React from "react";
+import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
+import { useTransactions } from "@/contexts/transactions-context";
 
-const chartData = [
-  { category: "food", amount: 250, label: "Food" },
-  { category: "transport", amount: 150, label: "Transport" },
-  { category: "shopping", amount: 300, label: "Shopping" },
-  { category: "bills", amount: 200, label: "Bills" },
-  { category: "other", amount: 100, label: "Other" },
-]
-
-const COLORS: Record<string, string> = {
-  food: "hsl(var(--chart-1))",
-  transport: "hsl(var(--chart-2))",
-  shopping: "hsl(var(--chart-3))",
-  bills: "hsl(var(--chart-4))",
-  other: "hsl(var(--chart-5))",
-}
+const COLORS: string[] = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
 
 export function CategoryBreakdownChart() {
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null)
+  const { currentMonthTransactions } = useTransactions();
+
+  const chartData = React.useMemo(() => {
+    const categoryTotals: { [key: string]: number } = {};
+    currentMonthTransactions
+      .filter((t) => t.type === "expense")
+      .forEach((t) => {
+        if (categoryTotals[t.category]) {
+          categoryTotals[t.category] += t.amount;
+        } else {
+          categoryTotals[t.category] = t.amount;
+        }
+      });
+    
+    return Object.entries(categoryTotals).map(([category, amount]) => ({
+        name: category.charAt(0).toUpperCase() + category.slice(1),
+        value: Number(amount.toFixed(2)),
+    }));
+  }, [currentMonthTransactions]);
 
   const totalAmount = React.useMemo(
-    () => chartData.reduce((sum, d) => sum + d.amount, 0),
-    []
-  )
+    () => chartData.reduce((sum, d) => sum + d.value, 0),
+    [chartData]
+  );
+  
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  const activeData =
-    activeIndex !== null ? chartData[activeIndex] : null
-
-  const CENTER_X = 120
-  const CENTER_Y = 120
+    return (
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+  
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 border rounded-lg bg-background shadow-lg">
+          <p className="font-bold">{`${payload[0].name}`}</p>
+          <p className="text-sm">{`Amount: $${payload[0].value}`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Category Breakdown</CardTitle>
       </CardHeader>
-
-      <CardContent className="flex justify-center">
-        <PieChart width={240} height={300}>
-          {/* CENTER TEXT */}
-          <g transform={`translate(${CENTER_X}, ${CENTER_Y})`}>
-            <text
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="fill-foreground text-lg font-bold"
+      <CardContent className="pb-0 flex flex-col items-center">
+        {chartData.length > 0 ? (
+           <PieChart width={240} height={240}>
+            <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
             >
-              ₹{activeData ? activeData.amount : totalAmount}
-            </text>
-            <text
-              y={18}
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="fill-muted-foreground text-xs"
-            >
-              {activeData ? activeData.label : "Total"}
-            </text>
-          </g>
-
-          <Pie
-            data={chartData}
-            dataKey="amount"
-            nameKey="label"
-            cx={CENTER_X}
-            cy={CENTER_Y}
-            innerRadius={60}
-            outerRadius={80}
-            activeIndex={activeIndex ?? undefined}
-            activeOuterRadius={92}
-            onMouseEnter={(_, i) => setActiveIndex(i)}
-            onMouseLeave={() => setActiveIndex(null)}
-          >
-            {chartData.map((entry) => (
-              <Cell
-                key={entry.category}
-                fill={COLORS[entry.category]}
-                className="transition-all duration-300"
-              />
-            ))}
-          </Pie>
-
-          {/* LEGEND WITH % */}
-          <Legend
-            verticalAlign="bottom"
-            align="center"
-            content={({ payload }) => (
-              <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
-                {payload?.map((entry, index) => {
-                  const item = chartData.find(
-                    (d) => d.label === entry.value
-                  )
-                  const percent = item
-                    ? Math.round((item.amount / totalAmount) * 100)
-                    : 0
-
-                  return (
-                    <li
-                      key={index}
-                      className="flex items-center gap-1.5"
-                    >
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                      />
-                      <span>{entry.value}</span>
-                      <span className="text-muted-foreground">
-                        {percent}%
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          />
-        </PieChart>
+                {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{paddingLeft: "20px"}} iconSize={14} payload={
+              chartData.map(
+                (item, index) => ({
+                  id: item.name,
+                  type: "square",
+                  value: `${item.name} (${((item.value / totalAmount) * 100).toFixed(0)}%)`,
+                  color: COLORS[index % COLORS.length]
+                })
+              )
+            } />
+          </PieChart>
+        ) : (
+          <div className="flex items-center justify-center h-48 text-muted-foreground">
+            No expense data for this month.
+          </div>
+        )}
       </CardContent>
     </Card>
-  )
+  );
 }

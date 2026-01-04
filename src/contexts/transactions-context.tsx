@@ -1,7 +1,10 @@
+
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
 import { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal } from 'lucide-react';
+import { isSameMonth, isSameYear } from 'date-fns';
+
 
 type Transaction = {
     id: string;
@@ -22,6 +25,7 @@ interface TransactionsContextType {
     transactions: Transaction[];
     addTransaction: (transaction: NewTransaction) => void;
     getIconForCategory: (category: string) => React.ElementType;
+    currentMonthTransactions: Transaction[];
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -32,7 +36,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Spotify',
         category: 'subscription',
-        date: '2024-05-28',
+        date: new Date().toISOString(),
         amount: 12.99,
         account: 'card',
         fgColor: 'text-transaction-spotify-fg',
@@ -43,7 +47,7 @@ const initialTransactions: Transaction[] = [
         type: 'income',
         name: 'Income',
         category: 'freelance',
-        date: '2024-05-25',
+        date: new Date().toISOString(),
         amount: 2500.00,
         account: 'bank',
         fgColor: 'text-transaction-income-fg',
@@ -54,7 +58,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Netflix',
         category: 'subscription',
-        date: '2024-05-22',
+        date: new Date().toISOString(),
         amount: 15.99,
         account: 'card',
         fgColor: 'text-transaction-netflix-fg',
@@ -65,7 +69,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Zara',
         category: 'shopping',
-        date: '2024-05-21',
+        date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
         amount: 128.50,
         account: 'card',
         fgColor: 'text-blue-500',
@@ -76,7 +80,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'The Noodle House',
         category: 'food',
-        date: '2024-05-20',
+        date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
         amount: 34.20,
         account: 'cash',
         fgColor: 'text-orange-500',
@@ -87,7 +91,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Metro Ticket',
         category: 'transport',
-        date: '2024-05-18',
+        date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
         amount: 2.75,
         account: 'card',
         fgColor: 'text-green-500',
@@ -98,7 +102,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Apple Store',
         category: 'shopping',
-        date: '2024-04-28',
+        date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
         amount: 999.00,
         account: 'card',
         fgColor: 'text-red-500',
@@ -115,6 +119,7 @@ const categoryStyles: { [key: string]: { fgColor: string, bgColor: string } } = 
     income: { fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg' },
     salary: { fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg' },
     bonus: { fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg' },
+    bills: { fgColor: 'text-purple-500', bgColor: 'bg-purple-100' },
     other: { fgColor: 'text-gray-500', bgColor: 'bg-gray-100' },
 };
 
@@ -143,15 +148,24 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
             date: transaction.date.toISOString(),
             ...styles
         };
-        setTransactions(prev => [newTransaction, ...prev]);
+        setTransactions(prev => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     };
 
     const getIconForCategory = (category: string) => {
         return categoryIcons[category.toLowerCase()] || categoryIcons.other;
     }
+    
+    const currentMonthTransactions = useMemo(() => {
+        const now = new Date();
+        return transactions.filter(t => {
+            const tDate = new Date(t.date);
+            return isSameMonth(now, tDate) && isSameYear(now, tDate);
+        });
+    }, [transactions]);
+
 
     return (
-        <TransactionsContext.Provider value={{ transactions, addTransaction, getIconForCategory }}>
+        <TransactionsContext.Provider value={{ transactions, addTransaction, getIconForCategory, currentMonthTransactions }}>
             {children}
         </TransactionsContext.Provider>
     );

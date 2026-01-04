@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
@@ -7,18 +8,29 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-const chartData = [
-  { day: "Mon", spending: 50 },
-  { day: "Tue", spending: 75 },
-  { day: "Wed", spending: 30 },
-  { day: "Thu", spending: 90 },
-  { day: "Fri", spending: 60 },
-  { day: "Sat", spending: 120 },
-  { day: "Sun", spending: 80 },
-]
+import { useTransactions } from "@/contexts/transactions-context"
+import { useMemo } from "react"
+import { format, startOfWeek, addDays, isSameDay } from "date-fns"
 
 export function SpendingTrendChart() {
+  const { currentMonthTransactions } = useTransactions();
+
+  const chartData = useMemo(() => {
+    const weekStartsOn = 1; // Monday
+    const startOfThisWeek = startOfWeek(new Date(), { weekStartsOn });
+    const days = Array.from({ length: 7 }).map((_, i) => addDays(startOfThisWeek, i));
+
+    return days.map(day => {
+      const dailySpending = currentMonthTransactions
+        .filter(t => t.type === 'expense' && isSameDay(new Date(t.date), day))
+        .reduce((acc, t) => acc + t.amount, 0);
+      return {
+        day: format(day, 'EEE'),
+        spending: dailySpending
+      }
+    })
+  }, [currentMonthTransactions]);
+
   const chartConfig = {
     spending: {
       label: "Spending",
@@ -29,7 +41,7 @@ export function SpendingTrendChart() {
   return (
     <Card className="shadow-lg border-0">
       <CardHeader>
-        <CardTitle>Spending Trend</CardTitle>
+        <CardTitle>This Week's Spending Trend</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-48 w-full">

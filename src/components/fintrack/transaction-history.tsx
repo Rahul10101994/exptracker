@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -7,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { useTransactions } from '@/contexts/transactions-context';
 
 export function TransactionHistory() {
-  const { transactions, getIconForCategory } = useTransactions();
+  const { currentMonthTransactions, getIconForCategory } = useTransactions();
 
-  // Show only the 3 most recent transactions
-  const recentTransactions = transactions.slice(0, 3);
+  // Show only the 3 most recent transactions from the current month
+  const recentTransactions = currentMonthTransactions.slice(0, 3);
 
   return (
     <Card className="shadow-lg border-0">
@@ -22,26 +23,32 @@ export function TransactionHistory() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentTransactions.map((transaction, index) => {
-            const Icon = getIconForCategory(transaction.category);
-            return (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
-                    <Icon className={`h-6 w-6 ${transaction.fgColor}`} />
+          {recentTransactions.length > 0 ? (
+            recentTransactions.map((transaction, index) => {
+              const Icon = getIconForCategory(transaction.category);
+              return (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
+                      <Icon className={`h-6 w-6 ${transaction.fgColor}`} />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{transaction.name}</p>
+                      <p className="text-sm text-muted-foreground">{transaction.category} &bull; {new Date(transaction.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold">{transaction.name}</p>
-                    <p className="text-sm text-muted-foreground">{transaction.category} &bull; {new Date(transaction.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
+                    <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
-                  <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-            )
-          })}
+              )
+            })
+          ) : (
+            <div className="text-center text-muted-foreground py-10">
+              No transactions for this month.
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

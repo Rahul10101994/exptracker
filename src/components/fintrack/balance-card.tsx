@@ -1,9 +1,28 @@
+
+"use client";
+
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { format } from 'date-fns';
+import { useTransactions } from '@/contexts/transactions-context';
+import { useMemo } from 'react';
 
 export function BalanceCard() {
+  const { currentMonthTransactions } = useTransactions();
   const currentDate = format(new Date(), 'MMMM yyyy');
+
+  const { totalBalance, income, expense } = useMemo(() => {
+    const income = currentMonthTransactions
+      .filter(t => t.type === 'income')
+      .reduce((acc, t) => acc + t.amount, 0);
+    
+    const expense = currentMonthTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const totalBalance = income - expense;
+    return { totalBalance, income, expense };
+  }, [currentMonthTransactions]);
 
   return (
     <Card className="bg-accent border-0 shadow-lg">
@@ -12,7 +31,7 @@ export function BalanceCard() {
           <p>Total Balance</p>
           <p className="text-sm font-medium">{currentDate}</p>
         </div>
-        <p className="text-2xl font-bold text-accent-foreground mt-1">$24,500.00</p>
+        <p className="text-2xl font-bold text-accent-foreground mt-1">${totalBalance.toFixed(2)}</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2">
             <div className="rounded-full bg-white/30 p-1">
@@ -20,7 +39,7 @@ export function BalanceCard() {
             </div>
             <div>
               <p className="text-xs text-accent-foreground/80">Income</p>
-              <p className="font-semibold text-accent-foreground">$10,500</p>
+              <p className="font-semibold text-accent-foreground">${income.toFixed(2)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -29,7 +48,7 @@ export function BalanceCard() {
             </div>
             <div>
               <p className="text-xs text-accent-foreground/80">Expense</p>              
-              <p className="font-semibold text-accent-foreground">$4,200</p>
+              <p className="font-semibold text-accent-foreground">${expense.toFixed(2)}</p>
             </div>
           </div>
         </div>
