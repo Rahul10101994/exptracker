@@ -9,7 +9,7 @@ export function SavingRateCard() {
         <PieChart className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
       <CardContent className="p-2 pt-0">
-        <p className="text-2xl font-bold">48%</p>
+        <p className="text-xl font-bold">48%</p>
         <p className="text-xs text-muted-foreground">Savings rate</p>
       </CardContent>
     </Card>
