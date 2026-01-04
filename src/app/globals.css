@@ -8,7 +8,7 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 96.1%; /* #F5F5F5 */
+    --background: 0 0% 92%; /* light gray */
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -49,12 +49,12 @@ body {
     --transaction-netflix-fg: 0 100% 60%;
   }
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 0 0% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 0 0% 98%;
+    --background: 0 0% 92%; /* light gray */
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
     --primary: 200 95.2% 74.3%;
     --primary-foreground: 222.2 84% 4.9%;
     --secondary: 0 0% 14.9%;
