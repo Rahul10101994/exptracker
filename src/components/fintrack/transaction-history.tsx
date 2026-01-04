@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Music, ArrowUpCircle, MoreHorizontal, Tv } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,9 @@ export function TransactionHistory() {
     <Card className="shadow-lg border-0">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Transactions</CardTitle>
-        <Button variant="ghost" size="sm">See all</Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/transactions">See all</Link>
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

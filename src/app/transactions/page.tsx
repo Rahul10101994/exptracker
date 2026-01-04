@@ -1,0 +1,93 @@
+import Link from 'next/link';
+import { ArrowLeft, Music, ArrowUpCircle, MoreHorizontal, Tv, ShoppingBag, Utensils, Bus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+const allTransactions = [
+    {
+        icon: <Music className="h-6 w-6 text-transaction-spotify-fg" />,
+        name: 'Spotify',
+        category: 'Subscription',
+        amount: '-$12.99',
+        bgColor: 'bg-transaction-spotify-bg'
+    },
+    {
+        icon: <ArrowUpCircle className="h-6 w-6 text-transaction-income-fg" />,
+        name: 'Income',
+        category: 'Freelance',
+        amount: '+$2,500.00',
+        bgColor: 'bg-transaction-income-bg'
+    },
+    {
+        icon: <Tv className="h-6 w-6 text-transaction-netflix-fg" />,
+        name: 'Netflix',
+        category: 'Subscription',
+        amount: '-$15.99',
+        bgColor: 'bg-transaction-netflix-bg'
+    },
+    {
+        icon: <ShoppingBag className="h-6 w-6 text-blue-500" />,
+        name: 'Zara',
+        category: 'Shopping',
+        amount: '-$128.50',
+        bgColor: 'bg-blue-100'
+    },
+    {
+        icon: <Utensils className="h-6 w-6 text-orange-500" />,
+        name: 'The Noodle House',
+        category: 'Food',
+        amount: '-$34.20',
+        bgColor: 'bg-orange-100'
+    },
+    {
+        icon: <Bus className="h-6 w-6 text-green-500" />,
+        name: 'Metro Ticket',
+        category: 'Transport',
+        amount: '-$2.75',
+        bgColor: 'bg-green-100'
+    },
+];
+
+
+export default function TransactionsPage() {
+  return (
+    <div className="bg-background">
+      <main className="relative mx-auto flex min-h-screen max-w-sm flex-col gap-6 p-4 pb-28">
+        <header className="flex items-center pt-2">
+            <Button variant="ghost" size="icon" asChild>
+                <Link href="/">
+                    <ArrowLeft />
+                    <span className="sr-only">Back</span>
+                </Link>
+            </Button>
+            <h1 className="text-lg font-bold text-foreground mx-auto">All Transactions</h1>
+            <div className="w-10"></div>
+        </header>
+
+        <Card className="shadow-lg border-0">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {allTransactions.map((transaction, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
+                      {transaction.icon}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{transaction.name}</p>
+                      <p className="text-sm text-muted-foreground">{transaction.category}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{transaction.amount}</p>
+                    <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}
