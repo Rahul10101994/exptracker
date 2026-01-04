@@ -7,6 +7,7 @@ import { SavingRateCard } from '@/components/fintrack/saving-rate-card';
 import { SpendingTrendChart } from '@/components/fintrack/spending-trend-chart';
 import { TransactionHistory } from '@/components/fintrack/transaction-history';
 import { BudgetCard } from '@/components/fintrack/budget-card';
+import { CategoryBreakdownChart } from '@/components/fintrack/category-breakdown-chart';
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
         </div>
         <BudgetCard />
         <SpendingTrendChart />
+        <CategoryBreakdownChart />
         <TransactionHistory />
       </main>
       <div className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2">
