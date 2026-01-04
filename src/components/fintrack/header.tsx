@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { MoreVertical } from 'lucide-react';
+import { Button } from '../ui/button';
 
 const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar');
 
@@ -12,7 +14,11 @@ export function FinTrackHeader() {
 
   return (
     <header className="flex items-center justify-between pt-2">
-      <div>
+      <Button variant="ghost" size="icon">
+        <MoreVertical />
+        <span className="sr-only">Menu</span>
+      </Button>
+      <div className="text-center">
         <p className="text-sm text-muted-foreground">{currentDate}</p>
         <h1 className="text-lg font-bold text-foreground">Brooklyn Simmons</h1>
       </div>
