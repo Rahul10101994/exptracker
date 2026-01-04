@@ -1,12 +1,16 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 
 export function BalanceCard() {
+  const currentDate = format(new Date(), 'MMMM yyyy');
+
   return (
     <Card className="bg-accent border-0 shadow-lg">
       <CardContent className="p-3">
         <div className="flex items-center justify-between text-accent-foreground/80">
           <p>Total Balance</p>
+          <p className="text-sm font-medium">{currentDate}</p>
         </div>
         <p className="text-2xl font-bold text-accent-foreground mt-1">$24,500.00</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
