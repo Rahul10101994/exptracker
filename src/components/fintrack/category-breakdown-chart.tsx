@@ -79,7 +79,7 @@ export function CategoryBreakdownChart() {
               strokeWidth={5}
             >
               {chartData.map((entry) => (
-                  <Cell key={`cell-${entry.category}`} fill={`var(--color-${entry.category.toLowerCase()})`} />
+                  <Cell key={`cell-${entry.category}`} fill={chartConfig[entry.category.toLowerCase() as keyof typeof chartConfig]?.color} />
               ))}
             </Pie>
             <ChartLegend
