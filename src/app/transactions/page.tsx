@@ -1,7 +1,11 @@
+"use client";
+
 import Link from 'next/link';
+import * as React from 'react';
 import { ArrowLeft, Music, ArrowUpCircle, MoreHorizontal, Tv, ShoppingBag, Utensils, Bus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const allTransactions = [
     {
@@ -48,8 +52,19 @@ const allTransactions = [
     },
 ];
 
+const months = [
+  "January", "February", "March", "April", "May", "June", 
+  "July", "August", "September", "October", "November", "December"
+];
+
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
 
 export default function TransactionsPage() {
+  const [selectedMonth, setSelectedMonth] = React.useState<string>(months[new Date().getMonth()]);
+  const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
+
   return (
     <div className="bg-background">
       <main className="relative mx-auto flex min-h-screen max-w-sm flex-col gap-6 p-4 pb-28">
@@ -63,6 +78,29 @@ export default function TransactionsPage() {
             <h1 className="text-lg font-bold text-foreground mx-auto">All Transactions</h1>
             <div className="w-10"></div>
         </header>
+
+        <div className="grid grid-cols-2 gap-4">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent>
+                    {months.map(month => (
+                        <SelectItem key={month} value={month}>{month}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent>
+                    {years.map(year => (
+                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
 
         <Card className="shadow-lg border-0">
           <CardContent className="pt-6">
