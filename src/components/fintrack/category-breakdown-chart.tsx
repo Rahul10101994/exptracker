@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart } from "recharts"
+import { Cell, Pie, PieChart } from "recharts"
 
 import {
   Card,
@@ -78,6 +78,9 @@ export function CategoryBreakdownChart() {
               innerRadius={60}
               strokeWidth={5}
             >
+              {chartData.map((entry) => (
+                  <Cell key={`cell-${entry.category}`} fill={`var(--color-${entry.category.toLowerCase()})`} />
+              ))}
             </Pie>
             <ChartLegend
               content={<ChartLegendContent nameKey="category" />}
