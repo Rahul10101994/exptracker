@@ -13,7 +13,7 @@ export function FinTrackHeader() {
   return (
     <header className="flex items-center justify-between pt-2">
       <div>
-        <p className="text-muted-foreground">{currentDate}</p>
+        <p className="text-sm text-muted-foreground">{currentDate}</p>
         <h1 className="text-lg font-bold text-foreground">Brooklyn Simmons</h1>
       </div>
       <Avatar className="h-12 w-12">
