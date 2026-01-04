@@ -47,6 +47,15 @@ const formSchema = z.object({
   account: z.string({
     required_error: "Please select an account.",
   }),
+  spendingType: z.enum(["need", "want"]).optional(),
+}).refine(data => {
+    if (data.type === 'expense' && !data.spendingType) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Please select if this is a need or a want.",
+    path: ["spendingType"],
 });
 
 const categories = {
@@ -92,6 +101,10 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                   onValueChange={(value) => {
                     field.onChange(value);
                     form.setValue("category", ""); // Reset category on type change
+                    if (value === 'income') {
+                      form.setValue('spendingType', undefined);
+                      form.clearErrors('spendingType');
+                    }
                   }}
                   defaultValue={field.value}
                   className="flex space-x-4"
@@ -223,6 +236,40 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
             )}
           />
         </div>
+
+        {transactionType === 'expense' && (
+          <FormField
+            control={form.control}
+            name="spendingType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>This is a...</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex space-x-4"
+                  >
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="need" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Need</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="want" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Want</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
         <Button type="submit" className="w-full">Add Transaction</Button>
       </form>
     </Form>
