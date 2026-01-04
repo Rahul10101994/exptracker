@@ -56,6 +56,14 @@ const allTransactions = [
         amount: '-$2.75',
         bgColor: 'bg-green-100'
     },
+    {
+        icon: <ShoppingBag className="h-6 w-6 text-red-500" />,
+        name: 'Apple Store',
+        category: 'Shopping',
+        date: '28 Apr',
+        amount: '-$999.00',
+        bgColor: 'bg-red-100'
+    }
 ];
 
 const months = [
@@ -70,6 +78,16 @@ const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 export default function TransactionsPage() {
   const [selectedMonth, setSelectedMonth] = React.useState<string>(months[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
+
+  const filteredTransactions = allTransactions.filter(transaction => {
+    // Assuming the current year for transactions as it's not specified in the data
+    const transactionDate = new Date(`${transaction.date} ${selectedYear}`);
+    const transactionMonth = transactionDate.getMonth();
+    const transactionYear = transactionDate.getFullYear();
+
+    return months[transactionMonth] === selectedMonth && transactionYear === selectedYear;
+  });
+
 
   return (
     <div className="bg-background">
@@ -111,7 +129,7 @@ export default function TransactionsPage() {
         <Card className="shadow-lg border-0">
           <CardContent className="pt-6">
             <div className="space-y-4">
-              {allTransactions.map((transaction, index) => (
+              {filteredTransactions.map((transaction, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
@@ -128,6 +146,11 @@ export default function TransactionsPage() {
                   </div>
                 </div>
               ))}
+               {filteredTransactions.length === 0 && (
+                <div className="text-center text-muted-foreground py-10">
+                  No transactions for this period.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
