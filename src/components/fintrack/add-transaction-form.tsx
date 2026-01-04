@@ -44,12 +44,17 @@ const formSchema = z.object({
   category: z.string({
     required_error: "Please select a category.",
   }),
+  account: z.string({
+    required_error: "Please select an account.",
+  }),
 });
 
 const categories = {
   income: ["Freelance", "Salary", "Bonus", "Other"],
   expense: ["Food", "Transport", "Shopping", "Bills", "Subscription", "Other"],
 };
+
+const accounts = ["Bank", "Cash", "Card"];
 
 export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -167,31 +172,57 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!transactionType}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {transactionType &&
-                    categories[transactionType].map((category) => (
-                      <SelectItem key={category} value={category.toLowerCase()}>
-                        {category}
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!transactionType}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {transactionType &&
+                      categories[transactionType].map((category) => (
+                        <SelectItem key={category} value={category.toLowerCase()}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="account"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Account</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an account" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {accounts.map((account) => (
+                      <SelectItem key={account} value={account.toLowerCase()}>
+                        {account}
                       </SelectItem>
                     ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <Button type="submit" className="w-full">Add Transaction</Button>
       </form>
     </Form>
