@@ -21,12 +21,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useTransactions } from '@/contexts/transactions-context';
+import { toast } from '@/hooks/use-toast';
 
+type LocalBudgets = {
+    [category: string]: {
+        amount: number;
+    };
+};
 
 export default function BudgetPage() {
-    const { budgets, setBudget, addCategory, getCategoryProgress } = useBudget();
+    const { budgets, setBudgets, addCategory, getCategoryProgress } = useBudget();
     const { getIconForCategory } = useTransactions();
     const [newCategory, setNewCategory] = React.useState('');
+    const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(budgets);
+
+    React.useEffect(() => {
+        setLocalBudgets(budgets);
+    }, [budgets]);
 
     const handleAddCategory = () => {
         if (newCategory.trim()) {
@@ -36,9 +47,24 @@ export default function BudgetPage() {
     };
     
     const totalBudget = React.useMemo(() => {
-        return Object.values(budgets).reduce((sum, budget) => sum + budget.amount, 0);
-    }, [budgets]);
+        return Object.values(localBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
+    }, [localBudgets]);
 
+    const handleBudgetChange = (category: string, amount: number) => {
+        setLocalBudgets(prev => ({
+            ...prev,
+            [category]: { amount }
+        }));
+    };
+
+    const handleSave = () => {
+        setBudgets(localBudgets);
+        toast({
+            title: "Budgets Saved",
+            description: "Your new budget amounts have been saved successfully.",
+        });
+    };
+    
     return (
         <FinTrackLayout>
             <header className="flex items-center pt-2">
@@ -85,7 +111,7 @@ export default function BudgetPage() {
             </Card>
 
             <div className="space-y-4">
-                {Object.entries(budgets).map(([category, budget]) => {
+                {Object.entries(localBudgets).map(([category, budget]) => {
                     const Icon = getIconForCategory(category);
                     const { spent, percentage } = getCategoryProgress(category);
                     
@@ -125,7 +151,7 @@ export default function BudgetPage() {
                                         type="number"
                                         placeholder="Set Budget"
                                         value={budget.amount === 0 ? '' : budget.amount}
-                                        onChange={(e) => setBudget(category, parseFloat(e.target.value) || 0)}
+                                        onChange={(e) => handleBudgetChange(category, parseFloat(e.target.value) || 0)}
                                         className="text-right"
                                     />
                                 </div>
@@ -133,6 +159,9 @@ export default function BudgetPage() {
                         </Card>
                     )
                 })}
+            </div>
+            <div className='fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-sm px-4'>
+                <Button onClick={handleSave} className="w-full">Save Changes</Button>
             </div>
         </FinTrackLayout>
     );

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useTransactions } from './transactions-context';
 
 type Budget = {
@@ -13,7 +13,7 @@ type Budgets = {
 
 interface BudgetContextType {
     budgets: Budgets;
-    setBudget: (category: string, amount: number) => void;
+    setBudgets: (budgets: Budgets) => void;
     addCategory: (category: string) => void;
     getCategoryProgress: (category: string) => { spent: number; percentage: number };
 }
@@ -32,13 +32,6 @@ const initialBudgets: Budgets = {
 export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     const { currentMonthTransactions } = useTransactions();
     const [budgets, setBudgets] = useState<Budgets>(initialBudgets);
-
-    const setBudget = (category: string, amount: number) => {
-        setBudgets(prev => ({
-            ...prev,
-            [category.toLowerCase()]: { amount }
-        }));
-    };
 
     const addCategory = (category: string) => {
         const lowerCaseCategory = category.toLowerCase();
@@ -62,7 +55,7 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <BudgetContext.Provider value={{ budgets, setBudget, addCategory, getCategoryProgress }}>
+        <BudgetContext.Provider value={{ budgets, setBudgets, addCategory, getCategoryProgress }}>
             {children}
         </BudgetContext.Provider>
     );
