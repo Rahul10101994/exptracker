@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { PageTransition } from '@/components/fintrack/page-transition';
 import { TransactionsProvider } from '@/contexts/transactions-context';
+import { BudgetProvider } from '@/contexts/budget-context';
 
 export const metadata: Metadata = {
   title: 'FinTrack',
@@ -23,8 +24,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <TransactionsProvider>
-          <PageTransition>{children}</PageTransition>
-          <Toaster />
+          <BudgetProvider>
+            <PageTransition>{children}</PageTransition>
+            <Toaster />
+          </BudgetProvider>
         </TransactionsProvider>
       </body>
     </html>
