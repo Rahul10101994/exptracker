@@ -65,6 +65,14 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        transaction: {
+          'spotify-bg': 'hsl(var(--transaction-spotify-bg))',
+          'spotify-fg': 'hsl(var(--transaction-spotify-fg))',
+          'income-bg': 'hsl(var(--transaction-income-bg))',
+          'income-fg': 'hsl(var(--transaction-income-fg))',
+          'netflix-bg': 'hsl(var(--transaction-netflix-bg))',
+          'netflix-fg': 'hsl(var(--transaction-netflix-fg))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
