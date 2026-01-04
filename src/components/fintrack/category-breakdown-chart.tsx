@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Cell, Pie, PieChart, Legend, Tooltip } from "recharts"
+import { Cell, Pie, PieChart, Legend, Tooltip, ResponsiveContainer } from "recharts"
 
 import {
   Card,
@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { category: "Food", amount: 250 },
-  { category: "Transport", amount: 150 },
-  { category: "Shopping", amount: 300 },
-  { category: "Bills", amount: 200 },
-  { category: "Other", amount: 100 },
+  { category: "food", amount: 250, label: "Food" },
+  { category: "transport", amount: 150, label: "Transport" },
+  { category: "shopping", amount: 300, label: "Shopping" },
+  { category: "bills", amount: 200, label: "Bills" },
+  { category: "other", amount: 100, label: "Other" },
 ]
 
 const chartConfig = {
@@ -47,37 +47,90 @@ const chartConfig = {
   },
 }
 
-const COLORS = Object.values(chartConfig).map(item => item.color).filter(Boolean) as string[];
-
 export function CategoryBreakdownChart() {
+  const totalAmount = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.amount, 0)
+  }, [])
+
   return (
     <Card className="shadow-lg border-0">
       <CardHeader>
         <CardTitle>Category Breakdown</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pb-0">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square max-h-60"
         >
           <PieChart>
             <Tooltip
-              formatter={(value, name) => [`$${value}`, name]}
+              cursor={false}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload.payload;
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            {data.label}
+                          </span>
+                          <span className="font-bold text-foreground">
+                            ${data.amount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+
+                return null
+              }}
             />
             <Pie
               data={chartData}
               dataKey="amount"
-              nameKey="category"
+              nameKey="label"
               cx="50%"
               cy="50%"
               outerRadius={80}
               innerRadius={60}
+              strokeWidth={5}
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {chartData.map((entry) => (
+                <Cell
+                  key={entry.category}
+                  fill={chartConfig[entry.category as keyof typeof chartConfig]?.color}
+                  className="focus:outline-none"
+                />
               ))}
             </Pie>
-            <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ paddingLeft: '20px' }}/>
+            <Legend
+              content={({ payload }) => {
+                return (
+                  <ul className="flex flex-col space-y-1 text-sm text-muted-foreground">
+                    {payload?.map((entry, index) => {
+                      const { color, value } = entry;
+                      const item = chartData.find(d => d.label === value);
+                      const percentage = item ? (item.amount / totalAmount * 100).toFixed(0) : 0;
+                      return (
+                        <li key={`item-${index}`} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="mr-2 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+                            <span>{value}</span>
+                          </div>
+                          <span className="font-semibold">{percentage}%</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )
+              }}
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
+              wrapperStyle={{ paddingLeft: '20px' }}
+            />
           </PieChart>
         </ChartContainer>
       </CardContent>
