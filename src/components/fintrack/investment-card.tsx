@@ -8,7 +8,7 @@ export function InvestmentCard() {
         <CardTitle className="text-base font-medium">Investments</CardTitle>
       </CardHeader>
       <CardContent className="p-2 pt-0">
-        <p className="text-2xl font-bold">$1,200</p>
+        <p className="text-xl font-bold">$1,200</p>
         <p className="text-xs text-muted-foreground">3 active</p>
         <Progress value={65} className="mt-1 h-2 bg-primary/20" />
       </CardContent>
