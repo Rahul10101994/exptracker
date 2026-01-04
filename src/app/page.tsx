@@ -6,6 +6,7 @@ import { InvestmentCard } from '@/components/fintrack/investment-card';
 import { SavingRateCard } from '@/components/fintrack/saving-rate-card';
 import { SpendingTrendChart } from '@/components/fintrack/spending-trend-chart';
 import { TransactionHistory } from '@/components/fintrack/transaction-history';
+import { BudgetCard } from '@/components/fintrack/budget-card';
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
           <SavingRateCard />
           <InvestmentCard />
         </div>
+        <BudgetCard />
         <SpendingTrendChart />
         <TransactionHistory />
       </main>
