@@ -110,7 +110,7 @@ export default function BudgetPage() {
                 </CardContent>
             </Card>
 
-            <div className="space-y-4">
+            <div className="space-y-4 pb-16">
                 {Object.entries(localBudgets).map(([category, budget]) => {
                     const Icon = getIconForCategory(category);
                     const { spent, percentage } = getCategoryProgress(category);
