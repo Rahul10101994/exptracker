@@ -6,7 +6,7 @@ import { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal } 
 import { isSameMonth, isSameYear } from 'date-fns';
 
 
-type Transaction = {
+export type Transaction = {
     id: string;
     type: 'income' | 'expense';
     name: string;
@@ -39,6 +39,7 @@ const initialTransactions: Transaction[] = [
         date: new Date().toISOString(),
         amount: 12.99,
         account: 'card',
+        spendingType: 'want',
         fgColor: 'text-transaction-spotify-fg',
         bgColor: 'bg-transaction-spotify-bg'
     },
@@ -61,6 +62,7 @@ const initialTransactions: Transaction[] = [
         date: new Date().toISOString(),
         amount: 15.99,
         account: 'card',
+        spendingType: 'want',
         fgColor: 'text-transaction-netflix-fg',
         bgColor: 'bg-transaction-netflix-bg'
     },
@@ -72,6 +74,7 @@ const initialTransactions: Transaction[] = [
         date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
         amount: 128.50,
         account: 'card',
+        spendingType: 'want',
         fgColor: 'text-blue-500',
         bgColor: 'bg-blue-100'
     },
@@ -83,6 +86,7 @@ const initialTransactions: Transaction[] = [
         date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
         amount: 34.20,
         account: 'cash',
+        spendingType: 'need',
         fgColor: 'text-orange-500',
         bgColor: 'bg-orange-100'
     },
@@ -94,6 +98,7 @@ const initialTransactions: Transaction[] = [
         date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
         amount: 2.75,
         account: 'card',
+        spendingType: 'need',
         fgColor: 'text-green-500',
         bgColor: 'bg-green-100'
     },
@@ -105,6 +110,7 @@ const initialTransactions: Transaction[] = [
         date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
         amount: 999.00,
         account: 'card',
+        spendingType: 'want',
         fgColor: 'text-red-500',
         bgColor: 'bg-red-100'
     }
