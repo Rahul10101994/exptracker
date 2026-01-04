@@ -13,8 +13,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart"
 
 const chartData = [
@@ -52,10 +50,6 @@ const chartConfig = {
 }
 
 export function CategoryBreakdownChart() {
-  const totalAmount = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.amount, 0)
-  }, [])
-
   return (
     <Card className="shadow-lg border-0">
       <CardHeader>
@@ -82,10 +76,6 @@ export function CategoryBreakdownChart() {
                   <Cell key={`cell-${entry.category}`} fill={chartConfig[entry.category.toLowerCase() as keyof typeof chartConfig]?.color} />
               ))}
             </Pie>
-            <ChartLegend
-              content={<ChartLegendContent nameKey="category" />}
-              className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-            />
           </PieChart>
         </ChartContainer>
       </CardContent>
