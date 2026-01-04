@@ -4,7 +4,7 @@ import { Progress } from '@/components/ui/progress';
 export function BudgetCard() {
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader>
+      <CardHeader className="p-4">
         <CardTitle>Monthly Budget</CardTitle>
       </CardHeader>
       <CardContent>
