@@ -7,7 +7,7 @@ export function BudgetCard() {
       <CardHeader className="p-4">
         <CardTitle>Monthly Budget</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-0">
         <Progress value={45} className="h-2 bg-primary/20" />
         <div className="mt-2 flex justify-between text-sm text-muted-foreground">
           <span>Utilized: $900</span>
