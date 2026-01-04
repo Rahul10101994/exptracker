@@ -102,10 +102,10 @@ export default function BudgetPage() {
             </header>
 
             <Card className="text-center">
-                <CardHeader>
+                <CardHeader className="p-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 pt-0">
                     <p className="text-3xl font-bold">${totalBudget.toFixed(2)}</p>
                 </CardContent>
             </Card>
