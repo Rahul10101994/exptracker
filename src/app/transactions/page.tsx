@@ -12,6 +12,7 @@ const allTransactions = [
         icon: <Music className="h-6 w-6 text-transaction-spotify-fg" />,
         name: 'Spotify',
         category: 'Subscription',
+        date: '28 May',
         amount: '-$12.99',
         bgColor: 'bg-transaction-spotify-bg'
     },
@@ -19,6 +20,7 @@ const allTransactions = [
         icon: <ArrowUpCircle className="h-6 w-6 text-transaction-income-fg" />,
         name: 'Income',
         category: 'Freelance',
+        date: '25 May',
         amount: '+$2,500.00',
         bgColor: 'bg-transaction-income-bg'
     },
@@ -26,6 +28,7 @@ const allTransactions = [
         icon: <Tv className="h-6 w-6 text-transaction-netflix-fg" />,
         name: 'Netflix',
         category: 'Subscription',
+        date: '22 May',
         amount: '-$15.99',
         bgColor: 'bg-transaction-netflix-bg'
     },
@@ -33,6 +36,7 @@ const allTransactions = [
         icon: <ShoppingBag className="h-6 w-6 text-blue-500" />,
         name: 'Zara',
         category: 'Shopping',
+        date: '21 May',
         amount: '-$128.50',
         bgColor: 'bg-blue-100'
     },
@@ -40,6 +44,7 @@ const allTransactions = [
         icon: <Utensils className="h-6 w-6 text-orange-500" />,
         name: 'The Noodle House',
         category: 'Food',
+        date: '20 May',
         amount: '-$34.20',
         bgColor: 'bg-orange-100'
     },
@@ -47,6 +52,7 @@ const allTransactions = [
         icon: <Bus className="h-6 w-6 text-green-500" />,
         name: 'Metro Ticket',
         category: 'Transport',
+        date: '18 May',
         amount: '-$2.75',
         bgColor: 'bg-green-100'
     },
@@ -113,7 +119,7 @@ export default function TransactionsPage() {
                     </div>
                     <div>
                       <p className="font-semibold">{transaction.name}</p>
-                      <p className="text-sm text-muted-foreground">{transaction.category}</p>
+                      <p className="text-sm text-muted-foreground">{transaction.category} &bull; {transaction.date}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

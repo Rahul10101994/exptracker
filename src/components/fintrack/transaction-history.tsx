@@ -8,6 +8,7 @@ const transactions = [
     icon: <Music className="h-6 w-6 text-transaction-spotify-fg" />,
     name: 'Spotify',
     category: 'Subscription',
+    date: '28 May',
     amount: '-$12.99',
     bgColor: 'bg-transaction-spotify-bg'
   },
@@ -15,6 +16,7 @@ const transactions = [
     icon: <ArrowUpCircle className="h-6 w-6 text-transaction-income-fg" />,
     name: 'Income',
     category: 'Freelance',
+    date: '25 May',
     amount: '+$2,500.00',
     bgColor: 'bg-transaction-income-bg'
   },
@@ -22,6 +24,7 @@ const transactions = [
     icon: <Tv className="h-6 w-6 text-transaction-netflix-fg" />,
     name: 'Netflix',
     category: 'Subscription',
+    date: '22 May',
     amount: '-$15.99',
     bgColor: 'bg-transaction-netflix-bg'
   },
@@ -46,7 +49,7 @@ export function TransactionHistory() {
                 </div>
                 <div>
                   <p className="font-semibold">{transaction.name}</p>
-                  <p className="text-sm text-muted-foreground">{transaction.category}</p>
+                  <p className="text-sm text-muted-foreground">{transaction.category} &bull; {transaction.date}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
