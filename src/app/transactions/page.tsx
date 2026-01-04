@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -7,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTransactions } from '@/contexts/transactions-context';
+import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 
 const months = [
   "January", "February", "March", "April", "May", "June", 
@@ -32,8 +34,7 @@ export default function TransactionsPage() {
 
 
   return (
-    <div className="bg-background">
-      <main className="relative mx-auto flex min-h-screen max-w-sm flex-col gap-6 p-4 pb-28">
+    <FinTrackLayout>
         <header className="flex items-center pt-2">
             <Button variant="ghost" size="icon" asChild>
                 <Link href="/">
@@ -99,7 +100,6 @@ export default function TransactionsPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+    </FinTrackLayout>
   );
 }
