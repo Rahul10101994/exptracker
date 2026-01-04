@@ -117,7 +117,7 @@ export default function BudgetPage() {
                     
                     return (
                         <Card key={category}>
-                            <CardHeader className="p-4 pb-2 flex-row items-center justify-between">
+                            <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Icon className="h-5 w-5 text-muted-foreground" />
                                     <CardTitle className="text-base capitalize">{category}</CardTitle>
@@ -130,7 +130,7 @@ export default function BudgetPage() {
                                      / ${budget.amount.toFixed(2)}
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-4 pt-0">
+                            <CardContent className="p-2 pt-0">
                                <div className='relative'>
                                  <div 
                                      className="absolute top-0 left-0 h-2 rounded-full bg-primary"
@@ -144,7 +144,7 @@ export default function BudgetPage() {
                                  )}
                                  <div className="h-2 w-full rounded-full bg-primary/20"></div>
                                </div>
-                                <div className="mt-4">
+                                <div className="mt-2">
                                     <Label htmlFor={`budget-${category}`} className="sr-only">Set Budget for {category}</Label>
                                     <Input
                                         id={`budget-${category}`}
@@ -152,7 +152,7 @@ export default function BudgetPage() {
                                         placeholder="Set Budget"
                                         value={budget.amount === 0 ? '' : budget.amount}
                                         onChange={(e) => handleBudgetChange(category, parseFloat(e.target.value) || 0)}
-                                        className="text-right"
+                                        className="text-right h-8"
                                     />
                                 </div>
                             </CardContent>
