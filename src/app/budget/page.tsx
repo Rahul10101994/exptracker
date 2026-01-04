@@ -34,6 +34,10 @@ export default function BudgetPage() {
             setNewCategory('');
         }
     };
+    
+    const totalBudget = React.useMemo(() => {
+        return Object.values(budgets).reduce((sum, budget) => sum + budget.amount, 0);
+    }, [budgets]);
 
     return (
         <FinTrackLayout>
@@ -71,6 +75,15 @@ export default function BudgetPage() {
                 </AlertDialog>
             </header>
 
+            <Card className="text-center">
+                <CardHeader>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-3xl font-bold">${totalBudget.toFixed(2)}</p>
+                </CardContent>
+            </Card>
+
             <div className="space-y-4">
                 {Object.entries(budgets).map(([category, budget]) => {
                     const Icon = getIconForCategory(category);
@@ -82,6 +95,7 @@ export default function BudgetPage() {
                                 <div className="flex items-center gap-2">
                                     <Icon className="h-5 w-5 text-muted-foreground" />
                                     <CardTitle className="text-base capitalize">{category}</CardTitle>
+
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                     <span className={percentage > 100 ? 'text-destructive' : ''}>
