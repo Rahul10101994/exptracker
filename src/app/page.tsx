@@ -8,6 +8,7 @@ import { SpendingTrendChart } from '@/components/fintrack/spending-trend-chart';
 import { TransactionHistory } from '@/components/fintrack/transaction-history';
 import { BudgetCard } from '@/components/fintrack/budget-card';
 import { CategoryBreakdownChart } from '@/components/fintrack/category-breakdown-chart';
+import { AddTransactionSheet } from '@/components/fintrack/add-transaction-sheet';
 
 export default function Home() {
   return (
@@ -25,10 +26,12 @@ export default function Home() {
         <TransactionHistory />
       </main>
       <div className="fixed bottom-6 left-1/2 z-10 -translate-x-1/2">
+        <AddTransactionSheet>
           <Button size="icon" className="h-16 w-16 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90">
             <Plus className="h-8 w-8" />
             <span className="sr-only">Add Transaction</span>
           </Button>
+        </AddTransactionSheet>
       </div>
     </div>
   );
