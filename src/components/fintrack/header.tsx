@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function FinTrackHeader() {
-  const currentDate = format(new Date(), "EEEE, MMMM d");
+  const currentDate = format(new Date(), "MMMM d");
 
   return (
     <header
@@ -28,7 +28,7 @@ export function FinTrackHeader() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-10 w-10"
+            className="h-8 w-8"
           >
             <MoreVertical className="h-5 w-5" />
             <span className="sr-only">Menu</span>
@@ -56,18 +56,18 @@ export function FinTrackHeader() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Center: Date + Name */}
-      <div className="flex flex-col items-center text-center min-w-0">
-        <p className="text-xs text-muted-foreground truncate">
-          {currentDate}
-        </p>
+      {/* Center: Name + Date */}
+      <div className="flex items-baseline gap-2 text-center min-w-0">
         <h1 className="text-base sm:text-lg font-bold truncate">
           Brooklyn Simmons
         </h1>
+        <p className="text-xs text-muted-foreground truncate">
+          {currentDate}
+        </p>
       </div>
 
       {/* Right: Placeholder for alignment */}
-      <div className="h-10 w-10 shrink-0" />
+      <div className="h-8 w-8 shrink-0" />
     </header>
   );
 }
