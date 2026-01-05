@@ -80,35 +80,39 @@ export function CategoryBreakdownChart() {
       <CardHeader>
         <CardTitle>Category Breakdown</CardTitle>
       </CardHeader>
-      <CardContent className="pb-0 flex flex-col items-center">
+      <CardContent className="pb-0">
         {chartData.length > 0 && isClient ? (
-           <PieChart width={240} height={240}>
-            <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-            >
-                {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{paddingLeft: "20px"}} iconSize={14} payload={
-              chartData.map(
-                (item, index) => ({
-                  id: item.name,
-                  type: "square",
-                  value: `${item.name} (${((item.value / totalAmount) * 100).toFixed(0)}%)`,
-                  color: COLORS[index % COLORS.length]
-                })
-              )
-            } />
-          </PieChart>
+           <div className="w-full flex items-center">
+            <PieChart width={160} height={160}>
+              <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={60}
+                  innerRadius={30}
+                  fill="#8884d8"
+                  dataKey="value"
+                  paddingAngle={2}
+              >
+                  {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="focus:outline-none" />
+                  ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+             <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{paddingLeft: "10px", flex: 1}} iconSize={12} payload={
+                chartData.map(
+                  (item, index) => ({
+                    id: item.name,
+                    type: "square",
+                    value: `${item.name} (${((item.value / totalAmount) * 100).toFixed(0)}%)`,
+                    color: COLORS[index % COLORS.length]
+                  })
+                )
+              } />
+          </div>
         ) : (
           <div className="flex items-center justify-center h-48 text-muted-foreground">
              { isClient ? 'No expense data for this month.' : 'Loading chart...' }
