@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -206,74 +207,26 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           )}
         />
 
-        {/* Amount + Date */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Amount</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="number"
-                    inputMode="decimal"
-                    placeholder="₹0.00"
-                    className="h-11 text-base"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Date</FormLabel>
-                  <button
-                    type="button"
-                    onClick={() => form.setValue("date", new Date())}
-                    className="text-xs font-medium text-primary"
-                  >
-                    Today
-                  </button>
-                </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "h-11 w-full justify-between text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value
-                          ? format(field.value, "PPP")
-                          : "Pick a date"}
-                        <CalendarIcon className="h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {/* Amount */}
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="₹0.00"
+                  className="h-11 text-base"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Category + Account */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
