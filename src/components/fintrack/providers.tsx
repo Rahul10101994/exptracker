@@ -1,6 +1,7 @@
 
 "use client";
 
+import { ThemeProvider } from 'next-themes';
 import { TransactionsProvider } from '@/contexts/transactions-context';
 import { AccountProvider } from '@/contexts/account-context';
 import { BudgetProvider } from '@/contexts/budget-context';
@@ -12,14 +13,21 @@ export function Providers({
   children: React.ReactNode;
 }) {
   return (
-    <TransactionsProvider>
-      <AccountProvider>
-        <BudgetProvider>
-          <GoalProvider>
-            {children}
-          </GoalProvider>
-        </BudgetProvider>
-      </AccountProvider>
-    </TransactionsProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+    >
+      <TransactionsProvider>
+        <AccountProvider>
+          <BudgetProvider>
+            <GoalProvider>
+              {children}
+            </GoalProvider>
+          </BudgetProvider>
+        </AccountProvider>
+      </TransactionsProvider>
+    </ThemeProvider>
   );
 }

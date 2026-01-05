@@ -1,7 +1,9 @@
 
 "use client";
 
+import * as React from 'react';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
 import { ArrowLeft, ChevronRight, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
@@ -11,6 +13,17 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
+    const { theme, setTheme } = useTheme();
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+    
+    if (!isMounted) {
+        return null;
+    }
+
     return (
         <FinTrackLayout>
             <header className="flex items-center pt-2">
@@ -31,7 +44,11 @@ export default function SettingsPage() {
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="dark-mode">Dark Mode</Label>
-                        <Switch id="dark-mode" />
+                        <Switch 
+                            id="dark-mode"
+                            checked={theme === 'dark'}
+                            onCheckedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        />
                     </div>
                 </CardContent>
             </Card>
