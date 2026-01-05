@@ -52,6 +52,11 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
 
   }, [transactions, prevMonthTransactions, income, expense, savings]);
 
+  // Placeholder data for investments
+  const investments = 1200;
+  const prevInvestments = 1000;
+  const investmentChange = prevInvestments > 0 ? ((investments - prevInvestments) / prevInvestments) * 100 : (investments > 0 ? 100 : 0);
+
 
   return (
     <Card className="shadow-lg border-0">
@@ -98,7 +103,15 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
           </div>
            <div>
             <p className="text-sm text-muted-foreground">Investments</p>
-            <p className="text-lg font-bold text-purple-600">$0.00</p>
+             <div className="flex items-center gap-2">
+                <p className="text-lg font-bold text-purple-600">${investments.toFixed(2)}</p>
+                {investmentChange !== 0 && (
+                    <span className={`flex items-center text-xs font-semibold ${investmentChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {investmentChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(investmentChange).toFixed(1)}%
+                    </span>
+                )}
+            </div>
           </div>
         </div>
       </CardContent>
