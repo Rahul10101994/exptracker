@@ -30,12 +30,19 @@ export function IconPicker({
   onSelectIcon,
 }: IconPickerProps) {
   const [search, setSearch] = React.useState("");
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const filteredIcons = React.useMemo(() => {
+    if (!isClient) return [];
     return iconList.filter((iconName) =>
       iconName.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, isClient]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) onClose();
@@ -78,7 +85,7 @@ export function IconPicker({
         {/* Scrollable icon grid */}
         <ScrollArea className="flex-1">
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 p-2">
-            {filteredIcons.map((iconName) => {
+            {isClient && filteredIcons.map((iconName) => {
               const IconComponent = (LucideIcons as any)[iconName];
 
               return (
@@ -112,9 +119,14 @@ export function IconPicker({
               );
             })}
 
-            {filteredIcons.length === 0 && (
+            {isClient && filteredIcons.length === 0 && (
               <div className="col-span-full text-center text-sm text-muted-foreground py-10">
                 No icons found
+              </div>
+            )}
+             {!isClient && (
+              <div className="col-span-full text-center text-sm text-muted-foreground py-10">
+                Loading icons...
               </div>
             )}
           </div>
