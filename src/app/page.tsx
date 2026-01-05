@@ -9,7 +9,7 @@ export default function LoginPage() {
       <Image
         src="https://picsum.photos/seed/budget/1200/800"
         alt="Financial documents and a laptop"
-        data-ai-hint="finance budget"
+        data-ai-hint="money wallet"
         fill
         className="object-cover"
       />
