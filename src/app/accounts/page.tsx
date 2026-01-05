@@ -45,7 +45,7 @@ export default function AccountsPage() {
                 } else {
                     return acc - t.amount;
                 }
-            }, 0);
+            }, account.initialBalance);
             balances[account.id] = balance;
         });
         return balances;
@@ -148,4 +148,3 @@ export default function AccountsPage() {
         </FinTrackLayout>
     );
 }
-

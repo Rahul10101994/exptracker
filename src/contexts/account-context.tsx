@@ -6,6 +6,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 export type Account = {
     id: string;
     name: string;
+    initialBalance: number;
 };
 
 export type NewAccount = Omit<Account, 'id'>;
@@ -20,9 +21,9 @@ interface AccountContextType {
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 const initialAccounts: Account[] = [
-    { id: '1', name: 'Bank' },
-    { id: '2', name: 'Cash' },
-    { id: '3', name: 'Card' },
+    { id: '1', name: 'Bank', initialBalance: 1000 },
+    { id: '2', name: 'Cash', initialBalance: 100 },
+    { id: '3', name: 'Card', initialBalance: 0 },
 ];
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
@@ -37,7 +38,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateAccount = (id: string, updatedAccount: NewAccount) => {
-        setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, ...updatedAccount } : acc));
+        setAccounts(prev => prev.map(acc => acc.id === id ? { id, ...updatedAccount } : acc));
     };
 
     const deleteAccount = (id: string) => {

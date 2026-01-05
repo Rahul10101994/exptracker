@@ -20,6 +20,7 @@ import { useAccounts, Account, NewAccount } from "@/contexts/account-context";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter a name for the account."),
+  initialBalance: z.coerce.number().default(0),
 });
 
 export function EditAccountForm({ account, onSubmit }: { account: Account, onSubmit?: () => void }) {
@@ -28,6 +29,7 @@ export function EditAccountForm({ account, onSubmit }: { account: Account, onSub
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: account.name,
+      initialBalance: account.initialBalance,
     },
   });
 
@@ -53,6 +55,19 @@ export function EditAccountForm({ account, onSubmit }: { account: Account, onSub
               <FormLabel>Account Name</FormLabel>
               <FormControl>
                 <Input placeholder="e.g. Savings Account" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="initialBalance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Balance</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="$0.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

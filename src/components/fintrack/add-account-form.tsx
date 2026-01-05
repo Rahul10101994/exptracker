@@ -20,6 +20,7 @@ import { useAccounts } from "@/contexts/account-context";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter a name for the account."),
+  initialBalance: z.coerce.number().default(0),
 });
 
 export function AddAccountForm({ onSubmit }: { onSubmit?: () => void }) {
@@ -28,11 +29,12 @@ export function AddAccountForm({ onSubmit }: { onSubmit?: () => void }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      initialBalance: 0,
     },
   });
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    addAccount({ name: values.name });
+    addAccount({ name: values.name, initialBalance: values.initialBalance });
     toast({
       title: "Account Added",
       description: `The account "${values.name}" has been added.`,
@@ -54,6 +56,19 @@ export function AddAccountForm({ onSubmit }: { onSubmit?: () => void }) {
               <FormLabel>Account Name</FormLabel>
               <FormControl>
                 <Input placeholder="e.g. Savings Account" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="initialBalance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Initial Balance</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="$0.00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
