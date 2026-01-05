@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -10,10 +11,11 @@ import { GoalCard } from '@/components/fintrack/goal-card';
 import { AddGoalSheet } from '@/components/fintrack/add-goal-sheet';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { cn } from '@/lib/utils';
+import { Goal } from '@/contexts/goal-context';
 
 
 export default function GoalPage() {
-    const { goals } = useGoals();
+    const { goals, getGoalProgress } = useGoals();
     const [isMonthlyOpen, setIsMonthlyOpen] = React.useState(true);
     const [isYearlyOpen, setIsYearlyOpen] = React.useState(true);
     const [isLongTermOpen, setIsLongTermOpen] = React.useState(true);
@@ -21,6 +23,14 @@ export default function GoalPage() {
     const monthlyGoals = goals.filter(g => g.type === 'monthly');
     const yearlyGoals = goals.filter(g => g.type === 'yearly');
     const longTermGoals = goals.filter(g => g.type === 'long-term');
+
+    const getActiveGoal = (goals: Goal[]): Goal | undefined => {
+        return goals.find(g => getGoalProgress(g).progress <= 100) || goals[0];
+    }
+    
+    const activeMonthlyGoal = getActiveGoal(monthlyGoals);
+    const activeYearlyGoal = getActiveGoal(yearlyGoals);
+    const activeLongTermGoal = getActiveGoal(longTermGoals);
 
     return (
         <FinTrackLayout>
@@ -51,10 +61,10 @@ export default function GoalPage() {
                         </Collapsible.Trigger>
                     </div>
                     {monthlyGoals.length > 0 ? (
-                        <div className="space-y-4">
-                           {!isMonthlyOpen && <GoalCard goal={monthlyGoals[0]} />}
+                         <div className="space-y-4">
+                           {!isMonthlyOpen && activeMonthlyGoal && <GoalCard goal={activeMonthlyGoal} />}
                             <Collapsible.Content className="space-y-4">
-                                {monthlyGoals.slice(1).map(goal => <GoalCard key={goal.id} goal={goal} />)}
+                                {monthlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)}
                             </Collapsible.Content>
                         </div>
                     ) : (
@@ -76,9 +86,9 @@ export default function GoalPage() {
                     </div>
                     {yearlyGoals.length > 0 ? (
                         <div className="space-y-4">
-                           {!isYearlyOpen && <GoalCard goal={yearlyGoals[0]} />}
+                           {!isYearlyOpen && activeYearlyGoal && <GoalCard goal={activeYearlyGoal} />}
                            <Collapsible.Content className="space-y-4">
-                               {yearlyGoals.slice(1).map(goal => <GoalCard key={goal.id} goal={goal} />)}
+                               {yearlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)}
                            </Collapsible.Content>
                         </div>
                     ) : (
@@ -100,9 +110,9 @@ export default function GoalPage() {
                     </div>
                     {longTermGoals.length > 0 ? (
                         <div className="space-y-4">
-                            {!isLongTermOpen && <GoalCard goal={longTermGoals[0]} />}
+                            {!isLongTermOpen && activeLongTermGoal && <GoalCard goal={activeLongTermGoal} />}
                             <Collapsible.Content className="space-y-4">
-                                {longTermGoals.slice(1).map(goal => <GoalCard key={goal.id} goal={goal} />)}
+                                {longTermGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)}
                             </Collapsible.Content>
                         </div>
                     ) : (
