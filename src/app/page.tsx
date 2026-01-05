@@ -1,4 +1,3 @@
-
 "use client";
 
 import { LoginForm } from "@/components/fintrack/login-form";
@@ -10,7 +9,7 @@ export default function LoginPage() {
       <Image
         src="https://picsum.photos/seed/budget/1200/800"
         alt="Financial documents and a laptop"
-        data-ai-hint="money wallet"
+        data-ai-hint="wallet finance"
         fill
         className="object-cover"
       />
