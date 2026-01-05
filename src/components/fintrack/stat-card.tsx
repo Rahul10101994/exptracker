@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,15 +11,13 @@ interface StatCardProps {
 
 export function StatCard({ label, value, valueClassName }: StatCardProps) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <Card className="border-0 shadow-lg w-full h-20">
-        <CardContent className="flex items-center justify-center h-full p-4">
-          <p className={cn("text-xl sm:text-2xl font-bold truncate", valueClassName)}>
-            {value}
-          </p>
-        </CardContent>
-      </Card>
-      <p className="text-xs sm:text-sm text-muted-foreground font-medium">{label}</p>
-    </div>
+    <Card className="border-0 shadow-lg w-full h-20">
+      <CardContent className="flex flex-col items-center justify-center h-full p-4 gap-1">
+        <p className="text-xs sm:text-sm text-muted-foreground font-medium">{label}</p>
+        <p className={cn("text-xl sm:text-2xl font-bold truncate", valueClassName)}>
+          {value}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
