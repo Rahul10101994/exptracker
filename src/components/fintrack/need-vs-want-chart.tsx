@@ -14,6 +14,12 @@ import { Transaction } from "@/contexts/transactions-context";
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))"];
 
 export function NeedVsWantChart({ transactions }: { transactions: Transaction[] }) {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const chartData = React.useMemo(() => {
     const spendingTypes: { [key: string]: number } = {
       need: 0,
@@ -72,7 +78,7 @@ export function NeedVsWantChart({ transactions }: { transactions: Transaction[] 
         <CardTitle>Needs vs. Wants</CardTitle>
       </CardHeader>
       <CardContent className="pb-0 flex flex-col items-center">
-        {totalAmount > 0 ? (
+        {totalAmount > 0 && isClient ? (
            <PieChart width={240} height={240}>
             <Pie
                 data={chartData}
@@ -102,7 +108,7 @@ export function NeedVsWantChart({ transactions }: { transactions: Transaction[] 
           </PieChart>
         ) : (
           <div className="flex items-center justify-center h-48 text-muted-foreground">
-            No expense data for this period.
+            {isClient ? 'No expense data for this period.' : 'Loading chart...'}
           </div>
         )}
       </CardContent>

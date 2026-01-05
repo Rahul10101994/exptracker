@@ -21,6 +21,11 @@ const COLORS: string[] = [
 
 export function CategoryBreakdownChart() {
   const { currentMonthTransactions } = useTransactions();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const chartData = React.useMemo(() => {
     const categoryTotals: { [key: string]: number } = {};
@@ -76,7 +81,7 @@ export function CategoryBreakdownChart() {
         <CardTitle>Category Breakdown</CardTitle>
       </CardHeader>
       <CardContent className="pb-0 flex flex-col items-center">
-        {chartData.length > 0 ? (
+        {chartData.length > 0 && isClient ? (
            <PieChart width={240} height={240}>
             <Pie
                 data={chartData}
@@ -106,7 +111,7 @@ export function CategoryBreakdownChart() {
           </PieChart>
         ) : (
           <div className="flex items-center justify-center h-48 text-muted-foreground">
-            No expense data for this month.
+             { isClient ? 'No expense data for this month.' : 'Loading chart...' }
           </div>
         )}
       </CardContent>
