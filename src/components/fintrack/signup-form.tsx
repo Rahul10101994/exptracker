@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/contexts/user-context";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name."),
@@ -28,6 +30,8 @@ const formSchema = z.object({
 
 export function SignUpForm() {
   const router = useRouter();
+  const { signUp } = useUser();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -38,7 +42,7 @@ export function SignUpForm() {
   });
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    signUp(values);
     toast({
       title: "Account Created",
       description: "Welcome to FinTrack!",

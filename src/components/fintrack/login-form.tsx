@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/contexts/user-context";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -27,6 +29,8 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
+  const { login, user } = useUser();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,9 +40,16 @@ export function LoginForm() {
   });
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    // For demonstration, we'll use a hardcoded password.
-    // In a real app, this would be a call to your auth provider.
-    if (values.password === "password123") {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "No user found",
+        description: "Please sign up first to create an account.",
+      });
+      return;
+    }
+    
+    if (login(values)) {
       toast({
         title: "Logged In",
         description: "Welcome back!",

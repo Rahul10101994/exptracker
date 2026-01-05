@@ -12,10 +12,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { useUser } from '@/contexts/user-context';
 
 export default function SettingsPage() {
     const { theme, setTheme } = useTheme();
     const router = useRouter();
+    const { logout } = useUser();
     const [isMounted, setIsMounted] = React.useState(false);
 
     React.useEffect(() => {
@@ -23,6 +25,7 @@ export default function SettingsPage() {
     }, []);
 
     const handleLogout = () => {
+        logout();
         router.push('/');
     };
     

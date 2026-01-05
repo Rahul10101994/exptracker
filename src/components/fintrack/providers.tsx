@@ -6,6 +6,7 @@ import { TransactionsProvider } from '@/contexts/transactions-context';
 import { AccountProvider } from '@/contexts/account-context';
 import { BudgetProvider } from '@/contexts/budget-context';
 import { GoalProvider } from '@/contexts/goal-context';
+import { UserProvider } from '@/contexts/user-context';
 
 export function Providers({
   children,
@@ -19,15 +20,17 @@ export function Providers({
       enableSystem={false}
       disableTransitionOnChange
     >
-      <TransactionsProvider>
-        <AccountProvider>
-          <BudgetProvider>
-            <GoalProvider>
-              {children}
-            </GoalProvider>
-          </BudgetProvider>
-        </AccountProvider>
-      </TransactionsProvider>
+      <UserProvider>
+        <TransactionsProvider>
+          <AccountProvider>
+            <BudgetProvider>
+              <GoalProvider>
+                {children}
+              </GoalProvider>
+            </BudgetProvider>
+          </AccountProvider>
+        </TransactionsProvider>
+      </UserProvider>
     </ThemeProvider>
   );
 }
