@@ -203,53 +203,53 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           )}
         />
 
-        {/* Amount */}
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="number"
-                  inputMode="decimal"
-                  placeholder="₹0.00"
-                  className="h-11 text-base"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Date */}
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date</FormLabel>
-              <FormControl>
-                <Input
-                  type="date"
-                  value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const date = new Date(e.target.value + "T00:00:00");
-                      field.onChange(date);
-                    } else {
-                      field.onChange(undefined);
-                    }
-                  }}
-                  className="h-11 text-base"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Amount + Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Amount</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="₹0.00"
+                    className="h-11 text-base"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const date = new Date(e.target.value + "T00:00:00");
+                        field.onChange(date);
+                      } else {
+                        field.onChange(undefined);
+                      }
+                    }}
+                    className="h-11 text-base"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* Category + Account */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
