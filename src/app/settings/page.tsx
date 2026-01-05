@@ -4,6 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, ChevronRight, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
@@ -14,11 +15,16 @@ import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
     const { theme, setTheme } = useTheme();
+    const router = useRouter();
     const [isMounted, setIsMounted] = React.useState(false);
 
     React.useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    const handleLogout = () => {
+        router.push('/');
+    };
     
     if (!isMounted) {
         return null;
@@ -87,8 +93,8 @@ export default function SettingsPage() {
                     <CardTitle>Account</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link href="/">Login</Link>
+                  <Button variant="outline" className="w-full" onClick={handleLogout}>
+                    Logout
                   </Button>
                 </CardContent>
             </Card>
