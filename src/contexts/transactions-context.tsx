@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, FC } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { isSameMonth, isSameYear } from 'date-fns';
+import { cuid } from '@/lib/utils';
 
 const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal } = LucideIcons;
 
@@ -40,7 +41,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Spotify',
         category: 'subscription',
-        date: new Date().toISOString(),
+        date: "2024-07-28T12:00:00.000Z",
         amount: 12.99,
         account: 'card',
         spendingType: 'want',
@@ -52,7 +53,7 @@ const initialTransactions: Transaction[] = [
         type: 'income',
         name: 'Income',
         category: 'freelance',
-        date: new Date().toISOString(),
+        date: "2024-07-28T12:00:00.000Z",
         amount: 2500.00,
         account: 'bank',
         fgColor: 'text-transaction-income-fg',
@@ -63,7 +64,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Netflix',
         category: 'subscription',
-        date: new Date().toISOString(),
+        date: "2024-07-28T12:00:00.000Z",
         amount: 15.99,
         account: 'card',
         spendingType: 'want',
@@ -75,7 +76,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Zara',
         category: 'shopping',
-        date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(),
+        date: "2024-07-27T12:00:00.000Z",
         amount: 128.50,
         account: 'card',
         spendingType: 'want',
@@ -87,7 +88,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'The Noodle House',
         category: 'food',
-        date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(),
+        date: "2024-07-26T12:00:00.000Z",
         amount: 34.20,
         account: 'cash',
         spendingType: 'need',
@@ -99,7 +100,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Metro Ticket',
         category: 'transport',
-        date: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(),
+        date: "2024-07-25T12:00:00.000Z",
         amount: 2.75,
         account: 'card',
         spendingType: 'need',
@@ -111,7 +112,7 @@ const initialTransactions: Transaction[] = [
         type: 'expense',
         name: 'Apple Store',
         category: 'shopping',
-        date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
+        date: "2024-06-28T12:00:00.000Z",
         amount: 999.00,
         account: 'card',
         spendingType: 'want',
@@ -154,7 +155,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = (transaction: NewTransaction) => {
         const styles = categoryStyles[transaction.category.toLowerCase()] || categoryStyles.other;
         const newTransaction: Transaction = {
-            id: `${transaction.name}-${Date.now()}-${Math.random()}`,
+            id: cuid(),
             ...transaction,
             date: transaction.date.toISOString(),
             ...styles

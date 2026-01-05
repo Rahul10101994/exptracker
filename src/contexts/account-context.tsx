@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useTransactions } from './transactions-context';
+import { cuid } from '@/lib/utils';
 
 export type Account = {
     id: string;
@@ -34,7 +35,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
     const addAccount = (account: NewAccount) => {
         const newAccount: Account = {
-            id: `${account.name}-${Date.now()}-${Math.random()}`,
+            id: cuid(),
             ...account
         };
         setAccounts(prev => [...prev, newAccount]);

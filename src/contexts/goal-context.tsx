@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useTransactions } from './transactions-context';
+import { cuid } from '@/lib/utils';
 
 export type Goal = {
     id: string;
@@ -30,7 +31,7 @@ const initialGoals: Goal[] = [
         targetAmount: 2000,
         savedAmount: 500,
         type: 'long-term',
-        createdAt: new Date().toISOString(),
+        createdAt: "2024-01-01T00:00:00.000Z",
     },
     {
         id: 'g2',
@@ -38,7 +39,7 @@ const initialGoals: Goal[] = [
         targetAmount: 500,
         savedAmount: 0, // This will be calculated from transactions
         type: 'monthly',
-        createdAt: new Date().toISOString(),
+        createdAt: "2024-01-01T00:00:00.000Z",
     }
 ];
 
@@ -48,7 +49,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
 
     const addGoal = (goal: NewGoal) => {
         const newGoal: Goal = {
-            id: `${goal.name}-${Date.now()}-${Math.random()}`,
+            id: cuid(),
             ...goal,
             savedAmount: 0,
             createdAt: new Date().toISOString(),
