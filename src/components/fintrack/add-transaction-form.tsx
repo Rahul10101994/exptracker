@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,6 +34,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import { useTransactions } from "@/contexts/transactions-context";
+import { useAccounts } from "@/contexts/account-context";
 
 const formSchema = z.object({
   type: z.enum(["income", "expense"], {
@@ -65,10 +67,10 @@ const categories = {
   expense: ["Food", "Transport", "Shopping", "Bills", "Subscription", "Other"],
 };
 
-const accounts = ["Bank", "Cash", "Card"];
 
 export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addTransaction } = useTransactions();
+  const { accounts } = useAccounts();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -242,8 +244,8 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                   </FormControl>
                   <SelectContent>
                     {accounts.map((account) => (
-                      <SelectItem key={account} value={account.toLowerCase()}>
-                        {account}
+                      <SelectItem key={account.id} value={account.name.toLowerCase()}>
+                        <span className="capitalize">{account.name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>

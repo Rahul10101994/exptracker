@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -57,7 +58,10 @@ export default function SettingsPage() {
                     <CardTitle>Manage Accounts</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {/* Content for managing accounts will go here */}
+                    <Link href="/accounts" className="flex items-center justify-between">
+                        <span>Accounts</span>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </Link>
                 </CardContent>
             </Card>
 

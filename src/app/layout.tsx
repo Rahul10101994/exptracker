@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -5,6 +6,7 @@ import { PageTransition } from '@/components/fintrack/page-transition';
 import { TransactionsProvider } from '@/contexts/transactions-context';
 import { BudgetProvider } from '@/contexts/budget-context';
 import { GoalProvider } from '@/contexts/goal-context';
+import { AccountProvider } from '@/contexts/account-context';
 
 export const metadata: Metadata = {
   title: 'FinTrack',
@@ -25,12 +27,14 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <TransactionsProvider>
-          <BudgetProvider>
-            <GoalProvider>
-              <PageTransition>{children}</PageTransition>
-              <Toaster />
-            </GoalProvider>
-          </BudgetProvider>
+          <AccountProvider>
+            <BudgetProvider>
+              <GoalProvider>
+                <PageTransition>{children}</PageTransition>
+                <Toaster />
+              </GoalProvider>
+            </BudgetProvider>
+          </AccountProvider>
         </TransactionsProvider>
       </body>
     </html>
