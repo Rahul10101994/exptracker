@@ -4,8 +4,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Transaction } from '@/contexts/transactions-context';
 import { useMemo } from 'react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 
-export function FinancialSummaryCard({ transactions }: { transactions: Transaction[] }) {
+export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { transactions: Transaction[], prevMonthTransactions: Transaction[] }) {
 
   const { income, expense, savings } = useMemo(() => {
     const income = transactions
@@ -20,6 +21,21 @@ export function FinancialSummaryCard({ transactions }: { transactions: Transacti
     
     return { income, expense, savings };
   }, [transactions]);
+  
+  const { expenseChange } = useMemo(() => {
+    const prevExpense = prevMonthTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((acc, t) => acc + t.amount, 0);
+
+    if (prevExpense === 0) {
+      return { expenseChange: expense > 0 ? 100 : 0 };
+    }
+    
+    const change = ((expense - prevExpense) / prevExpense) * 100;
+    return { expenseChange: change };
+
+  }, [transactions, prevMonthTransactions]);
+
 
   return (
     <Card className="shadow-lg border-0">
@@ -34,7 +50,15 @@ export function FinancialSummaryCard({ transactions }: { transactions: Transacti
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Expense</p>
-            <p className="text-lg font-bold text-red-600">${expense.toFixed(2)}</p>
+            <div className="flex items-center gap-2">
+                 <p className="text-lg font-bold text-red-600">${expense.toFixed(2)}</p>
+                 {expenseChange !== 0 && (
+                    <span className={`flex items-center text-xs font-semibold ${expenseChange > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                        {expenseChange > 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(expenseChange).toFixed(1)}%
+                    </span>
+                 )}
+            </div>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Savings</p>

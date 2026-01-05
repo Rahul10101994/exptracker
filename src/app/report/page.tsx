@@ -12,7 +12,7 @@ import { FinancialSummaryCard } from '@/components/fintrack/financial-summary-ca
 import { NeedVsWantChart } from '@/components/fintrack/need-vs-want-chart';
 import { ReportCategoryBreakdown } from '@/components/fintrack/report-category-breakdown';
 import { BudgetBreakdownCard } from '@/components/fintrack/budget-breakdown-card';
-import { isSameMonth, isSameYear } from 'date-fns';
+import { isSameMonth, isSameYear, subMonths } from 'date-fns';
 import { Transaction } from '@/contexts/transactions-context';
 
 const months = [
@@ -29,12 +29,23 @@ export default function ReportPage() {
   const [selectedMonth, setSelectedMonth] = React.useState<string>(months[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
 
-  const filteredTransactions: Transaction[] = React.useMemo(() => {
+  const { filteredTransactions, previousMonthTransactions } = React.useMemo(() => {
     const monthIndex = months.indexOf(selectedMonth);
-    return transactions.filter(transaction => {
+    const selectedDate = new Date(selectedYear, monthIndex);
+
+    const filtered = transactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);
-      return isSameMonth(transactionDate, new Date(selectedYear, monthIndex)) && isSameYear(transactionDate, new Date(selectedYear, monthIndex));
+      return isSameMonth(transactionDate, selectedDate) && isSameYear(transactionDate, selectedDate);
     });
+
+    const prevMonthDate = subMonths(selectedDate, 1);
+    const previousMonthFiltered = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return isSameMonth(transactionDate, prevMonthDate) && isSameYear(transactionDate, prevMonthDate);
+    });
+    
+    return { filteredTransactions: filtered, previousMonthTransactions: previousMonthFiltered };
+
   }, [transactions, selectedMonth, selectedYear]);
 
 
@@ -74,9 +85,9 @@ export default function ReportPage() {
             </Select>
         </div>
 
-        {filteredTransactions.length > 0 ? (
+        {filteredTransactions.length > 0 || previousMonthTransactions.length > 0 ? (
           <>
-            <FinancialSummaryCard transactions={filteredTransactions} />
+            <FinancialSummaryCard transactions={filteredTransactions} prevMonthTransactions={previousMonthTransactions} />
             <NeedVsWantChart transactions={filteredTransactions} />
             <ReportCategoryBreakdown transactions={filteredTransactions} />
             <BudgetBreakdownCard transactions={filteredTransactions} />
