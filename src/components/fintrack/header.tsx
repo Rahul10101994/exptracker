@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { MoreVertical, Settings, LogOut } from "lucide-react";
+import { MoreVertical, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,8 +18,8 @@ export function FinTrackHeader() {
     <header
       className="
         flex items-center justify-between
-        pt-0
-        gap-2
+        pt-2
+        gap-4
       "
     >
       {/* Left: Menu */}
@@ -47,11 +47,6 @@ export function FinTrackHeader() {
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </Link>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem className="text-destructive">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Logout</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

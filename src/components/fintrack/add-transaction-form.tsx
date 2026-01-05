@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +5,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -42,13 +40,10 @@ const formSchema = z
     spendingType: z.enum(["need", "want"]).optional(),
     recurring: z.boolean().optional(),
   })
-  .refine(
-    (data) => data.type === "income" || !!data.spendingType,
-    {
-      message: "Please select if this is a need or a want.",
-      path: ["spendingType"],
-    }
-  );
+  .refine((data) => data.type === "income" || !!data.spendingType, {
+    message: "Please select if this is a need or a want.",
+    path: ["spendingType"],
+  });
 
 /* ---------------- Data ---------------- */
 
@@ -98,8 +93,8 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
     addTransaction({
-        ...values,
-        name: values.description
+      ...values,
+      name: values.description,
     });
 
     toast({
@@ -120,17 +115,9 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
 
   return (
     <Form {...form}>
-      {/* 🔽 SCROLLABLE FORM BODY */}
       <form
         onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="
-          space-y-5
-          pt-4
-          w-full
-          max-h-[70vh]
-          overflow-y-auto
-          pr-1
-        "
+        className="space-y-5 pt-4 w-full max-h-[70vh] overflow-y-auto pr-1"
       >
         {/* Transaction Type */}
         <FormField
@@ -155,14 +142,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                   {["income", "expense"].map((t) => (
                     <label
                       key={t}
-                      className="
-                        flex items-center gap-3
-                        border rounded-lg
-                        px-4 py-3
-                        cursor-pointer
-                        [&:has(:checked)]:border-primary
-                        [&:has(:checked)]:bg-muted
-                      "
+                      className="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-muted"
                     >
                       <RadioGroupItem value={t} />
                       {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -203,8 +183,8 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           )}
         />
 
-        {/* Amount + Date */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Amount + Date (SAME ROW) */}
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="amount"
@@ -224,6 +204,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="date"
@@ -233,15 +214,12 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                 <FormControl>
                   <Input
                     type="date"
-                    value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        const date = new Date(e.target.value + "T00:00:00");
-                        field.onChange(date);
-                      } else {
-                        field.onChange(undefined);
-                      }
-                    }}
+                    value={format(field.value, "yyyy-MM-dd")}
+                    onChange={(e) =>
+                      field.onChange(
+                        new Date(e.target.value + "T00:00:00")
+                      )
+                    }
                     className="h-11 text-base"
                   />
                 </FormControl>
@@ -251,8 +229,8 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           />
         </div>
 
-        {/* Category + Account */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Category + Account (SAME ROW) */}
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="category"
@@ -289,10 +267,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger className="h-11">
                       <SelectValue placeholder="Select account" />
@@ -329,14 +304,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                     {["need", "want"].map((t) => (
                       <label
                         key={t}
-                        className="
-                          flex items-center gap-3
-                          border rounded-lg
-                          px-4 py-3
-                          cursor-pointer
-                          [&:has(:checked)]:border-primary
-                          [&:has(:checked)]:bg-muted
-                        "
+                        className="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-muted"
                       >
                         <RadioGroupItem value={t} />
                         {t.charAt(0).toUpperCase() + t.slice(1)}
