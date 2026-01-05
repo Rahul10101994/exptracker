@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,8 +6,23 @@ import { Progress } from "@/components/ui/progress";
 import { Goal, useGoals } from "@/contexts/goal-context";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export function GoalCard({ goal }: { goal: Goal }) {
+interface GoalCardProps {
+  goal: Goal;
+  onEdit: (goal: Goal) => void;
+  onDelete: (goal: Goal) => void;
+}
+
+
+export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
   const { getGoalProgress } = useGoals();
   const { progress, saved } = getGoalProgress(goal);
 
@@ -25,16 +41,34 @@ export function GoalCard({ goal }: { goal: Goal }) {
   return (
     <Card className="border-0 shadow-lg w-full">
       <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between gap-2">
-        <CardTitle className="text-sm sm:text-base font-medium truncate">
-          {goalName}
-        </CardTitle>
-
-        {/* 🔥 Monthly Streak */}
-        {streak > 0 && (
-          <span className="text-xs font-semibold text-orange-500 whitespace-nowrap">
-            🔥 {streak} mo
-          </span>
-        )}
+        <div className="flex-1 min-w-0">
+          <CardTitle className="text-sm sm:text-base font-medium truncate">
+            {goalName}
+          </CardTitle>
+          {streak > 0 && (
+            <span className="text-xs font-semibold text-orange-500 whitespace-nowrap">
+              🔥 {streak} mo streak
+            </span>
+          )}
+        </div>
+        
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                    <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => onEdit(goal)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    <span>Edit</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(goal)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Delete</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
 
       <CardContent className="p-4 pt-0 space-y-3">

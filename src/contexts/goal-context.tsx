@@ -19,6 +19,8 @@ export type NewGoal = Omit<Goal, 'id' | 'savedAmount' | 'createdAt'>;
 interface GoalContextType {
     goals: Goal[];
     addGoal: (goal: NewGoal) => void;
+    updateGoal: (id: string, goal: NewGoal) => void;
+    deleteGoal: (id: string) => void;
     getGoalProgress: (goal: Goal) => { progress: number; saved: number };
 }
 
@@ -64,6 +66,14 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
         };
         setGoals(prev => [...prev, newGoal]);
     };
+
+    const updateGoal = (id: string, updatedData: NewGoal) => {
+        setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updatedData } : g));
+    };
+
+    const deleteGoal = (id: string) => {
+        setGoals(prev => prev.filter(g => g.id !== id));
+    };
     
     const getGoalProgress = (goal: Goal) => {
         let saved = goal.savedAmount;
@@ -96,7 +106,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <GoalContext.Provider value={{ goals, addGoal, getGoalProgress }}>
+        <GoalContext.Provider value={{ goals, addGoal, updateGoal, deleteGoal, getGoalProgress }}>
             {children}
         </GoalContext.Provider>
     );

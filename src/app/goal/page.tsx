@@ -12,13 +12,26 @@ import { AddGoalSheet } from '@/components/fintrack/add-goal-sheet';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { cn } from '@/lib/utils';
 import { Goal } from '@/contexts/goal-context';
-
+import { EditGoalSheet } from '@/components/fintrack/edit-goal-sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from '@/hooks/use-toast';
 
 export default function GoalPage() {
-    const { goals, getGoalProgress } = useGoals();
+    const { goals, getGoalProgress, deleteGoal } = useGoals();
     const [isMonthlyOpen, setIsMonthlyOpen] = React.useState(true);
     const [isYearlyOpen, setIsYearlyOpen] = React.useState(true);
     const [isLongTermOpen, setIsLongTermOpen] = React.useState(true);
+    const [goalToEdit, setGoalToEdit] = React.useState<Goal | null>(null);
+    const [goalToDelete, setGoalToDelete] = React.useState<Goal | null>(null);
     
     const monthlyGoals = goals.filter(g => g.type === 'monthly');
     const yearlyGoals = goals.filter(g => g.type === 'yearly');
@@ -31,6 +44,17 @@ export default function GoalPage() {
     const activeMonthlyGoal = getActiveGoal(monthlyGoals);
     const activeYearlyGoal = getActiveGoal(yearlyGoals);
     const activeLongTermGoal = getActiveGoal(longTermGoals);
+
+    const handleDelete = () => {
+        if (goalToDelete) {
+            deleteGoal(goalToDelete.id);
+            toast({
+                title: "Goal Deleted",
+                description: `The goal "${goalToDelete.name}" has been deleted.`,
+            });
+            setGoalToDelete(null);
+        }
+    };
 
     return (
         <FinTrackLayout>
@@ -62,9 +86,9 @@ export default function GoalPage() {
                     </div>
                     {monthlyGoals.length > 0 ? (
                          <div className="space-y-4">
-                           {!isMonthlyOpen && activeMonthlyGoal && <GoalCard goal={activeMonthlyGoal} />}
+                           {!isMonthlyOpen && activeMonthlyGoal && <GoalCard goal={activeMonthlyGoal} onEdit={setGoalToEdit} onDelete={setGoalToDelete} />}
                             <Collapsible.Content className="space-y-4">
-                                {monthlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)}
+                                {monthlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} onEdit={setGoalToEdit} onDelete={setGoalToDelete} />)}
                             </Collapsible.Content>
                         </div>
                     ) : (
@@ -86,9 +110,9 @@ export default function GoalPage() {
                     </div>
                     {yearlyGoals.length > 0 ? (
                         <div className="space-y-4">
-                           {!isYearlyOpen && activeYearlyGoal && <GoalCard goal={activeYearlyGoal} />}
+                           {!isYearlyOpen && activeYearlyGoal && <GoalCard goal={activeYearlyGoal} onEdit={setGoalToEdit} onDelete={setGoalToDelete} />}
                            <Collapsible.Content className="space-y-4">
-                               {yearlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)}
+                               {yearlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} onEdit={setGoalToEdit} onDelete={setGoalToDelete} />)}
                            </Collapsible.Content>
                         </div>
                     ) : (
@@ -110,9 +134,9 @@ export default function GoalPage() {
                     </div>
                     {longTermGoals.length > 0 ? (
                         <div className="space-y-4">
-                            {!isLongTermOpen && activeLongTermGoal && <GoalCard goal={activeLongTermGoal} />}
+                            {!isLongTermOpen && activeLongTermGoal && <GoalCard goal={activeLongTermGoal} onEdit={setGoalToEdit} onDelete={setGoalToDelete} />}
                             <Collapsible.Content className="space-y-4">
-                                {longTermGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)}
+                                {longTermGoals.map(goal => <GoalCard key={goal.id} goal={goal} onEdit={setGoalToEdit} onDelete={setGoalToDelete} />)}
                             </Collapsible.Content>
                         </div>
                     ) : (
@@ -123,6 +147,30 @@ export default function GoalPage() {
                 </Collapsible.Root>
             </div>
 
+            {goalToEdit && (
+                <EditGoalSheet
+                    goal={goalToEdit}
+                    isOpen={!!goalToEdit}
+                    onClose={() => setGoalToEdit(null)}
+                />
+            )}
+
+            <AlertDialog open={!!goalToDelete} onOpenChange={(open) => !open && setGoalToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the goal {'"'}
+                        <span className="capitalize font-semibold">{goalToDelete?.name}</span>
+                        {'"'}.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setGoalToDelete(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </FinTrackLayout>
     );
 }
