@@ -33,17 +33,20 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
 
     const prevSavings = prevIncome - prevExpense;
 
-    const incomeChange = prevIncome === 0
-      ? (income > 0 ? 100 : 0)
-      : ((income - prevIncome) / prevIncome) * 100;
-      
-    const expenseChange = prevExpense === 0 
-      ? (expense > 0 ? 100 : 0) 
-      : ((expense - prevExpense) / prevExpense) * 100;
-      
-    const savingsChange = prevSavings === 0
-        ? (savings > 0 ? 100 : 0)
-        : ((savings - prevSavings) / prevSavings) * 100;
+    const calculateChange = (current: number, previous: number) => {
+        if (previous === 0) {
+            return current > 0 ? 100 : (current < 0 ? -100 : 0);
+        }
+        if (previous < 0) {
+            // Invert logic for negative previous values to show correct trend direction
+             return ((current - previous) / Math.abs(previous)) * 100;
+        }
+        return ((current - previous) / previous) * 100;
+    };
+
+    const incomeChange = calculateChange(income, prevIncome);
+    const expenseChange = calculateChange(expense, prevExpense);
+    const savingsChange = calculateChange(savings, prevSavings);
     
     return { incomeChange, expenseChange, savingsChange };
 
@@ -102,5 +105,3 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
     </Card>
   );
 }
-
-
