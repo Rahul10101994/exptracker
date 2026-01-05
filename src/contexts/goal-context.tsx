@@ -44,9 +44,9 @@ const initialGoals: Goal[] = [
     {
         id: 'g3',
         name: 'Investment Portfolio',
-        targetAmount: 10000,
+        targetAmount: 2000,
         savedAmount: 0, // This will be calculated from transactions
-        type: 'long-term',
+        type: 'monthly',
         createdAt: "2024-01-01T00:00:00.000Z",
     }
 ];
@@ -68,19 +68,26 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
     const getGoalProgress = (goal: Goal) => {
         let saved = goal.savedAmount;
 
-        if (goal.type === 'monthly') {
+        if (goal.name.toLowerCase().includes("investment")) {
+            // Use current month's transactions for monthly investment goals
+            if (goal.type === 'monthly') {
+                 saved = currentMonthTransactions
+                    .filter(t => t.category.toLowerCase() === 'investment')
+                    .reduce((sum, t) => sum + t.amount, 0);
+            } else {
+                // Use all transactions for long-term/yearly investment goals
+                saved = transactions
+                    .filter(t => t.category.toLowerCase() === 'investment')
+                    .reduce((sum, t) => sum + t.amount, 0);
+            }
+        } else if (goal.type === 'monthly') {
              const income = currentMonthTransactions
                 .filter(t => t.type === 'income')
                 .reduce((sum, t) => sum + t.amount, 0);
             const expense = currentMonthTransactions
-                .filter(t => t.type === 'expense')
+                .filter(t => t.type === 'expense' && t.category.toLowerCase() !== 'investment')
                 .reduce((sum, t) => sum + t.amount, 0);
             saved = income - expense;
-        } else if (goal.name.toLowerCase().includes("investment")) {
-            // For investment goals, sum up all investment transactions over all time.
-            saved = transactions
-                .filter(t => t.category.toLowerCase() === 'investment')
-                .reduce((sum, t) => sum + t.amount, 0);
         }
 
         const progress = goal.targetAmount > 0 ? (saved / goal.targetAmount) * 100 : 0;
