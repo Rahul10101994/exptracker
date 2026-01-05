@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTransactions } from '@/contexts/transactions-context';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { FinancialSummaryCard } from '@/components/fintrack/financial-summary-card';
-import { NeedVsWantChart } from '@/components/fintrack/need-vs-want-chart';
 import { ReportCategoryBreakdown } from '@/components/fintrack/report-category-breakdown';
 import { BudgetBreakdownCard } from '@/components/fintrack/budget-breakdown-card';
 import { isSameMonth, isSameYear, subMonths } from 'date-fns';
@@ -88,7 +87,6 @@ export default function ReportPage() {
         {filteredTransactions.length > 0 || previousMonthTransactions.length > 0 ? (
           <>
             <FinancialSummaryCard transactions={filteredTransactions} prevMonthTransactions={previousMonthTransactions} />
-            <NeedVsWantChart transactions={filteredTransactions} />
             <ReportCategoryBreakdown transactions={filteredTransactions} />
             <BudgetBreakdownCard transactions={filteredTransactions} />
           </>

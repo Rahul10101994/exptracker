@@ -77,9 +77,9 @@ export function NeedVsWantChart({ transactions }: { transactions: Transaction[] 
       <CardHeader>
         <CardTitle>Needs vs. Wants</CardTitle>
       </CardHeader>
-      <CardContent className="pb-0 flex flex-col items-center">
+      <CardContent className="pb-0">
         {totalAmount > 0 && isClient ? (
-           <div className="w-full flex items-center">
+           <div className="w-full flex items-center justify-center">
             <PieChart width={160} height={160}>
               <Pie
                   data={chartData}
@@ -99,7 +99,7 @@ export function NeedVsWantChart({ transactions }: { transactions: Transaction[] 
               </Pie>
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
-            <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{paddingLeft: "10px", flex: 1}} iconSize={12} payload={
+            <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{paddingLeft: "10px"}} iconSize={12} payload={
               chartData.map(
                 (item, index) => ({
                   id: item.name,
