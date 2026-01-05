@@ -28,7 +28,7 @@ export default function SettingsPage() {
         <FinTrackLayout>
             <header className="flex items-center pt-2">
                 <Button variant="ghost" size="icon" asChild>
-                    <Link href="/">
+                    <Link href="/dashboard">
                         <ArrowLeft />
                         <span className="sr-only">Back</span>
                     </Link>
@@ -88,7 +88,7 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent>
                   <Button variant="outline" className="w-full" asChild>
-                    <Link href="/login">Login</Link>
+                    <Link href="/">Login</Link>
                   </Button>
                 </CardContent>
             </Card>

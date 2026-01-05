@@ -1,27 +1,20 @@
+"use client";
 
-import { FinTrackHeader } from '@/components/fintrack/header';
-import { BalanceCard } from '@/components/fintrack/balance-card';
-import { InvestmentCard } from '@/components/fintrack/investment-card';
-import { SavingRateCard } from '@/components/fintrack/saving-rate-card';
-import { SpendingTrendChart } from '@/components/fintrack/spending-trend-chart';
-import { TransactionHistory } from '@/components/fintrack/transaction-history';
-import { BudgetCard } from '@/components/fintrack/budget-card';
-import { CategoryBreakdownChart } from '@/components/fintrack/category-breakdown-chart';
-import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
+import { LoginForm } from "@/components/fintrack/login-form";
+import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 
-export default function Home() {
+export default function LoginPage() {
   return (
-    <FinTrackLayout>
-      <FinTrackHeader />
-      <BalanceCard />
-      <div className="grid grid-cols-2 gap-4">
-        <SavingRateCard />
-        <InvestmentCard />
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold">Welcome Back</h1>
+          <p className="text-muted-foreground">
+            Sign in to continue to FinTrack
+          </p>
+        </div>
+        <LoginForm />
       </div>
-      <BudgetCard />
-      <SpendingTrendChart />
-      <CategoryBreakdownChart />
-      <TransactionHistory />
-    </FinTrackLayout>
+    </div>
   );
 }

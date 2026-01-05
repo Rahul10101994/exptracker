@@ -52,7 +52,7 @@ export default function ReportPage() {
     <FinTrackLayout>
         <header className="flex items-center pt-2">
             <Button variant="ghost" size="icon" asChild>
-                <Link href="/">
+                <Link href="/dashboard">
                     <ArrowLeft />
                     <span className="sr-only">Back</span>
                 </Link>

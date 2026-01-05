@@ -8,7 +8,7 @@ import { AddTransactionSheet } from '@/components/fintrack/add-transaction-sheet
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { href: '/', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/budget', label: 'Budget', icon: Landmark },
   { href: '/report', label: 'Report', icon: BarChart },
   { href: '/goal', label: 'Goal', icon: Target },
