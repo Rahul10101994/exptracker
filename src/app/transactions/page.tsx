@@ -69,10 +69,6 @@ export default function TransactionsPage() {
     setTransactionToEdit(transaction);
   }
 
-  const handleCloseEditSheet = () => {
-    setTransactionToEdit(null);
-  }
-
   return (
     <FinTrackLayout>
         <header className="flex items-center pt-2">
@@ -160,7 +156,7 @@ export default function TransactionsPage() {
             <EditTransactionSheet
               transaction={transactionToEdit}
               isOpen={!!transactionToEdit}
-              onClose={handleCloseEditSheet}
+              onClose={() => setTransactionToEdit(null)}
             />
         )}
         <AlertDialog open={!!transactionToDelete} onOpenChange={(open) => !open && setTransactionToDelete(null)}>
@@ -172,7 +168,7 @@ export default function TransactionsPage() {
                 </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

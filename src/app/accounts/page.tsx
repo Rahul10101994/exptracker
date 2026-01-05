@@ -75,10 +75,6 @@ export default function AccountsPage() {
         e.stopPropagation();
         setAccountToCorrect(account);
     }
-    
-    const handleCloseEditSheet = () => {
-        setAccountToEdit(null);
-    };
 
     return (
         <FinTrackLayout>
@@ -138,7 +134,7 @@ export default function AccountsPage() {
                 <EditAccountSheet
                   account={accountToEdit}
                   isOpen={!!accountToEdit}
-                  onClose={handleCloseEditSheet}
+                  onClose={() => setAccountToEdit(null)}
                 />
             )}
 
@@ -161,7 +157,7 @@ export default function AccountsPage() {
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setAccountToDelete(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
