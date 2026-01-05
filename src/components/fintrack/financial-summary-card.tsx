@@ -22,7 +22,7 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
     return { income, expense, savings };
   }, [transactions]);
   
-  const { incomeChange, expenseChange } = useMemo(() => {
+  const { incomeChange, expenseChange, savingsChange } = useMemo(() => {
     const prevIncome = prevMonthTransactions
         .filter(t => t.type === 'income')
         .reduce((acc, t) => acc + t.amount, 0);
@@ -31,6 +31,8 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
         .filter(t => t.type === 'expense')
         .reduce((acc, t) => acc + t.amount, 0);
 
+    const prevSavings = prevIncome - prevExpense;
+
     const incomeChange = prevIncome === 0
       ? (income > 0 ? 100 : 0)
       : ((income - prevIncome) / prevIncome) * 100;
@@ -38,10 +40,14 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
     const expenseChange = prevExpense === 0 
       ? (expense > 0 ? 100 : 0) 
       : ((expense - prevExpense) / prevExpense) * 100;
+      
+    const savingsChange = prevSavings === 0
+        ? (savings > 0 ? 100 : 0)
+        : ((savings - prevSavings) / prevSavings) * 100;
     
-    return { incomeChange, expenseChange };
+    return { incomeChange, expenseChange, savingsChange };
 
-  }, [transactions, prevMonthTransactions, income, expense]);
+  }, [transactions, prevMonthTransactions, income, expense, savings]);
 
 
   return (
@@ -77,7 +83,15 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Savings</p>
-            <p className={`text-lg font-bold ${savings >= 0 ? 'text-blue-600' : 'text-red-600'}`}>${savings.toFixed(2)}</p>
+             <div className="flex items-center gap-2">
+                <p className={`text-lg font-bold ${savings >= 0 ? 'text-blue-600' : 'text-red-600'}`}>${savings.toFixed(2)}</p>
+                {savingsChange !== 0 && (
+                    <span className={`flex items-center text-xs font-semibold ${savingsChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {savingsChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {Math.abs(savingsChange).toFixed(1)}%
+                    </span>
+                )}
+            </div>
           </div>
            <div>
             <p className="text-sm text-muted-foreground">Investments</p>
@@ -88,4 +102,5 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
     </Card>
   );
 }
+
 
