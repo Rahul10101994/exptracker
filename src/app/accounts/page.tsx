@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, MoreHorizontal, Edit, Trash2, Milestone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,12 +28,14 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { EditAccountSheet } from '@/components/fintrack/edit-account-sheet';
 import { useTransactions } from '@/contexts/transactions-context';
+import { CorrectBalanceDialog } from '@/components/fintrack/correct-balance-dialog';
 
 export default function AccountsPage() {
     const { accounts, deleteAccount } = useAccounts();
     const { transactions } = useTransactions();
     const [accountToDelete, setAccountToDelete] = React.useState<Account | null>(null);
     const [accountToEdit, setAccountToEdit] = React.useState<Account | null>(null);
+    const [accountToCorrect, setAccountToCorrect] = React.useState<Account | null>(null);
 
     const accountBalances = React.useMemo(() => {
         const balances: { [accountId: string]: number } = {};
@@ -66,6 +68,12 @@ export default function AccountsPage() {
         e.preventDefault();
         e.stopPropagation();
         setAccountToEdit(account);
+    }
+
+    const handleCorrectBalanceClick = (e: React.MouseEvent, account: Account) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setAccountToCorrect(account);
     }
     
     const handleCloseEditSheet = () => {
@@ -109,6 +117,10 @@ export default function AccountsPage() {
                                               <Edit className="mr-2 h-4 w-4" />
                                               <span>Edit</span>
                                           </DropdownMenuItem>
+                                          <DropdownMenuItem onSelect={(e) => handleCorrectBalanceClick(e, account)}>
+                                              <Milestone className="mr-2 h-4 w-4" />
+                                              <span>Correct Balance</span>
+                                          </DropdownMenuItem>
                                           <DropdownMenuItem className="text-destructive" onSelect={() => setAccountToDelete(account)}>
                                               <Trash2 className="mr-2 h-4 w-4" />
                                               <span>Delete</span>
@@ -127,6 +139,15 @@ export default function AccountsPage() {
                   account={accountToEdit}
                   isOpen={!!accountToEdit}
                   onClose={handleCloseEditSheet}
+                />
+            )}
+
+            {accountToCorrect && (
+                <CorrectBalanceDialog
+                    account={accountToCorrect}
+                    currentBalance={accountBalances[accountToCorrect.id]}
+                    isOpen={!!accountToCorrect}
+                    onClose={() => setAccountToCorrect(null)}
                 />
             )}
 

@@ -2,6 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useTransactions } from './transactions-context';
 
 export type Account = {
     id: string;
@@ -16,6 +17,7 @@ interface AccountContextType {
     addAccount: (account: NewAccount) => void;
     updateAccount: (id: string, updatedAccount: NewAccount) => void;
     deleteAccount: (id: string) => void;
+    correctBalance: (accountId: string, correctBalance: number) => void;
 }
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ const initialAccounts: Account[] = [
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
     const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+    const { transactions } = useTransactions();
 
     const addAccount = (account: NewAccount) => {
         const newAccount: Account = {
@@ -45,8 +48,31 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         setAccounts(prev => prev.filter(acc => acc.id !== id));
     };
 
+    const correctBalance = (accountId: string, correctBalance: number) => {
+        const account = accounts.find(a => a.id === accountId);
+        if (!account) return;
+
+        const accountTransactions = transactions.filter(t => t.account.toLowerCase() === account.name.toLowerCase());
+        const transactionSum = accountTransactions.reduce((acc, t) => {
+            if (t.type === 'income') {
+                return acc + t.amount;
+            } else {
+                return acc - t.amount;
+            }
+        }, 0);
+
+        const currentCalculatedBalance = account.initialBalance + transactionSum;
+        const adjustment = correctBalance - currentCalculatedBalance;
+        
+        const updatedAccount: NewAccount = {
+            ...account,
+            initialBalance: account.initialBalance + adjustment,
+        }
+        updateAccount(accountId, updatedAccount);
+    };
+
     return (
-        <AccountContext.Provider value={{ accounts, addAccount, updateAccount, deleteAccount }}>
+        <AccountContext.Provider value={{ accounts, addAccount, updateAccount, deleteAccount, correctBalance }}>
             {children}
         </AccountContext.Provider>
     );
