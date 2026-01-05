@@ -38,7 +38,11 @@ export default function BudgetPage() {
     const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(budgets);
     const [categoryToDelete, setCategoryToDelete] = React.useState<string | null>(null);
     const [editingCategoryIcon, setEditingCategoryIcon] = React.useState<string | null>(null);
+    const [isClient, setIsClient] = React.useState(false);
 
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     React.useEffect(() => {
         setLocalBudgets(budgets);
@@ -138,7 +142,7 @@ export default function BudgetPage() {
             </Card>
 
             <div className="space-y-4 pb-16">
-                {Object.entries(localBudgets).map(([category, budget]) => {
+                {isClient && Object.entries(localBudgets).map(([category, budget]) => {
                     const Icon = getIconForCategory(category);
                     const { spent, percentage } = getCategoryProgress(category);
                     
@@ -195,11 +199,11 @@ export default function BudgetPage() {
                 <Button onClick={handleSave} className="w-full">Save Changes</Button>
             </div>
 
-            <IconPicker
+            {isClient && <IconPicker
                 isOpen={!!editingCategoryIcon}
                 onClose={() => setEditingCategoryIcon(null)}
                 onSelectIcon={handleIconSelect}
-            />
+            />}
 
             <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
                 <AlertDialogContent>
