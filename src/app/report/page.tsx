@@ -12,7 +12,7 @@ import { FinancialSummaryCard } from '@/components/fintrack/financial-summary-ca
 import { ReportCategoryBreakdown } from '@/components/fintrack/report-category-breakdown';
 import { BudgetBreakdownCard } from '@/components/fintrack/budget-breakdown-card';
 import { isSameMonth, isSameYear, subMonths } from 'date-fns';
-import { Transaction } from '@/contexts/transactions-context';
+import { NeedWantBreakdownCard } from '@/components/fintrack/need-want-breakdown-card';
 
 const months = [
   "January", "February", "March", "April", "May", "June", 
@@ -87,6 +87,7 @@ export default function ReportPage() {
         {filteredTransactions.length > 0 || previousMonthTransactions.length > 0 ? (
           <>
             <FinancialSummaryCard transactions={filteredTransactions} prevMonthTransactions={previousMonthTransactions} />
+            <NeedWantBreakdownCard transactions={filteredTransactions} />
             <ReportCategoryBreakdown transactions={filteredTransactions} />
             <BudgetBreakdownCard transactions={filteredTransactions} />
           </>
