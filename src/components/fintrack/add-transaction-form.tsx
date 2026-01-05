@@ -34,7 +34,7 @@ import { useAccounts } from "@/contexts/account-context";
 const formSchema = z
   .object({
     type: z.enum(["income", "expense"]),
-    name: z.string().min(1, "Please enter a name."),
+    description: z.string().min(1, "Please enter a description."),
     amount: z.coerce.number().positive("Amount must be positive"),
     date: z.date(),
     category: z.string(),
@@ -97,7 +97,10 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const transactionType = form.watch("type");
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    addTransaction(values);
+    addTransaction({
+        ...values,
+        name: values.description
+    });
 
     toast({
       title: "Transaction Added",
@@ -106,7 +109,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
 
     form.reset({
       type: "expense",
-      name: "",
+      description: "",
       amount: 0,
       date: new Date(),
       recurring: false,
@@ -171,13 +174,13 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           )}
         />
 
-        {/* Name */}
+        {/* Description */}
         <FormField
           control={form.control}
-          name="name"
+          name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Description</FormLabel>
               <FormControl>
                 <Input
                   {...field}

@@ -38,7 +38,7 @@ import { useAccounts } from "@/contexts/account-context";
 const formSchema = z
   .object({
     type: z.enum(["income", "expense"]),
-    name: z.string().min(1, "Please enter a name."),
+    description: z.string().min(1, "Please enter a description."),
     amount: z.coerce.number().positive("Amount must be positive"),
     date: z.date(),
     category: z.string(),
@@ -82,6 +82,7 @@ export function EditTransactionForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       ...transaction,
+      description: transaction.name,
       date: new Date(transaction.date),
     },
   });
@@ -89,11 +90,14 @@ export function EditTransactionForm({
   const transactionType = form.watch("type");
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    updateTransaction(transaction.id, values as NewTransaction);
+    updateTransaction(transaction.id, {
+        ...values,
+        name: values.description
+    });
 
     toast({
       title: "Transaction Updated",
-      description: `Successfully updated transaction: ${values.name}.`,
+      description: `Successfully updated transaction: ${values.description}.`,
     });
 
     onSubmit?.();
@@ -159,14 +163,14 @@ export function EditTransactionForm({
           )}
         />
 
-        {/* Name */}
+        {/* Description */}
         <FormField
           control={form.control}
-          name="name"
+          name="description"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm font-medium">
-                Name
+                Description
               </FormLabel>
               <FormControl>
                 <Input
