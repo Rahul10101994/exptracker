@@ -21,7 +21,7 @@ import { useGoals } from "@/contexts/goal-context";
 const formSchema = z.object({
   name: z.string().min(1, "Please enter a name."),
   targetAmount: z.coerce.number().positive("Target amount must be positive"),
-  type: z.enum(["recurring", "non-recurring"], {
+  type: z.enum(["monthly", "yearly", "long-term"], {
     required_error: "You need to select a goal type.",
   }),
 });
@@ -84,19 +84,25 @@ export function AddGoalForm({ onSubmit }: { onSubmit?: () => void }) {
                 <RadioGroup
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  className="flex space-x-4"
+                  className="flex flex-wrap gap-x-4 gap-y-2"
                 >
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="non-recurring" />
+                      <RadioGroupItem value="monthly" />
                     </FormControl>
-                    <FormLabel className="font-normal">Non-Recurring</FormLabel>
+                    <FormLabel className="font-normal">Monthly</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
-                      <RadioGroupItem value="recurring" />
+                      <RadioGroupItem value="yearly" />
                     </FormControl>
-                    <FormLabel className="font-normal">Recurring</FormLabel>
+                    <FormLabel className="font-normal">Yearly</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="long-term" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Long Term</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>

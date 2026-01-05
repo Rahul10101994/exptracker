@@ -13,8 +13,9 @@ import { AddGoalSheet } from '@/components/fintrack/add-goal-sheet';
 export default function GoalPage() {
     const { goals } = useGoals();
     
-    const recurringGoals = goals.filter(g => g.type === 'recurring');
-    const nonRecurringGoals = goals.filter(g => g.type === 'non-recurring');
+    const monthlyGoals = goals.filter(g => g.type === 'monthly');
+    const yearlyGoals = goals.filter(g => g.type === 'yearly');
+    const longTermGoals = goals.filter(g => g.type === 'long-term');
 
     return (
         <FinTrackLayout>
@@ -35,26 +36,38 @@ export default function GoalPage() {
 
             <div className="space-y-6">
                 <div>
-                    <h2 className="text-base font-semibold mb-2">Recurring Goals</h2>
+                    <h2 className="text-base font-semibold mb-2">Monthly Goals</h2>
                     <div className="space-y-4">
-                        {recurringGoals.length > 0 ? (
-                            recurringGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)
+                        {monthlyGoals.length > 0 ? (
+                            monthlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)
                         ) : (
                            <div className="text-center text-muted-foreground py-10">
-                                No recurring goals set.
+                                No monthly goals set.
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div>
-                    <h2 className="text-base font-semibold mb-2">Non-Recurring Goals</h2>
+                    <h2 className="text-base font-semibold mb-2">Yearly Goals</h2>
                     <div className="space-y-4">
-                        {nonRecurringGoals.length > 0 ? (
-                            nonRecurringGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)
+                        {yearlyGoals.length > 0 ? (
+                            yearlyGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)
                         ) : (
                             <div className="text-center text-muted-foreground py-10">
-                                No non-recurring goals set.
+                                No yearly goals set.
+                            </div>
+                        )}
+                    </div>
+                </div>
+                 <div>
+                    <h2 className="text-base font-semibold mb-2">Long Term Goals</h2>
+                    <div className="space-y-4">
+                        {longTermGoals.length > 0 ? (
+                            longTermGoals.map(goal => <GoalCard key={goal.id} goal={goal} />)
+                        ) : (
+                            <div className="text-center text-muted-foreground py-10">
+                                No long-term goals set.
                             </div>
                         )}
                     </div>

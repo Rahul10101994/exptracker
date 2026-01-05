@@ -8,7 +8,7 @@ export type Goal = {
     name: string;
     targetAmount: number;
     savedAmount: number;
-    type: 'recurring' | 'non-recurring';
+    type: 'monthly' | 'yearly' | 'long-term';
     createdAt: string;
 };
 
@@ -28,7 +28,7 @@ const initialGoals: Goal[] = [
         name: 'Save for Vacation',
         targetAmount: 2000,
         savedAmount: 500,
-        type: 'non-recurring',
+        type: 'long-term',
         createdAt: new Date().toISOString(),
     },
     {
@@ -36,7 +36,7 @@ const initialGoals: Goal[] = [
         name: 'Monthly Savings',
         targetAmount: 500,
         savedAmount: 0, // This will be calculated from transactions
-        type: 'recurring',
+        type: 'monthly',
         createdAt: new Date().toISOString(),
     }
 ];
@@ -57,7 +57,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
     
     const getGoalProgress = (goal: Goal) => {
         let saved = goal.savedAmount;
-        if (goal.type === 'recurring') {
+        if (goal.type === 'monthly') {
              const income = currentMonthTransactions
                 .filter(t => t.type === 'income')
                 .reduce((sum, t) => sum + t.amount, 0);
