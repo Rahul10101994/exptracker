@@ -15,6 +15,7 @@ interface BudgetContextType {
     budgets: Budgets;
     setBudgets: (budgets: Budgets) => void;
     addCategory: (category: string) => void;
+    deleteCategory: (category: string) => void;
     getCategoryProgress: (category: string) => { spent: number; percentage: number };
 }
 
@@ -43,6 +44,15 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
+    const deleteCategory = (category: string) => {
+        const lowerCaseCategory = category.toLowerCase();
+        setBudgets(prev => {
+            const newBudgets = { ...prev };
+            delete newBudgets[lowerCaseCategory];
+            return newBudgets;
+        });
+    };
+
     const getCategoryProgress = (category: string) => {
         const budgetAmount = budgets[category]?.amount || 0;
         const spent = currentMonthTransactions
@@ -55,7 +65,7 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <BudgetContext.Provider value={{ budgets, setBudgets, addCategory, getCategoryProgress }}>
+        <BudgetContext.Provider value={{ budgets, setBudgets, addCategory, deleteCategory, getCategoryProgress }}>
             {children}
         </BudgetContext.Provider>
     );

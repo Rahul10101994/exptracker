@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,10 +30,12 @@ type LocalBudgets = {
 };
 
 export default function BudgetPage() {
-    const { budgets, setBudgets, addCategory, getCategoryProgress } = useBudget();
+    const { budgets, setBudgets, addCategory, getCategoryProgress, deleteCategory } = useBudget();
     const { getIconForCategory } = useTransactions();
     const [newCategory, setNewCategory] = React.useState('');
     const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(budgets);
+    const [categoryToDelete, setCategoryToDelete] = React.useState<string | null>(null);
+
 
     React.useEffect(() => {
         setLocalBudgets(budgets);
@@ -46,6 +48,17 @@ export default function BudgetPage() {
         }
     };
     
+    const handleDeleteCategory = () => {
+        if (categoryToDelete) {
+            deleteCategory(categoryToDelete);
+            toast({
+                title: "Category Deleted",
+                description: `The "${categoryToDelete}" category has been deleted.`,
+            });
+            setCategoryToDelete(null);
+        }
+    };
+
     const totalBudget = React.useMemo(() => {
         return Object.values(localBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
     }, [localBudgets]);
@@ -121,7 +134,9 @@ export default function BudgetPage() {
                                 <div className="flex items-center gap-2">
                                     <Icon className="h-5 w-5 text-muted-foreground" />
                                     <CardTitle className="text-base capitalize">{category}</CardTitle>
-
+                                     <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete(category)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                     <span className={percentage > 100 ? 'text-destructive' : ''}>
@@ -163,6 +178,22 @@ export default function BudgetPage() {
             <div className='fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-sm px-4'>
                 <Button onClick={handleSave} className="w-full">Save Changes</Button>
             </div>
+            <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the budget for {'"'}
+                        <span className="capitalize font-semibold">{categoryToDelete}</span>
+                        {'"'}.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setCategoryToDelete(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteCategory} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </FinTrackLayout>
     );
 }
