@@ -65,7 +65,7 @@ export function EditAccountForm({ account, onSubmit }: { account: Account, onSub
           name="initialBalance"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Balance</FormLabel>
+              <FormLabel>Initial Balance</FormLabel>
               <FormControl>
                 <Input type="number" placeholder="$0.00" {...field} />
               </FormControl>
