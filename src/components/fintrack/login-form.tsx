@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { useUser } from "@/contexts/user-context";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -29,7 +30,7 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
-  const { login, user } = useUser();
+  const auth = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,28 +40,28 @@ export function LoginForm() {
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "No user found",
-        description: "Please sign up first to create an account.",
-      });
-      return;
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    if (!auth) {
+        toast({
+            variant: "destructive",
+            title: "Authentication service not available.",
+            description: "Please try again later.",
+        });
+        return;
     }
-    
-    if (login(values)) {
-      toast({
-        title: "Logged In",
-        description: "Welcome back!",
-      });
-      router.push("/dashboard");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Invalid Credentials",
-        description: "The email or password you entered is incorrect.",
-      });
+    try {
+        await signInWithEmailAndPassword(auth, values.email, values.password);
+        toast({
+            title: "Logged In",
+            description: "Welcome back!",
+        });
+        router.push("/dashboard");
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Invalid Credentials",
+            description: "The email or password you entered is incorrect.",
+        });
     }
   }
 

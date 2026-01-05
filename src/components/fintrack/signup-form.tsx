@@ -20,7 +20,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { useUser } from "@/contexts/user-context";
+import { useAuth, useFirestore } from "@/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter your name."),
@@ -30,7 +32,8 @@ const formSchema = z.object({
 
 export function SignUpForm() {
   const router = useRouter();
-  const { signUp } = useUser();
+  const auth = useAuth();
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,13 +44,37 @@ export function SignUpForm() {
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    signUp(values);
-    toast({
-      title: "Account Created",
-      description: "Welcome to FinTrack!",
-    });
-    router.push("/dashboard");
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    if (!auth || !firestore) {
+        toast({
+            variant: "destructive",
+            title: "Authentication service not available.",
+            description: "Please try again later.",
+        });
+        return;
+    }
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+        const user = userCredential.user;
+
+        await setDoc(doc(firestore, "users", user.uid), {
+            name: values.name,
+            email: values.email,
+        });
+        
+        toast({
+          title: "Account Created",
+          description: "Welcome to FinTrack!",
+        });
+        router.push("/dashboard");
+
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Sign-up Failed",
+            description: error.message || "An unexpected error occurred.",
+        });
+    }
   }
 
   return (

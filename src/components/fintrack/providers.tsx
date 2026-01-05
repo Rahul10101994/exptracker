@@ -6,13 +6,17 @@ import { TransactionsProvider } from '@/contexts/transactions-context';
 import { AccountProvider } from '@/contexts/account-context';
 import { BudgetProvider } from '@/contexts/budget-context';
 import { GoalProvider } from '@/contexts/goal-context';
-import { UserProvider } from '@/contexts/user-context';
+import { FirebaseClientProvider } from '@/firebase';
+import { useMemo } from 'react';
+import { initializeFirebase } from '@/firebase';
 
 export function Providers({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const firebaseApp = useMemo(() => initializeFirebase(), []);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -20,7 +24,7 @@ export function Providers({
       enableSystem={false}
       disableTransitionOnChange
     >
-      <UserProvider>
+      <FirebaseClientProvider app={firebaseApp}>
         <TransactionsProvider>
           <AccountProvider>
             <BudgetProvider>
@@ -30,7 +34,7 @@ export function Providers({
             </BudgetProvider>
           </AccountProvider>
         </TransactionsProvider>
-      </UserProvider>
+      </FirebaseClientProvider>
     </ThemeProvider>
   );
 }
