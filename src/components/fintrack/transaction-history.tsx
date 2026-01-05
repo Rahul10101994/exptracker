@@ -2,22 +2,47 @@
 "use client";
 
 import Link from 'next/link';
+import * as React from 'react';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useTransactions } from '@/contexts/transactions-context';
+import { useTransactions, Transaction } from '@/contexts/transactions-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { EditTransactionSheet } from './edit-transaction-sheet';
+import { toast } from '@/hooks/use-toast';
 
 export function TransactionHistory() {
-  const { currentMonthTransactions, getIconForCategory } = useTransactions();
+  const { currentMonthTransactions, getIconForCategory, deleteTransaction } = useTransactions();
+  const [transactionToDelete, setTransactionToDelete] = React.useState<Transaction | null>(null);
 
   // Show only the 3 most recent transactions from the current month
   const recentTransactions = currentMonthTransactions.slice(0, 3);
+  
+  const handleDelete = () => {
+    if (transactionToDelete) {
+        deleteTransaction(transactionToDelete.id);
+        toast({
+            title: "Transaction Deleted",
+            description: `${transactionToDelete.name} has been deleted.`,
+        });
+        setTransactionToDelete(null);
+    }
+  };
 
   return (
     <Card className="shadow-lg border-0">
@@ -30,10 +55,10 @@ export function TransactionHistory() {
       <CardContent>
         <div className="space-y-4">
           {recentTransactions.length > 0 ? (
-            recentTransactions.map((transaction, index) => {
+            recentTransactions.map((transaction) => {
               const Icon = getIconForCategory(transaction.category);
               return (
-                <div key={index} className="flex items-center justify-between">
+                <div key={transaction.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
                       <Icon className={`h-6 w-6 ${transaction.fgColor}`} />
@@ -45,23 +70,25 @@ export function TransactionHistory() {
                   </div>
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <EditTransactionSheet transaction={transaction}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onSelect={() => setTransactionToDelete(transaction)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </EditTransactionSheet>
                   </div>
                 </div>
               )
@@ -72,6 +99,20 @@ export function TransactionHistory() {
             </div>
           )}
         </div>
+        <AlertDialog open={!!transactionToDelete} onOpenChange={(open) => !open && setTransactionToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this transaction.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

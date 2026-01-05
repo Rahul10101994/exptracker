@@ -7,7 +7,7 @@ import { ArrowLeft, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTransactions } from '@/contexts/transactions-context';
+import { useTransactions, Transaction } from '@/contexts/transactions-context';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import {
   DropdownMenu,
@@ -15,6 +15,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { EditTransactionSheet } from '@/components/fintrack/edit-transaction-sheet';
+import { toast } from '@/hooks/use-toast';
 
 const months = [
   "January", "February", "March", "April", "May", "June", 
@@ -26,9 +38,10 @@ const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 
 export default function TransactionsPage() {
-  const { transactions, getIconForCategory } = useTransactions();
+  const { transactions, getIconForCategory, deleteTransaction } = useTransactions();
   const [selectedMonth, setSelectedMonth] = React.useState<string>(months[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
+  const [transactionToDelete, setTransactionToDelete] = React.useState<Transaction | null>(null);
 
   const filteredTransactions = transactions.filter(transaction => {
     const transactionDate = new Date(transaction.date);
@@ -38,6 +51,16 @@ export default function TransactionsPage() {
     return months[transactionMonth] === selectedMonth && transactionYear === selectedYear;
   });
 
+  const handleDelete = () => {
+    if (transactionToDelete) {
+        deleteTransaction(transactionToDelete.id);
+        toast({
+            title: "Transaction Deleted",
+            description: `${transactionToDelete.name} has been deleted.`,
+        });
+        setTransactionToDelete(null);
+    }
+  };
 
   return (
     <FinTrackLayout>
@@ -78,10 +101,10 @@ export default function TransactionsPage() {
         <Card className="shadow-lg border-0">
           <CardContent className="pt-6">
             <div className="space-y-4">
-              {filteredTransactions.map((transaction, index) => {
+              {filteredTransactions.map((transaction) => {
                   const Icon = getIconForCategory(transaction.category);
                   return (
-                    <div key={index} className="flex items-center justify-between">
+                    <div key={transaction.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className={`flex items-center justify-center h-12 w-12 rounded-full ${transaction.bgColor}`}>
                             <Icon className={`h-6 w-6 ${transaction.fgColor}`} />
@@ -93,23 +116,25 @@ export default function TransactionsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <EditTransactionSheet transaction={transaction}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  <span>Edit</span>
+                                </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onSelect={() => setTransactionToDelete(transaction)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </EditTransactionSheet>
                       </div>
                     </div>
                   );
@@ -122,6 +147,20 @@ export default function TransactionsPage() {
             </div>
           </CardContent>
         </Card>
+        <AlertDialog open={!!transactionToDelete} onOpenChange={(open) => !open && setTransactionToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete this transaction.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </FinTrackLayout>
   );
 }

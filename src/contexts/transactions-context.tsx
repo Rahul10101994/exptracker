@@ -19,11 +19,13 @@ export type Transaction = {
     bgColor: string;
 };
 
-type NewTransaction = Omit<Transaction, 'id' | 'fgColor' | 'bgColor'>;
+export type NewTransaction = Omit<Transaction, 'id' | 'fgColor' | 'bgColor'>;
 
 interface TransactionsContextType {
     transactions: Transaction[];
     addTransaction: (transaction: NewTransaction) => void;
+    deleteTransaction: (id: string) => void;
+    updateTransaction: (id: string, transaction: NewTransaction) => void;
     getIconForCategory: (category: string) => React.ElementType;
     currentMonthTransactions: Transaction[];
 }
@@ -157,6 +159,25 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         setTransactions(prev => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     };
 
+    const deleteTransaction = (id: string) => {
+        setTransactions(prev => prev.filter(t => t.id !== id));
+    };
+
+    const updateTransaction = (id: string, updatedData: NewTransaction) => {
+        const styles = categoryStyles[updatedData.category.toLowerCase()] || categoryStyles.other;
+        setTransactions(prev => prev.map(t => 
+            t.id === id 
+            ? { 
+                ...t, 
+                ...updatedData,
+                date: updatedData.date.toISOString(),
+                ...styles 
+              } 
+            : t
+        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    };
+
+
     const getIconForCategory = (category: string) => {
         return categoryIcons[category.toLowerCase()] || categoryIcons.other;
     }
@@ -171,7 +192,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <TransactionsContext.Provider value={{ transactions, addTransaction, getIconForCategory, currentMonthTransactions }}>
+        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, updateTransaction, getIconForCategory, currentMonthTransactions }}>
             {children}
         </TransactionsContext.Provider>
     );
