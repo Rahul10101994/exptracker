@@ -64,7 +64,7 @@ const formSchema = z.object({
 
 const categories = {
   income: ["Freelance", "Salary", "Bonus", "Other"],
-  expense: ["Food", "Transport", "Shopping", "Bills", "Subscription", "Other"],
+  expense: ["Food", "Transport", "Shopping", "Bills", "Subscription", "Investment", "Other"],
 };
 
 

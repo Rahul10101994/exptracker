@@ -6,7 +6,7 @@ import * as LucideIcons from 'lucide-react';
 import { isSameMonth, isSameYear } from 'date-fns';
 import { cuid } from '@/lib/utils';
 
-const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal } = LucideIcons;
+const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark } = LucideIcons;
 
 export type Transaction = {
     id: string;
@@ -131,6 +131,7 @@ const categoryStyles: { [key: string]: { fgColor: string, bgColor: string } } = 
     salary: { fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg' },
     bonus: { fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg' },
     bills: { fgColor: 'text-purple-500', bgColor: 'bg-purple-100' },
+    investment: { fgColor: 'text-indigo-500', bgColor: 'bg-indigo-100' },
     other: { fgColor: 'text-gray-500', bgColor: 'bg-gray-100' },
 };
 
@@ -144,6 +145,7 @@ const initialCategoryIcons: { [key: string]: string } = {
     food: 'Utensils',
     transport: 'Bus',
     bills: 'Tv',
+    investment: 'Landmark',
     other: 'MoreHorizontal'
 };
 
@@ -151,6 +153,11 @@ const initialCategoryIcons: { [key: string]: string } = {
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
     const [categoryIcons, setCategoryIcons] = useState<{ [key: string]: string }>(initialCategoryIcons);
+    const [isClient, setIsClient] = useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const addTransaction = (transaction: NewTransaction) => {
         const styles = categoryStyles[transaction.category.toLowerCase()] || categoryStyles.other;
@@ -195,12 +202,13 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const currentMonthTransactions = useMemo(() => {
+        if (!isClient) return [];
         const now = new Date();
         return transactions.filter(t => {
             const tDate = new Date(t.date);
             return isSameMonth(now, tDate) && isSameYear(now, tDate);
         });
-    }, [transactions]);
+    }, [transactions, isClient]);
 
 
     return (
