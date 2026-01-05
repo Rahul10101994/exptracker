@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Chrome } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,11 +36,21 @@ export function LoginForm() {
   });
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: "Logged In",
-      description: "Welcome back!",
-    });
+    // For demonstration, we'll use a hardcoded password.
+    // In a real app, this would be a call to your auth provider.
+    if (values.password === "password123") {
+      toast({
+        title: "Logged In",
+        description: "Welcome back!",
+      });
+      router.push("/dashboard");
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Invalid Credentials",
+        description: "The email or password you entered is incorrect.",
+      });
+    }
   }
 
   return (
@@ -102,7 +114,7 @@ export function LoginForm() {
             <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
+            <span className="bg-background/15 px-2 text-muted-foreground">
             Or continue with
             </span>
         </div>
