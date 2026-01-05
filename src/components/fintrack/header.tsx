@@ -1,9 +1,6 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { MoreVertical, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,10 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const userAvatar = PlaceHolderImages.find(
-  (p) => p.id === "user-avatar"
-);
 
 export function FinTrackHeader() {
   const currentDate = format(new Date(), "EEEE, MMMM d");
@@ -73,19 +66,8 @@ export function FinTrackHeader() {
         </h1>
       </div>
 
-      {/* Right: Avatar */}
-      <Avatar className="h-11 w-11 shrink-0">
-        {userAvatar && (
-          <AvatarImage
-            src={userAvatar.imageUrl}
-            alt={userAvatar.description}
-            width={44}
-            height={44}
-            data-ai-hint={userAvatar.imageHint}
-          />
-        )}
-        <AvatarFallback>BS</AvatarFallback>
-      </Avatar>
+      {/* Right: Placeholder for alignment */}
+      <div className="h-11 w-11 shrink-0" />
     </header>
   );
 }
