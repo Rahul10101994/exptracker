@@ -22,19 +22,26 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
     return { income, expense, savings };
   }, [transactions]);
   
-  const { expenseChange } = useMemo(() => {
+  const { incomeChange, expenseChange } = useMemo(() => {
+    const prevIncome = prevMonthTransactions
+        .filter(t => t.type === 'income')
+        .reduce((acc, t) => acc + t.amount, 0);
+    
     const prevExpense = prevMonthTransactions
         .filter(t => t.type === 'expense')
         .reduce((acc, t) => acc + t.amount, 0);
 
-    if (prevExpense === 0) {
-      return { expenseChange: expense > 0 ? 100 : 0 };
-    }
+    const incomeChange = prevIncome === 0
+      ? (income > 0 ? 100 : 0)
+      : ((income - prevIncome) / prevIncome) * 100;
+      
+    const expenseChange = prevExpense === 0 
+      ? (expense > 0 ? 100 : 0) 
+      : ((expense - prevExpense) / prevExpense) * 100;
     
-    const change = ((expense - prevExpense) / prevExpense) * 100;
-    return { expenseChange: change };
+    return { incomeChange, expenseChange };
 
-  }, [transactions, prevMonthTransactions]);
+  }, [transactions, prevMonthTransactions, income, expense]);
 
 
   return (
@@ -46,7 +53,15 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Total Income</p>
-            <p className="text-lg font-bold text-green-600">${income.toFixed(2)}</p>
+            <div className="flex items-center gap-2">
+                <p className="text-lg font-bold text-green-600">${income.toFixed(2)}</p>
+                {incomeChange !== 0 && (
+                   <span className={`flex items-center text-xs font-semibold ${incomeChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                       {incomeChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                       {Math.abs(incomeChange).toFixed(1)}%
+                   </span>
+                )}
+            </div>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Total Expense</p>
@@ -73,3 +88,4 @@ export function FinancialSummaryCard({ transactions, prevMonthTransactions }: { 
     </Card>
   );
 }
+
