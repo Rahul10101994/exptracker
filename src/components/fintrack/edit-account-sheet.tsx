@@ -17,13 +17,7 @@ export function EditAccountSheet({ children, account }: { children: React.ReactN
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild onClick={(e) => {
-        e.stopPropagation();
-        const target = e.target as HTMLElement;
-        if (target.textContent?.includes('Edit')) {
-           setOpen(true);
-        }
-      }}>{children}</SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent side="bottom" className="rounded-t-lg">
         <SheetHeader>
           <SheetTitle>Edit Account</SheetTitle>
@@ -33,3 +27,4 @@ export function EditAccountSheet({ children, account }: { children: React.ReactN
     </Sheet>
   );
 }
+
