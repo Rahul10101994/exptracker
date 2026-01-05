@@ -42,6 +42,7 @@ export default function TransactionsPage() {
   const [selectedMonth, setSelectedMonth] = React.useState<string>(months[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
   const [transactionToDelete, setTransactionToDelete] = React.useState<Transaction | null>(null);
+  const [transactionToEdit, setTransactionToEdit] = React.useState<Transaction | null>(null);
 
   const filteredTransactions = transactions.filter(transaction => {
     const transactionDate = new Date(transaction.date);
@@ -61,6 +62,16 @@ export default function TransactionsPage() {
         setTransactionToDelete(null);
     }
   };
+  
+  const handleEditClick = (e: React.MouseEvent, transaction: Transaction) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTransactionToEdit(transaction);
+  }
+
+  const handleCloseEditSheet = () => {
+    setTransactionToEdit(null);
+  }
 
   return (
     <FinTrackLayout>
@@ -116,25 +127,23 @@ export default function TransactionsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
-                        <EditTransactionSheet transaction={transaction}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  <span>Edit</span>
-                                </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onSelect={() => setTransactionToDelete(transaction)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={(e) => handleEditClick(e, transaction)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
                               </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </EditTransactionSheet>
+                            <DropdownMenuItem className="text-destructive" onSelect={() => setTransactionToDelete(transaction)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   );
@@ -147,6 +156,13 @@ export default function TransactionsPage() {
             </div>
           </CardContent>
         </Card>
+        {transactionToEdit && (
+            <EditTransactionSheet
+              transaction={transactionToEdit}
+              isOpen={!!transactionToEdit}
+              onClose={handleCloseEditSheet}
+            />
+        )}
         <AlertDialog open={!!transactionToDelete} onOpenChange={(open) => !open && setTransactionToDelete(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>

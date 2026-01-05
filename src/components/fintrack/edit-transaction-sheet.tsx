@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -6,30 +7,31 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { EditTransactionForm } from "./edit-transaction-form";
 import { Transaction } from "@/contexts/transactions-context";
 
-export function EditTransactionSheet({ children, transaction }: { children: React.ReactNode, transaction: Transaction }) {
-  const [open, setOpen] = React.useState(false);
+interface EditTransactionSheetProps {
+  transaction: Transaction;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function EditTransactionSheet({ transaction, isOpen, onClose }: EditTransactionSheetProps) {
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild onClick={(e) => {
-        // We stop propagation to avoid the DropdownMenu from closing
-        e.stopPropagation();
-        const target = e.target as HTMLElement;
-        // The trigger is inside a dropdown menu item, we only open the sheet if we click the "Edit" item specifically
-        if (target.textContent?.includes('Edit')) {
-           setOpen(true);
-        }
-      }}>{children}</SheetTrigger>
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetContent side="bottom" className="rounded-t-lg">
         <SheetHeader>
           <SheetTitle>Edit Transaction</SheetTitle>
         </SheetHeader>
-        <EditTransactionForm transaction={transaction} onSubmit={() => setOpen(false)} />
+        <EditTransactionForm transaction={transaction} onSubmit={onClose} />
       </SheetContent>
     </Sheet>
   );
