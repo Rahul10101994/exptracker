@@ -16,7 +16,7 @@ export function FinTrackLayout({
           min-h-screen
           max-w-sm
           flex-col
-          gap-6
+          gap-4
           px-4
           pt-4
           pb-32
