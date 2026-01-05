@@ -40,12 +40,20 @@ const initialGoals: Goal[] = [
         savedAmount: 0, // This will be calculated from transactions
         type: 'monthly',
         createdAt: "2024-01-01T00:00:00.000Z",
+    },
+    {
+        id: 'g3',
+        name: 'Investment Portfolio',
+        targetAmount: 10000,
+        savedAmount: 0, // This will be calculated from transactions
+        type: 'long-term',
+        createdAt: "2024-01-01T00:00:00.000Z",
     }
 ];
 
 export const GoalProvider = ({ children }: { children: ReactNode }) => {
     const [goals, setGoals] = useState<Goal[]>(initialGoals);
-    const { currentMonthTransactions } = useTransactions();
+    const { transactions, currentMonthTransactions } = useTransactions();
 
     const addGoal = (goal: NewGoal) => {
         const newGoal: Goal = {
@@ -59,6 +67,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
     
     const getGoalProgress = (goal: Goal) => {
         let saved = goal.savedAmount;
+
         if (goal.type === 'monthly') {
              const income = currentMonthTransactions
                 .filter(t => t.type === 'income')
@@ -67,6 +76,11 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
                 .filter(t => t.type === 'expense')
                 .reduce((sum, t) => sum + t.amount, 0);
             saved = income - expense;
+        } else if (goal.name.toLowerCase().includes("investment")) {
+            // For investment goals, sum up all investment transactions over all time.
+            saved = transactions
+                .filter(t => t.category.toLowerCase() === 'investment')
+                .reduce((sum, t) => sum + t.amount, 0);
         }
 
         const progress = goal.targetAmount > 0 ? (saved / goal.targetAmount) * 100 : 0;

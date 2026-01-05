@@ -1,39 +1,58 @@
 
 "use client";
 
-import { useTransactions } from "@/contexts/transactions-context";
+import { useGoals } from "@/contexts/goal-context";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { StatCard } from "./stat-card";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function InvestmentCard() {
-  const { currentMonthTransactions } = useTransactions();
+  const { goals, getGoalProgress } = useGoals();
 
-  const { totalInvestment, investmentCount } = useMemo(() => {
-    const investmentTransactions = currentMonthTransactions.filter(
-      (t) => t.category?.toLowerCase() === "investment"
+  const investmentGoal = useMemo(() => {
+    // Find the first goal with "investment" in its name, case-insensitive
+    return goals.find(g => g.name.toLowerCase().includes("investment"));
+  }, [goals]);
+
+  if (!investmentGoal) {
+    return (
+        <StatCard
+            label="Investment Goal"
+            value="No Goal"
+            valueClassName="text-muted-foreground"
+        />
     );
+  }
 
-    const total = investmentTransactions.reduce(
-      (acc, t) => acc + t.amount,
-      0
-    );
-
-    return {
-      totalInvestment: total,
-      investmentCount: investmentTransactions.length,
-    };
-  }, [currentMonthTransactions]);
-
-  const hasInvestment = investmentCount > 0;
+  const { progress, saved } = getGoalProgress(investmentGoal);
+  const isAchieved = progress >= 100;
 
   return (
-    <StatCard
-      label="Investments"
-      value={`₹${totalInvestment.toFixed(0)}`}
-      valueClassName={cn(
-        hasInvestment ? "text-purple-600" : "text-muted-foreground"
-      )}
-    />
+    <Card className="border-0 shadow-lg w-full h-20">
+        <CardContent className="flex flex-col justify-center h-full p-3 gap-2">
+             <div className="flex justify-between items-baseline">
+                <p className="text-[11px] sm:text-xs text-muted-foreground font-medium">
+                    {investmentGoal.name}
+                </p>
+                 <p className="text-xs font-semibold text-purple-600">
+                    {Math.round(progress)}%
+                </p>
+            </div>
+            <Progress
+                value={Math.min(progress, 100)}
+                className={cn(
+                  "h-2",
+                  isAchieved && "[&>div]:bg-green-500",
+                  !isAchieved && "[&>div]:bg-purple-500"
+                )}
+            />
+            <div className="flex justify-between items-baseline text-xs text-muted-foreground">
+                <span>₹{saved.toFixed(0)}</span>
+                <span>₹{investmentGoal.targetAmount.toFixed(0)}</span>
+            </div>
+        </CardContent>
+    </Card>
   );
 }
