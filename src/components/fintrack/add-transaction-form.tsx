@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,45 +35,68 @@ import { toast } from "@/hooks/use-toast";
 import { useTransactions } from "@/contexts/transactions-context";
 import { useAccounts } from "@/contexts/account-context";
 
-const formSchema = z.object({
-  type: z.enum(["income", "expense"], {
-    required_error: "You need to select a transaction type.",
-  }),
-  name: z.string().min(1, "Please enter a name."),
-  amount: z.coerce.number().positive("Amount must be positive"),
-  date: z.date({
-    required_error: "A date is required.",
-  }),
-  category: z.string({
-    required_error: "Please select a category.",
-  }),
-  account: z.string({
-    required_error: "Please select an account.",
-  }),
-  spendingType: z.enum(["need", "want"]).optional(),
-}).refine(data => {
-    if (data.type === 'expense' && !data.spendingType) {
-        return false;
+/* ---------------- Schema ---------------- */
+
+const formSchema = z
+  .object({
+    type: z.enum(["income", "expense"]),
+    name: z.string().min(1, "Please enter a name."),
+    amount: z.coerce.number().positive("Amount must be positive"),
+    date: z.date(),
+    category: z.string(),
+    account: z.string(),
+    spendingType: z.enum(["need", "want"]).optional(),
+    recurring: z.boolean().optional(),
+  })
+  .refine(
+    (data) => data.type === "income" || !!data.spendingType,
+    {
+      message: "Please select if this is a need or a want.",
+      path: ["spendingType"],
     }
-    return true;
-}, {
-    message: "Please select if this is a need or a want.",
-    path: ["spendingType"],
-});
+  );
+
+/* ---------------- Data ---------------- */
 
 const categories = {
   income: ["Freelance", "Salary", "Bonus", "Other"],
-  expense: ["Food", "Transport", "Shopping", "Bills", "Subscription", "Investment", "Other"],
+  expense: [
+    "Food",
+    "Transport",
+    "Shopping",
+    "Bills",
+    "Subscription",
+    "Investment",
+    "Other",
+  ],
 };
 
+const smartCategoryMap: Record<string, string> = {
+  spotify: "subscription",
+  netflix: "subscription",
+  prime: "subscription",
+  uber: "transport",
+  ola: "transport",
+  swiggy: "food",
+  zomato: "food",
+  amazon: "shopping",
+  flipkart: "shopping",
+  rent: "bills",
+  electricity: "bills",
+};
+
+/* ---------------- Component ---------------- */
 
 export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addTransaction } = useTransactions();
   const { accounts } = useAccounts();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      type: "expense",
       date: new Date(),
+      recurring: false,
     },
   });
 
@@ -82,72 +104,110 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
     addTransaction(values);
+
     toast({
       title: "Transaction Added",
-      description: `Successfully added ${values.type} of $${values.amount}.`,
+      description: `Added ${values.type} of ₹${values.amount}`,
     });
-    form.reset({ name: "", amount: 0, date: new Date() });
-    if (onSubmit) {
-      onSubmit();
-    }
+
+    form.reset({
+      type: "expense",
+      name: "",
+      amount: 0,
+      date: new Date(),
+      recurring: false,
+    });
+
+    onSubmit?.();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-4">
+      {/* 🔽 SCROLLABLE FORM BODY */}
+      <form
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="
+          space-y-5
+          pt-4
+          w-full
+          max-h-[70vh]
+          overflow-y-auto
+          pr-1
+        "
+      >
+        {/* Transaction Type */}
         <FormField
           control={form.control}
           name="type"
           render={({ field }) => (
-            <FormItem className="space-y-3">
+            <FormItem>
               <FormLabel>Transaction Type</FormLabel>
               <FormControl>
                 <RadioGroup
+                  value={field.value}
                   onValueChange={(value) => {
                     field.onChange(value);
-                    form.setValue("category", ""); // Reset category on type change
-                    if (value === 'income') {
-                      form.setValue('spendingType', undefined);
-                      form.clearErrors('spendingType');
+                    form.setValue("category", "");
+                    if (value === "income") {
+                      form.setValue("spendingType", undefined);
+                      form.clearErrors("spendingType");
                     }
                   }}
-                  defaultValue={field.value}
-                  className="flex space-x-4"
+                  className="grid grid-cols-2 gap-3"
                 >
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="income" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Income</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="expense" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Expense</FormLabel>
-                  </FormItem>
+                  {["income", "expense"].map((t) => (
+                    <label
+                      key={t}
+                      className="
+                        flex items-center gap-3
+                        border rounded-lg
+                        px-4 py-3
+                        cursor-pointer
+                        [&:has(:checked)]:border-primary
+                        [&:has(:checked)]:bg-muted
+                      "
+                    >
+                      <RadioGroupItem value={t} />
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </label>
+                  ))}
                 </RadioGroup>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* Name */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="e.g. Spotify"
+                  className="h-11 text-base"
+                  onChange={(e) => {
+                    field.onChange(e);
+                    const value = e.target.value.toLowerCase();
+                    const match = Object.keys(smartCategoryMap).find((k) =>
+                      value.includes(k)
+                    );
+                    if (match && transactionType) {
+                      form.setValue("category", smartCategoryMap[match]);
+                    }
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Spotify" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-        <div className="grid grid-cols-2 gap-4">
+        {/* Amount + Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="amount"
@@ -155,45 +215,56 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
               <FormItem>
                 <FormLabel>Amount</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="$0.00" {...field} />
+                  <Input
+                    {...field}
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="₹0.00"
+                    className="h-11 text-base"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Date</FormLabel>
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("date", new Date())}
+                    className="text-xs font-medium text-primary"
+                  >
+                    Today
+                  </button>
+                </div>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
+                        variant="outline"
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
+                          "h-11 w-full justify-between text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        {field.value
+                          ? format(field.value, "PPP")
+                          : "Pick a date"}
+                        <CalendarIcon className="h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
                       initialFocus
                     />
                   </PopoverContent>
@@ -204,24 +275,29 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* Category + Account */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="category"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value} disabled={!transactionType}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={!transactionType}
+                >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {transactionType &&
-                      categories[transactionType].map((category) => (
-                        <SelectItem key={category} value={category.toLowerCase()}>
-                          {category}
+                      categories[transactionType].map((c) => (
+                        <SelectItem key={c} value={c.toLowerCase()}>
+                          {c}
                         </SelectItem>
                       ))}
                   </SelectContent>
@@ -230,22 +306,26 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="account"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Account</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an account" />
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {accounts.map((account) => (
-                      <SelectItem key={account.id} value={account.name.toLowerCase()}>
-                        <span className="capitalize">{account.name}</span>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.name}>
+                        {a.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -256,31 +336,36 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           />
         </div>
 
-        {transactionType === 'expense' && (
+        {/* Need / Want */}
+        {transactionType === "expense" && (
           <FormField
             control={form.control}
             name="spendingType"
             render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>This is a...</FormLabel>
+              <FormItem>
+                <FormLabel>This is a…</FormLabel>
                 <FormControl>
                   <RadioGroup
+                    value={field.value}
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex space-x-4"
+                    className="grid grid-cols-2 gap-3"
                   >
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="need" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Need</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="want" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Want</FormLabel>
-                    </FormItem>
+                    {["need", "want"].map((t) => (
+                      <label
+                        key={t}
+                        className="
+                          flex items-center gap-3
+                          border rounded-lg
+                          px-4 py-3
+                          cursor-pointer
+                          [&:has(:checked)]:border-primary
+                          [&:has(:checked)]:bg-muted
+                        "
+                      >
+                        <RadioGroupItem value={t} />
+                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                      </label>
+                    ))}
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
@@ -288,8 +373,38 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
             )}
           />
         )}
-        
-        <Button type="submit" className="w-full">Add Transaction</Button>
+
+        {/* Recurring */}
+        {transactionType === "expense" && (
+          <FormField
+            control={form.control}
+            name="recurring"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between rounded-lg border px-4 py-3">
+                <div>
+                  <FormLabel className="text-sm">
+                    Recurring Transaction
+                  </FormLabel>
+                  <p className="text-xs text-muted-foreground">
+                    Repeats every month
+                  </p>
+                </div>
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value || false}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    className="h-5 w-5 accent-primary"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
+
+        <Button type="submit" className="w-full h-11 text-base font-semibold">
+          Add Transaction
+        </Button>
       </form>
     </Form>
   );

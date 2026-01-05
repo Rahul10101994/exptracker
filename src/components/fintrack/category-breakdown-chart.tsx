@@ -55,14 +55,14 @@ export function CategoryBreakdownChart() {
   const { currentMonthTransactions } = useTransactions();
 
   const [mounted, setMounted] = React.useState(false);
-  const [activeIndex, setActiveIndex] = React.useState<number | null>(null); // hover
-  const [lockedIndex, setLockedIndex] = React.useState<number | null>(null); // tap
+  const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
+  const [lockedIndex, setLockedIndex] = React.useState<number | null>(null);
   const [hiddenKeys, setHiddenKeys] = React.useState<Set<string>>(new Set());
   const [animatedTotal, setAnimatedTotal] = React.useState(0);
 
   React.useEffect(() => setMounted(true), []);
 
-  /* ---------- RAW CATEGORY DATA ---------- */
+  /* ---------- RAW DATA ---------- */
   const rawData = React.useMemo(() => {
     const map: Record<string, number> = {};
 
@@ -98,16 +98,14 @@ export function CategoryBreakdownChart() {
     [rawData]
   );
 
-  /* ---------- NEED / WANT SPLIT ---------- */
+  /* ---------- NEED / WANT ---------- */
   const { needTotal, wantTotal } = React.useMemo(() => {
     let need = 0;
     let want = 0;
 
     currentMonthTransactions
       .filter(
-        (t) =>
-          t.type === "expense" &&
-          !hiddenKeys.has(t.category)
+        (t) => t.type === "expense" && !hiddenKeys.has(t.category)
       )
       .forEach((t) => {
         if (t.needWant?.toLowerCase() === "need") {
@@ -126,17 +124,17 @@ export function CategoryBreakdownChart() {
 
   const wantPercent = 100 - needPercent;
 
-  /* ---------- SMOOTH TOTAL ANIMATION ---------- */
+  /* ---------- TOTAL ANIMATION ---------- */
   React.useEffect(() => {
-    const startValue = animatedTotal;
-    const diff = visibleTotal - startValue;
+    const start = animatedTotal;
+    const diff = visibleTotal - start;
     const duration = 600;
     const startTime = performance.now();
 
     function animate(now: number) {
-      const progress = Math.min((now - startTime) / duration, 1);
-      setAnimatedTotal(Math.round(startValue + diff * progress));
-      if (progress < 1) requestAnimationFrame(animate);
+      const p = Math.min((now - startTime) / duration, 1);
+      setAnimatedTotal(Math.round(start + diff * p));
+      if (p < 1) requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);
@@ -157,55 +155,47 @@ export function CategoryBreakdownChart() {
   if (!mounted) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Category Breakdown</CardTitle>
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="p-4 pb-2">
+        <CardTitle className="text-sm sm:text-base">
+          Category Breakdown
+        </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center gap-6">
+      <CardContent className="flex flex-col items-center gap-6 p-4 pt-0">
         {chartData.length === 0 ? (
           <div className="h-48 flex items-center justify-center text-muted-foreground">
             No expense data
           </div>
         ) : (
           <>
-            {/* ---------- DONUT (TAP OUTSIDE TO CLEAR) ---------- */}
+            {/* ---------- DONUT ---------- */}
             <div
-              className="relative w-full max-w-[280px] aspect-square"
+              className="relative w-full max-w-[260px] aspect-square"
               onClick={() => {
                 setLockedIndex(null);
                 setActiveIndex(null);
               }}
             >
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={chartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius="60%"
-                    outerRadius="80%"
+                    innerRadius="62%"
+                    outerRadius="82%"
                     dataKey="value"
-                    activeIndex={
-                      lockedIndex ?? activeIndex ?? undefined
-                    }
+                    activeIndex={lockedIndex ?? activeIndex ?? undefined}
                     activeShape={ActiveShape}
-                    onMouseEnter={(_, i) => {
-                      if (lockedIndex === null)
-                        setActiveIndex(i);
-                    }}
-                    onMouseLeave={() => {
-                      if (lockedIndex === null)
-                        setActiveIndex(null);
-                    }}
+                    onMouseEnter={(_, i) =>
+                      lockedIndex === null && setActiveIndex(i)
+                    }
+                    onMouseLeave={() =>
+                      lockedIndex === null && setActiveIndex(null)
+                    }
                     onClick={(_, i) => {
-                      setLockedIndex((prev) =>
-                        prev === i ? null : i
-                      );
+                      setLockedIndex((prev) => (prev === i ? null : i));
                       setActiveIndex(null);
                     }}
                   >
@@ -217,9 +207,14 @@ export function CategoryBreakdownChart() {
                     ))}
                   </Pie>
 
-                  {/* FIXED TOOLTIP */}
+                  {/* TOOLTIP – NO BLACK BOX */}
                   <Tooltip
                     cursor={false}
+                    wrapperStyle={{ outline: "none" }}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: "none",
+                    }}
                     formatter={(v: number) =>
                       `₹${v.toLocaleString()}`
                     }
@@ -233,15 +228,15 @@ export function CategoryBreakdownChart() {
                   Total Expense
                 </span>
 
-                <span className="text-lg font-bold">
+                <span className="text-lg sm:text-xl font-bold">
                   ₹{animatedTotal.toLocaleString()}
                 </span>
 
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs">
                   <span className="text-green-600 font-medium">
                     Need {needPercent}%
                   </span>
-                  <span>•</span>
+                  <span className="text-muted-foreground">•</span>
                   <span className="text-orange-500 font-medium">
                     Want {wantPercent}%
                   </span>
@@ -260,13 +255,9 @@ export function CategoryBreakdownChart() {
                 return (
                   <button
                     key={item.key}
-                    onClick={() =>
-                      toggleCategory(item.key)
-                    }
+                    onClick={() => toggleCategory(item.key)}
                     className={`w-full flex items-center justify-between text-sm transition-opacity ${
-                      hidden
-                        ? "opacity-40"
-                        : "opacity-100"
+                      hidden ? "opacity-40" : "opacity-100"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -277,7 +268,9 @@ export function CategoryBreakdownChart() {
                             COLORS[index % COLORS.length],
                         }}
                       />
-                      <span>{item.name}</span>
+                      <span className="capitalize">
+                        {item.name}
+                      </span>
                     </div>
 
                     <span className="text-muted-foreground">

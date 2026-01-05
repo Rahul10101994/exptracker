@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,8 +22,15 @@ const formSchema = z.object({
   initialBalance: z.coerce.number().default(0),
 });
 
-export function EditAccountForm({ account, onSubmit }: { account: Account, onSubmit?: () => void }) {
+export function EditAccountForm({
+  account,
+  onSubmit,
+}: {
+  account: Account;
+  onSubmit?: () => void;
+}) {
   const { updateAccount } = useAccounts();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,45 +41,81 @@ export function EditAccountForm({ account, onSubmit }: { account: Account, onSub
 
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
     updateAccount(account.id, values as NewAccount);
+
     toast({
       title: "Account Updated",
       description: `Successfully updated account: ${values.name}.`,
     });
-    if (onSubmit) {
-      onSubmit();
-    }
+
+    onSubmit?.();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 pt-4">
+      <form
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="
+          space-y-5
+          pt-4
+          w-full
+          max-h-[70vh]
+          overflow-y-auto
+          pr-1
+        "
+      >
+        {/* Account Name */}
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Account Name</FormLabel>
+              <FormLabel className="text-sm font-medium">
+                Account Name
+              </FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Savings Account" {...field} />
+                <Input
+                  {...field}
+                  placeholder="e.g. Savings Account"
+                  className="h-11 text-base"
+                  autoFocus
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Initial Balance */}
         <FormField
           control={form.control}
           name="initialBalance"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Initial Balance</FormLabel>
+              <FormLabel className="text-sm font-medium">
+                Initial Balance
+              </FormLabel>
               <FormControl>
-                <Input type="number" placeholder="$0.00" {...field} />
+                <Input
+                  {...field}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  placeholder="₹0.00"
+                  className="h-11 text-base"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Save Changes</Button>
+
+        {/* Submit */}
+        <Button
+          type="submit"
+          className="w-full h-11 text-base font-semibold"
+        >
+          Save Changes
+        </Button>
       </form>
     </Form>
   );
