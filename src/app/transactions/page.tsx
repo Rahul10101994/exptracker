@@ -3,12 +3,18 @@
 
 import Link from 'next/link';
 import * as React from 'react';
-import { ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTransactions } from '@/contexts/transactions-context';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const months = [
   "January", "February", "March", "April", "May", "June", 
@@ -87,7 +93,23 @@ export default function TransactionsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold">{transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}</p>
-                        <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   );
