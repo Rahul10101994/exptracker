@@ -20,14 +20,16 @@ import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
+  name: z.string().min(1, "Please enter your name."),
   email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(1, "Please enter your password."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
 });
 
-export function LoginForm() {
+export function SignUpForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
     },
@@ -36,8 +38,8 @@ export function LoginForm() {
   function handleFormSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     toast({
-      title: "Logged In",
-      description: "Welcome back!",
+      title: "Account Created",
+      description: "Welcome to FinTrack!",
     });
   }
 
@@ -48,6 +50,23 @@ export function LoginForm() {
           onSubmit={form.handleSubmit(handleFormSubmit)}
           className="space-y-4"
         >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="John Doe"
+                    className="h-11"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="email"
@@ -71,12 +90,7 @@ export function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between">
-                    <FormLabel>Password</FormLabel>
-                    <Link href="#" className="text-sm font-medium text-primary hover:underline">
-                        Forgot password?
-                    </Link>
-                </div>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
                   <Input {...field} type="password" placeholder="••••••••" className="h-11" />
                 </FormControl>
@@ -85,15 +99,15 @@ export function LoginForm() {
             )}
           />
           <Button type="submit" className="w-full h-11 font-semibold">
-            Sign In
+            Sign Up
           </Button>
         </form>
       </Form>
 
       <div className="text-center text-sm">
-        Don&apos;t have an account?{' '}
-        <Link href="/signup" className="font-medium text-primary hover:underline">
-          Sign Up
+        Already have an account?{' '}
+        <Link href="/" className="font-medium text-primary hover:underline">
+          Sign In
         </Link>
       </div>
 
