@@ -3,15 +3,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Goal, useGoals } from '@/contexts/goal-context';
+import { format } from 'date-fns';
 
 export function GoalCard({ goal }: { goal: Goal }) {
   const { getGoalProgress } = useGoals();
   const { progress, saved } = getGoalProgress(goal);
+  const currentMonth = format(new Date(), 'MMMM');
+
+  const goalName = goal.type === 'monthly' ? `${currentMonth} ${goal.name}` : goal.name;
 
   return (
     <Card className="shadow-lg border-0">
       <CardHeader className="p-3 pb-2">
-        <CardTitle className="text-base font-medium">{goal.name}</CardTitle>
+        <CardTitle className="text-base font-medium">{goalName}</CardTitle>
       </CardHeader>
       <CardContent className="p-3 pt-0">
         <Progress value={Math.max(0, progress)} className="h-2" />
