@@ -31,6 +31,7 @@ interface TransactionsContextType {
     getIconForCategory: (category: string) => React.ElementType;
     updateCategoryIcon: (category: string, iconName: string) => void;
     currentMonthTransactions: Transaction[];
+    getCategoryIconName: (category: string) => string;
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -201,6 +202,11 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         return IconComponent;
     }
     
+    const getCategoryIconName = (category: string) => {
+        if (!isClient) return 'MoreHorizontal';
+        return categoryIcons[category.toLowerCase()] || 'MoreHorizontal';
+    }
+    
     const currentMonthTransactions = useMemo(() => {
         if (!isClient) return [];
         const now = new Date();
@@ -212,7 +218,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, updateTransaction, getIconForCategory, updateCategoryIcon, currentMonthTransactions }}>
+        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, updateTransaction, getIconForCategory, updateCategoryIcon, currentMonthTransactions, getCategoryIconName }}>
             {children}
         </TransactionsContext.Provider>
     );
