@@ -62,11 +62,6 @@ export default function SettingsPage() {
                         <span>Accounts</span>
                         <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </Link>
-                    <Separator />
-                     <Link href="/categories" className="flex items-center justify-between py-3">
-                        <span>Category Icons</span>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </Link>
                 </CardContent>
             </Card>
 
