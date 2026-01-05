@@ -203,9 +203,7 @@ export function TransactionHistory() {
         {/* Delete Dialog */}
         <AlertDialog
           open={!!transactionToDelete}
-          onOpenChange={(open) =>
-            !open && setTransactionToDelete(null)
-          }
+          onOpenChange={(open) => !open && setTransactionToDelete(null)}
         >
           <AlertDialogContent>
             <AlertDialogHeader>
