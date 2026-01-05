@@ -1,4 +1,3 @@
-
 "use client";
 
 import { LoginForm } from "@/components/fintrack/login-form";
@@ -8,9 +7,9 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4">
       <Image
-        src="https://picsum.photos/seed/finance/1200/800"
+        src="https://picsum.photos/seed/budget/1200/800"
         alt="Financial documents and a laptop"
-        data-ai-hint="finance abstract"
+        data-ai-hint="finance budget"
         fill
         className="object-cover"
       />
