@@ -15,7 +15,7 @@ export default function LoginPage() {
       />
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-background/90 p-6 backdrop-blur-sm">
+      <div className="relative z-10 w-full max-w-sm rounded-xl bg-background/80 p-6 backdrop-blur-sm">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold">Welcome Back</h1>
           <p className="text-muted-foreground">
