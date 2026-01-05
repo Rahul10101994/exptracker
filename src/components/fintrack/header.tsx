@@ -18,7 +18,7 @@ export function FinTrackHeader() {
     <header
       className="
         flex items-center justify-between
-        pt-2
+        pt-0
         gap-2
       "
     >
@@ -28,7 +28,7 @@ export function FinTrackHeader() {
           <Button
             variant="ghost"
             size="icon"
-            className="h-11 w-11"
+            className="h-10 w-10"
           >
             <MoreVertical className="h-5 w-5" />
             <span className="sr-only">Menu</span>
@@ -67,7 +67,7 @@ export function FinTrackHeader() {
       </div>
 
       {/* Right: Placeholder for alignment */}
-      <div className="h-11 w-11 shrink-0" />
+      <div className="h-10 w-10 shrink-0" />
     </header>
   );
 }
