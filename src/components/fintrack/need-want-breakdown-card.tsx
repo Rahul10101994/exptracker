@@ -81,7 +81,7 @@ export function NeedWantBreakdownCard({ transactions, prevMonthTransactions }: {
         <CardTitle className="text-base font-medium">Needs vs. Wants</CardTitle>
       </CardHeader>
       <CardContent className="p-3 pt-0">
-        <div className="flex w-full h-2 rounded-full overflow-hidden mb-4">
+        <div className="flex w-full h-2 rounded-full overflow-hidden mb-2">
             <div
                 className="bg-green-500"
                 style={{ width: `${needPercentage}%` }}
@@ -92,32 +92,28 @@ export function NeedWantBreakdownCard({ transactions, prevMonthTransactions }: {
             ></div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-green-500"></span>
-              <span className="font-medium">Needs</span>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-2 w-2 rounded-full bg-green-500"></span>
+              <span className="text-sm font-medium">Needs</span>
             </div>
-            <div className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                    <p className="font-bold">${needTotal.toFixed(2)}</p>
-                    <TrendIndicator change={needChange} />
-                </div>
-                <p className="text-sm text-muted-foreground">{needPercentage.toFixed(1)}% of spending</p>
+            <div className="flex items-baseline gap-2">
+                <p className="font-bold text-base">${needTotal.toFixed(2)}</p>
+                <TrendIndicator change={needChange} />
             </div>
+            <p className="text-xs text-muted-foreground">{needPercentage.toFixed(1)}% of spending</p>
           </div>
-          <div className="flex justify-between items-center">
-             <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-orange-500"></span>
-                <span className="font-medium">Wants</span>
+          <div>
+             <div className="flex items-center gap-2 mb-1">
+                <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+                <span className="text-sm font-medium">Wants</span>
             </div>
-             <div className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                    <p className="font-bold">${wantTotal.toFixed(2)}</p>
-                    <TrendIndicator change={wantChange} />
-                </div>
-                <p className="text-sm text-muted-foreground">{wantPercentage.toFixed(1)}% of spending</p>
+             <div className="flex items-baseline gap-2">
+                <p className="font-bold text-base">${wantTotal.toFixed(2)}</p>
+                <TrendIndicator change={wantChange} />
             </div>
+            <p className="text-xs text-muted-foreground">{wantPercentage.toFixed(1)}% of spending</p>
           </div>
         </div>
       </CardContent>
