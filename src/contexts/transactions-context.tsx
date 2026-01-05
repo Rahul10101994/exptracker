@@ -29,9 +29,7 @@ interface TransactionsContextType {
     deleteTransaction: (id: string) => void;
     updateTransaction: (id: string, transaction: NewTransaction) => void;
     getIconForCategory: (category: string) => React.ElementType;
-    updateCategoryIcon: (category: string, iconName: string) => void;
     currentMonthTransactions: Transaction[];
-    getCategoryIconName: (category: string) => string;
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -133,18 +131,18 @@ const categoryStyles: { [key: string]: { fgColor: string, bgColor: string } } = 
     other: { fgColor: 'text-gray-500', bgColor: 'bg-gray-100' },
 };
 
-const initialCategoryIcons: { [key: string]: string } = {
-    subscription: 'Music',
-    freelance: 'ArrowUpCircle',
-    income: 'ArrowUpCircle',
-    salary: 'ArrowUpCircle',
-    bonus: 'ArrowUpCircle',
-    shopping: 'ShoppingBag',
-    food: 'Utensils',
-    transport: 'Bus',
-    bills: 'Tv',
-    investment: 'Landmark',
-    other: 'MoreHorizontal'
+const initialCategoryIcons: { [key: string]: React.ElementType } = {
+    subscription: Music,
+    freelance: ArrowUpCircle,
+    income: ArrowUpCircle,
+    salary: ArrowUpCircle,
+    bonus: ArrowUpCircle,
+    shopping: ShoppingBag,
+    food: Utensils,
+    transport: Bus,
+    bills: Tv,
+    investment: Landmark,
+    other: MoreHorizontal
 };
 
 
@@ -152,7 +150,6 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>(() => 
         initialTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     );
-    const [categoryIcons, setCategoryIcons] = useState<{ [key: string]: string }>(initialCategoryIcons);
     const [isClient, setIsClient] = useState(false);
 
     React.useEffect(() => {
@@ -188,23 +185,9 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     };
 
-    const updateCategoryIcon = (category: string, iconName: string) => {
-        setCategoryIcons(prev => ({
-            ...prev,
-            [category.toLowerCase()]: iconName
-        }));
-    };
-
     const getIconForCategory = (category: string) => {
         if (!isClient) return MoreHorizontal;
-        const iconName = categoryIcons[category.toLowerCase()] || 'MoreHorizontal';
-        const IconComponent = (LucideIcons as any)[iconName] as FC || MoreHorizontal;
-        return IconComponent;
-    }
-    
-    const getCategoryIconName = (category: string) => {
-        if (!isClient) return 'MoreHorizontal';
-        return categoryIcons[category.toLowerCase()] || 'MoreHorizontal';
+        return initialCategoryIcons[category.toLowerCase()] || MoreHorizontal;
     }
     
     const currentMonthTransactions = useMemo(() => {
@@ -218,7 +201,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, updateTransaction, getIconForCategory, updateCategoryIcon, currentMonthTransactions, getCategoryIconName }}>
+        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, updateTransaction, getIconForCategory, currentMonthTransactions }}>
             {children}
         </TransactionsContext.Provider>
     );
