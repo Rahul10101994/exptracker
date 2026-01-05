@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useTransactions } from '@/contexts/transactions-context';
 import { toast } from '@/hooks/use-toast';
+import { IconPicker } from '@/components/fintrack/icon-picker';
 
 type LocalBudgets = {
     [category: string]: {
@@ -31,10 +33,11 @@ type LocalBudgets = {
 
 export default function BudgetPage() {
     const { budgets, setBudgets, addCategory, getCategoryProgress, deleteCategory } = useBudget();
-    const { getIconForCategory } = useTransactions();
+    const { getIconForCategory, updateCategoryIcon } = useTransactions();
     const [newCategory, setNewCategory] = React.useState('');
     const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(budgets);
     const [categoryToDelete, setCategoryToDelete] = React.useState<string | null>(null);
+    const [editingCategoryIcon, setEditingCategoryIcon] = React.useState<string | null>(null);
 
 
     React.useEffect(() => {
@@ -57,6 +60,17 @@ export default function BudgetPage() {
             });
             setCategoryToDelete(null);
         }
+    };
+
+    const handleIconSelect = (iconName: string) => {
+        if (editingCategoryIcon) {
+            updateCategoryIcon(editingCategoryIcon, iconName);
+            toast({
+                title: 'Icon Updated',
+                description: `The icon for "${editingCategoryIcon}" has been changed.`,
+            });
+        }
+        setEditingCategoryIcon(null);
     };
 
     const totalBudget = React.useMemo(() => {
@@ -132,7 +146,9 @@ export default function BudgetPage() {
                         <Card key={category}>
                             <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Icon className="h-5 w-5 text-muted-foreground" />
+                                     <button onClick={() => setEditingCategoryIcon(category)} className="p-1 rounded-md hover:bg-accent">
+                                        <Icon className="h-5 w-5 text-muted-foreground" />
+                                    </button>
                                     <CardTitle className="text-base capitalize">{category}</CardTitle>
                                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete(category)}>
                                         <Trash2 className="h-4 w-4" />
@@ -178,6 +194,13 @@ export default function BudgetPage() {
             <div className='fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-sm px-4'>
                 <Button onClick={handleSave} className="w-full">Save Changes</Button>
             </div>
+
+            <IconPicker
+                isOpen={!!editingCategoryIcon}
+                onClose={() => setEditingCategoryIcon(null)}
+                onSelectIcon={handleIconSelect}
+            />
+
             <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
