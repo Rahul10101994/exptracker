@@ -87,7 +87,7 @@ export default function ReportPage() {
         {filteredTransactions.length > 0 || previousMonthTransactions.length > 0 ? (
           <>
             <FinancialSummaryCard transactions={filteredTransactions} prevMonthTransactions={previousMonthTransactions} />
-            <NeedWantBreakdownCard transactions={filteredTransactions} />
+            <NeedWantBreakdownCard transactions={filteredTransactions} prevMonthTransactions={previousMonthTransactions} />
             <ReportCategoryBreakdown transactions={filteredTransactions} />
             <BudgetBreakdownCard transactions={filteredTransactions} />
           </>
