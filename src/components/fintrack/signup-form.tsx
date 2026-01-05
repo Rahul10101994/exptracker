@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { Chrome } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,7 @@ const formSchema = z.object({
 });
 
 export function SignUpForm() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,6 +43,7 @@ export function SignUpForm() {
       title: "Account Created",
       description: "Welcome to FinTrack!",
     });
+    router.push("/dashboard");
   }
 
   return (
