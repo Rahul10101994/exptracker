@@ -2,9 +2,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, FC } from 'react';
-import * as LucideIcons from 'lucide-react';
 import { isSameMonth, isSameYear } from 'date-fns';
 import { cuid } from '@/lib/utils';
+import * as LucideIcons from 'lucide-react';
 
 const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark } = LucideIcons;
 
@@ -51,7 +51,7 @@ const initialTransactions: Transaction[] = [
     {
         id: '2',
         type: 'income',
-        name: 'Income',
+        name: 'Freelance Project',
         category: 'freelance',
         date: "2024-07-28T12:00:00.000Z",
         amount: 2500.00,
@@ -118,6 +118,75 @@ const initialTransactions: Transaction[] = [
         spendingType: 'want',
         fgColor: 'text-red-500',
         bgColor: 'bg-red-100'
+    },
+    {
+        id: '8',
+        type: 'income',
+        name: 'Monthly Salary',
+        category: 'salary',
+        date: "2024-07-01T12:00:00.000Z",
+        amount: 4000.00,
+        account: 'bank',
+        fgColor: 'text-transaction-income-fg',
+        bgColor: 'bg-transaction-income-bg'
+    },
+    {
+        id: '9',
+        type: 'income',
+        name: 'Performance Bonus',
+        category: 'bonus',
+        date: "2024-07-15T12:00:00.000Z",
+        amount: 500.00,
+        account: 'bank',
+        fgColor: 'text-transaction-income-fg',
+        bgColor: 'bg-transaction-income-bg'
+    },
+    {
+        id: '10',
+        type: 'income',
+        name: 'Sold Old Laptop',
+        category: 'other',
+        date: "2024-07-20T12:00:00.000Z",
+        amount: 300.00,
+        account: 'cash',
+        fgColor: 'text-transaction-income-fg',
+        bgColor: 'bg-transaction-income-bg'
+    },
+    {
+        id: '11',
+        type: 'expense',
+        name: 'Electricity Bill',
+        category: 'bills',
+        date: "2024-07-10T12:00:00.000Z",
+        amount: 75.50,
+        account: 'bank',
+        spendingType: 'need',
+        fgColor: 'text-purple-500',
+        bgColor: 'bg-purple-100'
+    },
+    {
+        id: '12',
+        type: 'expense',
+        name: 'Stock Purchase',
+        category: 'investment',
+        date: "2024-07-22T12:00:00.000Z",
+        amount: 1000.00,
+        account: 'bank',
+        spendingType: 'want',
+        fgColor: 'text-indigo-500',
+        bgColor: 'bg-indigo-100'
+    },
+    {
+        id: '13',
+        type: 'expense',
+        name: 'Concert Tickets',
+        category: 'other',
+        date: "2024-07-18T12:00:00.000Z",
+        amount: 150.00,
+        account: 'card',
+        spendingType: 'want',
+        fgColor: 'text-gray-500',
+        bgColor: 'bg-gray-100'
     }
 ];
 
@@ -151,7 +220,9 @@ const initialCategoryIcons: { [key: string]: string } = {
 
 
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
-    const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+    const [transactions, setTransactions] = useState<Transaction[]>(() => 
+        initialTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    );
     const [categoryIcons, setCategoryIcons] = useState<{ [key: string]: string }>(initialCategoryIcons);
     const [isClient, setIsClient] = useState(false);
 
@@ -196,6 +267,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const getIconForCategory = (category: string) => {
+        if (!isClient) return MoreHorizontal;
         const iconName = categoryIcons[category.toLowerCase()] || 'MoreHorizontal';
         const IconComponent = (LucideIcons as any)[iconName] as FC || MoreHorizontal;
         return IconComponent;
