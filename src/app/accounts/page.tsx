@@ -27,10 +27,28 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from '@/hooks/use-toast';
 import { EditAccountSheet } from '@/components/fintrack/edit-account-sheet';
+import { useTransactions } from '@/contexts/transactions-context';
 
 export default function AccountsPage() {
     const { accounts, deleteAccount } = useAccounts();
+    const { transactions } = useTransactions();
     const [accountToDelete, setAccountToDelete] = React.useState<Account | null>(null);
+
+    const accountBalances = React.useMemo(() => {
+        const balances: { [accountId: string]: number } = {};
+        accounts.forEach(account => {
+            const accountTransactions = transactions.filter(t => t.account.toLowerCase() === account.name.toLowerCase());
+            const balance = accountTransactions.reduce((acc, t) => {
+                if (t.type === 'income') {
+                    return acc + t.amount;
+                } else {
+                    return acc - t.amount;
+                }
+            }, 0);
+            balances[account.id] = balance;
+        });
+        return balances;
+    }, [accounts, transactions]);
 
     const handleDelete = () => {
         if (accountToDelete) {
@@ -67,25 +85,28 @@ export default function AccountsPage() {
                         {accounts.map((account) => (
                             <div key={account.id} className="flex items-center justify-between">
                                 <p className="font-semibold capitalize">{account.name}</p>
-                                <EditAccountSheet account={account}>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <Edit className="mr-2 h-4 w-4" />
-                                                <span>Edit</span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive" onSelect={() => setAccountToDelete(account)}>
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Delete</span>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </EditAccountSheet>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-muted-foreground">${accountBalances[account.id]?.toFixed(2) ?? '0.00'}</p>
+                                  <EditAccountSheet account={account}>
+                                      <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                  <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                                              </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                  <Edit className="mr-2 h-4 w-4" />
+                                                  <span>Edit</span>
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem className="text-destructive" onSelect={() => setAccountToDelete(account)}>
+                                                  <Trash2 className="mr-2 h-4 w-4" />
+                                                  <span>Delete</span>
+                                              </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                      </DropdownMenu>
+                                  </EditAccountSheet>
+                                </div>
                             </div>
                         ))}
                     </div>
