@@ -1,9 +1,9 @@
-
 "use client";
 
 import Link from "next/link";
 import * as React from "react";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -11,12 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
 import {
   useTransactions,
   Transaction,
@@ -44,31 +47,30 @@ export function TransactionHistory() {
 
   const [transactionToDelete, setTransactionToDelete] =
     React.useState<Transaction | null>(null);
+
   const [transactionToEdit, setTransactionToEdit] =
     React.useState<Transaction | null>(null);
 
-  const recentTransactions =
-    currentMonthTransactions.slice(0, 3);
+  const recentTransactions = React.useMemo(
+    () => currentMonthTransactions.slice(0, 3),
+    [currentMonthTransactions]
+  );
 
-  const handleDelete = () => {
+  /* ---------- DELETE (SAFE) ---------- */
+  const handleDelete = React.useCallback(() => {
     if (!transactionToDelete) return;
 
-    deleteTransaction(transactionToDelete.id);
-    toast({
-      title: "Transaction Deleted",
-      description: `${transactionToDelete.name} has been deleted.`,
-    });
-    setTransactionToDelete(null);
-  };
+    requestAnimationFrame(() => {
+      deleteTransaction(transactionToDelete.id);
 
-  const handleEditClick = (
-    e: React.MouseEvent,
-    transaction: Transaction
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setTransactionToEdit(transaction);
-  };
+      toast({
+        title: "Transaction Deleted",
+        description: `${transactionToDelete.name} has been deleted.`,
+      });
+
+      setTransactionToDelete(null);
+    });
+  }, [transactionToDelete, deleteTransaction]);
 
   return (
     <Card className="border-0 shadow-lg w-full">
@@ -86,19 +88,15 @@ export function TransactionHistory() {
         <div className="space-y-4">
           {recentTransactions.length > 0 ? (
             recentTransactions.map((transaction) => {
-              const Icon = getIconForCategory(
-                transaction.category
-              );
-
-              const isIncome =
-                transaction.type === "income";
+              const Icon = getIconForCategory(transaction.category);
+              const isIncome = transaction.type === "income";
 
               return (
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between"
                 >
-                  {/* Left */}
+                  {/* LEFT */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className={cn(
@@ -120,17 +118,15 @@ export function TransactionHistory() {
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
                         {transaction.category} •{" "}
-                        {new Date(
-                          transaction.date
-                        ).toLocaleDateString("en-US", {
-                          day: "numeric",
-                          month: "short",
-                        })}
+                        {new Date(transaction.date).toLocaleDateString(
+                          "en-US",
+                          { day: "numeric", month: "short" }
+                        )}
                       </p>
                     </div>
                   </div>
 
-                  {/* Right */}
+                  {/* RIGHT */}
                   <div className="flex items-center gap-1">
                     <p
                       className={cn(
@@ -144,16 +140,13 @@ export function TransactionHistory() {
                       {transaction.amount.toFixed(0)}
                     </p>
 
+                    {/* SAFE DROPDOWN */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-9 w-9"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
                         >
                           <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                         </Button>
@@ -161,8 +154,11 @@ export function TransactionHistory() {
 
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onSelect={(e) =>
-                            handleEditClick(e, transaction)
+                          onClick={() =>
+                            setTimeout(
+                              () => setTransactionToEdit(transaction),
+                              0
+                            )
                           }
                         >
                           <Edit className="mr-2 h-4 w-4" />
@@ -171,8 +167,12 @@ export function TransactionHistory() {
 
                         <DropdownMenuItem
                           className="text-destructive"
-                          onSelect={() =>
-                            setTransactionToDelete(transaction)
+                          onClick={() =>
+                            setTimeout(
+                              () =>
+                                setTransactionToDelete(transaction),
+                              0
+                            )
                           }
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
@@ -191,19 +191,21 @@ export function TransactionHistory() {
           )}
         </div>
 
-        {/* Edit Sheet */}
+        {/* EDIT SHEET */}
         {transactionToEdit && (
           <EditTransactionSheet
             transaction={transactionToEdit}
-            isOpen={!!transactionToEdit}
+            isOpen
             onClose={() => setTransactionToEdit(null)}
           />
         )}
 
-        {/* Delete Dialog */}
+        {/* DELETE CONFIRM */}
         <AlertDialog
           open={!!transactionToDelete}
-          onOpenChange={(open) => !open && setTransactionToDelete(null)}
+          onOpenChange={(open) =>
+            !open && setTransactionToDelete(null)
+          }
         >
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -214,6 +216,7 @@ export function TransactionHistory() {
                 This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
+
             <AlertDialogFooter>
               <AlertDialogCancel>
                 Cancel

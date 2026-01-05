@@ -57,7 +57,10 @@ export function CategoryBreakdownChart() {
   const [mounted, setMounted] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
   const [lockedIndex, setLockedIndex] = React.useState<number | null>(null);
-  const [hiddenKeys, setHiddenKeys] = React.useState<Set<string>>(new Set());
+
+  /* ✅ NEW: selected legend (controls center value) */
+  const [selectedKey, setSelectedKey] = React.useState<string | null>(null);
+
   const [animatedTotal, setAnimatedTotal] = React.useState(0);
 
   React.useEffect(() => setMounted(true), []);
@@ -81,22 +84,17 @@ export function CategoryBreakdownChart() {
       .sort((a, b) => b.value - a.value);
   }, [currentMonthTransactions]);
 
-  /* ---------- FILTERED DATA ---------- */
-  const chartData = React.useMemo(
-    () => rawData.filter((d) => !hiddenKeys.has(d.key)),
-    [rawData, hiddenKeys]
-  );
-
-  /* ---------- TOTALS ---------- */
-  const visibleTotal = React.useMemo(
-    () => chartData.reduce((s, d) => s + d.value, 0),
-    [chartData]
-  );
-
-  const fullTotal = React.useMemo(
+  /* ---------- TOTAL ---------- */
+  const totalExpense = React.useMemo(
     () => rawData.reduce((s, d) => s + d.value, 0),
     [rawData]
   );
+
+  /* ---------- SELECTED VALUE (KEY FIX) ---------- */
+  const selectedValue = React.useMemo(() => {
+    if (!selectedKey) return totalExpense;
+    return rawData.find((d) => d.key === selectedKey)?.value ?? totalExpense;
+  }, [selectedKey, rawData, totalExpense]);
 
   /* ---------- NEED / WANT ---------- */
   const { needTotal, wantTotal } = React.useMemo(() => {
@@ -104,9 +102,7 @@ export function CategoryBreakdownChart() {
     let want = 0;
 
     currentMonthTransactions
-      .filter(
-        (t) => t.type === "expense" && !hiddenKeys.has(t.category)
-      )
+      .filter((t) => t.type === "expense")
       .forEach((t) => {
         if (t.needWant?.toLowerCase() === "need") {
           need += Math.abs(t.amount);
@@ -116,18 +112,18 @@ export function CategoryBreakdownChart() {
       });
 
     return { needTotal: need, wantTotal: want };
-  }, [currentMonthTransactions, hiddenKeys]);
+  }, [currentMonthTransactions]);
 
-  const needPercent = visibleTotal
-    ? Math.round((needTotal / visibleTotal) * 100)
+  const needPercent = totalExpense
+    ? Math.round((needTotal / totalExpense) * 100)
     : 0;
 
   const wantPercent = 100 - needPercent;
 
-  /* ---------- TOTAL ANIMATION ---------- */
+  /* ---------- CENTER TOTAL ANIMATION ---------- */
   React.useEffect(() => {
     const start = animatedTotal;
-    const diff = visibleTotal - start;
+    const diff = selectedValue - start;
     const duration = 600;
     const startTime = performance.now();
 
@@ -139,18 +135,7 @@ export function CategoryBreakdownChart() {
 
     requestAnimationFrame(animate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleTotal]);
-
-  /* ---------- LEGEND TOGGLE ---------- */
-  function toggleCategory(key: string) {
-    setActiveIndex(null);
-    setLockedIndex(null);
-    setHiddenKeys((prev) => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
-  }
+  }, [selectedValue]);
 
   if (!mounted) return null;
 
@@ -163,7 +148,7 @@ export function CategoryBreakdownChart() {
       </CardHeader>
 
       <CardContent className="flex flex-col items-center gap-6 p-4 pt-0">
-        {chartData.length === 0 ? (
+        {rawData.length === 0 ? (
           <div className="h-48 flex items-center justify-center text-muted-foreground">
             No expense data
           </div>
@@ -175,12 +160,13 @@ export function CategoryBreakdownChart() {
               onClick={() => {
                 setLockedIndex(null);
                 setActiveIndex(null);
+                setSelectedKey(null);
               }}
             >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={chartData}
+                    data={rawData}
                     cx="50%"
                     cy="50%"
                     innerRadius="62%"
@@ -199,7 +185,7 @@ export function CategoryBreakdownChart() {
                       setActiveIndex(null);
                     }}
                   >
-                    {chartData.map((_, i) => (
+                    {rawData.map((_, i) => (
                       <Cell
                         key={i}
                         fill={COLORS[i % COLORS.length]}
@@ -207,10 +193,8 @@ export function CategoryBreakdownChart() {
                     ))}
                   </Pie>
 
-                  {/* TOOLTIP – NO BLACK BOX */}
                   <Tooltip
                     cursor={false}
-                    wrapperStyle={{ outline: "none" }}
                     contentStyle={{
                       borderRadius: 8,
                       border: "none",
@@ -225,39 +209,48 @@ export function CategoryBreakdownChart() {
               {/* ---------- CENTER LABEL ---------- */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center gap-1">
                 <span className="text-xs text-muted-foreground">
-                  Total Expense
+                  {selectedKey
+                    ? rawData.find((d) => d.key === selectedKey)?.name
+                    : "Total Expense"}
                 </span>
 
                 <span className="text-lg sm:text-xl font-bold">
                   ₹{animatedTotal.toLocaleString()}
                 </span>
 
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-green-600 font-medium">
-                    Need {needPercent}%
-                  </span>
-                  <span className="text-muted-foreground">•</span>
-                  <span className="text-orange-500 font-medium">
-                    Want {wantPercent}%
-                  </span>
-                </div>
+                {!selectedKey && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-green-600 font-medium">
+                      Need {needPercent}%
+                    </span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-orange-500 font-medium">
+                      Want {wantPercent}%
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* ---------- LEGEND ---------- */}
             <div className="w-full space-y-2">
               {rawData.map((item, index) => {
-                const hidden = hiddenKeys.has(item.key);
-                const percent = fullTotal
-                  ? ((item.value / fullTotal) * 100).toFixed(0)
+                const percent = totalExpense
+                  ? ((item.value / totalExpense) * 100).toFixed(0)
                   : "0";
+
+                const selected = selectedKey === item.key;
 
                 return (
                   <button
                     key={item.key}
-                    onClick={() => toggleCategory(item.key)}
-                    className={`w-full flex items-center justify-between text-sm transition-opacity ${
-                      hidden ? "opacity-40" : "opacity-100"
+                    onClick={() =>
+                      setSelectedKey((prev) =>
+                        prev === item.key ? null : item.key
+                      )
+                    }
+                    className={`w-full flex items-center justify-between text-sm ${
+                      selected ? "font-semibold" : ""
                     }`}
                   >
                     <div className="flex items-center gap-2">
