@@ -51,6 +51,16 @@ export default function SettingsPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Manage Accounts</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {/* Content for managing accounts will go here */}
+                </CardContent>
+            </Card>
+
              <Card>
                 <CardHeader>
                     <CardTitle>Account</CardTitle>
