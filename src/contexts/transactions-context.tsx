@@ -154,7 +154,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = (transaction: NewTransaction) => {
         const styles = categoryStyles[transaction.category.toLowerCase()] || categoryStyles.other;
         const newTransaction: Transaction = {
-            id: new Date().toISOString(),
+            id: `${transaction.name}-${Date.now()}-${Math.random()}`,
             ...transaction,
             date: transaction.date.toISOString(),
             ...styles

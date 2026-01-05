@@ -34,7 +34,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
 
     const addAccount = (account: NewAccount) => {
         const newAccount: Account = {
-            id: new Date().toISOString(),
+            id: `${account.name}-${Date.now()}-${Math.random()}`,
             ...account
         };
         setAccounts(prev => [...prev, newAccount]);

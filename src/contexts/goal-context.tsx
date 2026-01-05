@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
@@ -47,7 +48,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
 
     const addGoal = (goal: NewGoal) => {
         const newGoal: Goal = {
-            id: new Date().toISOString(),
+            id: `${goal.name}-${Date.now()}-${Math.random()}`,
             ...goal,
             savedAmount: 0,
             createdAt: new Date().toISOString(),
