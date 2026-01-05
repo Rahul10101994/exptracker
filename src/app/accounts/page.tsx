@@ -62,10 +62,15 @@ export default function AccountsPage() {
         }
     };
     
-    const handleEditClick = (e: Event, account: Account) => {
+    const handleEditClick = (e: React.MouseEvent, account: Account) => {
         e.preventDefault();
+        e.stopPropagation();
         setAccountToEdit(account);
     }
+    
+    const handleCloseEditSheet = () => {
+        setAccountToEdit(null);
+    };
 
     return (
         <FinTrackLayout>
@@ -118,9 +123,11 @@ export default function AccountsPage() {
             </Card>
             
             {accountToEdit && (
-                <EditAccountSheet account={accountToEdit} >
-                    {/* The sheet is controlled by accountToEdit state, no trigger needed here */}
-                </EditAccountSheet>
+                <EditAccountSheet
+                  account={accountToEdit}
+                  isOpen={!!accountToEdit}
+                  onClose={handleCloseEditSheet}
+                />
             )}
 
 
