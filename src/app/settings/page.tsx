@@ -87,7 +87,9 @@ export default function SettingsPage() {
                     <CardTitle>Account</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Button variant="outline" className="w-full">Logout</Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
                 </CardContent>
             </Card>
 
