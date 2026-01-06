@@ -13,23 +13,27 @@ export function AISummaryCard() {
   const { currentMonthTransactions } = useTransactions();
   const [summary, setSummary] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     async function fetchSummary() {
       if (currentMonthTransactions.length > 0) {
         setLoading(true);
+        setError(null);
         try {
           const result = await getFinancialSummary(currentMonthTransactions);
           setSummary(result);
-        } catch (error) {
-          console.error("Error fetching AI summary:", error);
-          setSummary({ error: "Couldn't load AI summary." });
+        } catch (e: any) {
+          console.error("Detailed error fetching AI summary:", e);
+          setError(e.message || "An unknown error occurred.");
+          setSummary(null);
         } finally {
           setLoading(false);
         }
       } else {
         setSummary(null);
         setLoading(false);
+        setError(null);
       }
     }
     fetchSummary();
@@ -45,10 +49,18 @@ export function AISummaryCard() {
         </>
       );
     }
-    if (!summary || summary.error) {
+    if (error) {
+       return (
+        <div className="text-center text-sm text-destructive py-4">
+           <p className="font-bold">Couldn't load AI summary.</p>
+           <p className="text-xs">Error: {error}</p>
+        </div>
+      );
+    }
+     if (!summary) {
       return (
         <div className="text-center text-sm text-muted-foreground py-4">
-           {summary?.error || "No transaction data for AI summary."}
+           No transaction data for AI summary.
         </div>
       );
     }
