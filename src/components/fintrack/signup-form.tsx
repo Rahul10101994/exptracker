@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { useAuth, useFirestore } from "@/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 const formSchema = z.object({
@@ -57,6 +57,10 @@ export function SignUpForm() {
         const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
         const user = userCredential.user;
 
+        // Update the user's profile with their display name
+        await updateProfile(user, { displayName: values.name });
+
+        // Save user details to Firestore
         await setDoc(doc(firestore, "users", user.uid), {
             name: values.name,
             email: values.email,
