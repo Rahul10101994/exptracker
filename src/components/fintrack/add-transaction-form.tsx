@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
+import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import { useTransactions } from "@/contexts/transactions-context";
 import { useAccounts } from "@/contexts/account-context";
+import { useBudget } from "@/contexts/budget-context";
 
 /* ---------------- Schema ---------------- */
 
@@ -47,19 +49,6 @@ const formSchema = z
 
 /* ---------------- Data ---------------- */
 
-const categories = {
-  income: ["Freelance", "Salary", "Bonus", "Other"],
-  expense: [
-    "Food",
-    "Transport",
-    "Shopping",
-    "Bills",
-    "Subscription",
-    "Investment",
-    "Other",
-  ],
-};
-
 const smartCategoryMap: Record<string, string> = {
   spotify: "subscription",
   netflix: "subscription",
@@ -79,6 +68,16 @@ const smartCategoryMap: Record<string, string> = {
 export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addTransaction } = useTransactions();
   const { accounts } = useAccounts();
+  const { budgets } = useBudget();
+
+  const categories = React.useMemo(() => {
+    const expenseCategories = Object.keys(budgets);
+    return {
+        income: ["Freelance", "Salary", "Bonus", "Other"],
+        expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+    }
+  }, [budgets]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
