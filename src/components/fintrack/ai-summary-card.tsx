@@ -23,7 +23,7 @@ export function AISummaryCard() {
           setSummary(result);
         } catch (error) {
           console.error("Error fetching AI summary:", error);
-          setSummary({ error: "Could not load AI insights." });
+          setSummary({ error: "Couldn't load AI summary." });
         } finally {
           setLoading(false);
         }
