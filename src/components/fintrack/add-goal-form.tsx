@@ -67,7 +67,7 @@ export function AddGoalForm({ onSubmit }: { onSubmit?: () => void }) {
               <FormItem>
                 <FormLabel>Target Amount</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="$0.00" {...field} />
+                  <Input type="number" placeholder="₹0.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

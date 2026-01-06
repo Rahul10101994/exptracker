@@ -145,7 +145,7 @@ export default function AccountsPage() {
 
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground">
-                    $
+                    ₹
                     {accountBalances[
                       account.id
                     ]?.toFixed(2) ?? "0.00"}

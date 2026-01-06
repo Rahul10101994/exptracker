@@ -104,9 +104,9 @@ export function CategoryBreakdownChart() {
     currentMonthTransactions
       .filter((t) => t.type === "expense")
       .forEach((t) => {
-        if (t.needWant?.toLowerCase() === "need") {
+        if (t.spendingType?.toLowerCase() === "need") {
           need += Math.abs(t.amount);
-        } else if (t.needWant?.toLowerCase() === "want") {
+        } else if (t.spendingType?.toLowerCase() === "want") {
           want += Math.abs(t.amount);
         }
       });

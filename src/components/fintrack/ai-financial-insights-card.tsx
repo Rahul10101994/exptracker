@@ -57,7 +57,7 @@ export function AiFinancialInsightsCard() {
 
       if (highestOverspend.amount > 0) {
         const confidence = daysPassed >= 10 ? "High" : "Medium";
-        setInsight(`At this pace, you may overspend on "${highestOverspend.category}" by $${highestOverspend.amount.toFixed(0)}. (Confidence: ${confidence})`);
+        setInsight(`At this pace, you may overspend on "${highestOverspend.category}" by ₹${highestOverspend.amount.toFixed(0)}. (Confidence: ${confidence})`);
         setIsWarning(true);
         setIsLoading(false);
         return;
@@ -87,7 +87,7 @@ export function AiFinancialInsightsCard() {
       }
       
       if (topCategory) {
-        setInsight(`Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
+        setInsight(`Your top spending category this month is "${topCategory}" at ₹${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
       } else {
         setInsight("Keep tracking your expenses to unlock more insights!");
       }

@@ -65,7 +65,7 @@ export function NeedVsWantChart({ transactions }: { transactions: Transaction[] 
       return (
         <div className="p-2 border rounded-lg bg-background shadow-lg">
           <p className="font-bold">{`${payload[0].name}`}</p>
-          <p className="text-sm">{`Amount: $${payload[0].value}`}</p>
+          <p className="text-sm">{`Amount: ₹${payload[0].value}`}</p>
         </div>
       );
     }

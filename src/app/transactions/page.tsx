@@ -174,7 +174,7 @@ export default function TransactionsPage() {
 
                 <div className="flex items-center gap-2">
                   <p className="font-semibold">
-                    {transaction.type === "income" ? "+" : "-"}$
+                    {transaction.type === "income" ? "+" : "-"}₹
                     {transaction.amount.toFixed(2)}
                   </p>
 

@@ -124,7 +124,7 @@ export default function BudgetPage() {
                     <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 pt-0">
-                    <p className="text-3xl font-bold">${totalBudget.toFixed(2)}</p>
+                    <p className="text-3xl font-bold">₹{totalBudget.toFixed(2)}</p>
                 </CardContent>
             </Card>
 
@@ -147,9 +147,9 @@ export default function BudgetPage() {
                                 </div>
                                 <div className="text-sm text-muted-foreground">
                                     <span className={percentage > 100 ? 'text-destructive' : ''}>
-                                        ${spent.toFixed(2)}
+                                        ₹{spent.toFixed(2)}
                                     </span>
-                                     / ${budget.amount.toFixed(2)}
+                                     / ₹{budget.amount.toFixed(2)}
                                 </div>
                             </CardHeader>
                             <CardContent className="p-2 pt-0">
