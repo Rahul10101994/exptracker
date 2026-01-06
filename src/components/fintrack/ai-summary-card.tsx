@@ -14,10 +14,12 @@ export function AISummaryCard() {
   const [summary, setSummary] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const hasFetched = React.useRef(false);
 
   React.useEffect(() => {
     async function fetchSummary() {
-      if (currentMonthTransactions.length > 0) {
+      if (currentMonthTransactions.length > 0 && !hasFetched.current) {
+        hasFetched.current = true;
         setLoading(true);
         setError(null);
         try {
@@ -30,18 +32,14 @@ export function AISummaryCard() {
         } finally {
           setLoading(false);
         }
-      } else {
+      } else if (currentMonthTransactions.length === 0) {
         setSummary(null);
         setLoading(false);
         setError(null);
       }
     }
-    // Run only when transactions are loaded for the first time
-    if (currentMonthTransactions.length > 0) {
-      fetchSummary();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentMonthTransactions.length > 0]);
+    fetchSummary();
+  }, [currentMonthTransactions]);
 
   const renderContent = () => {
     if (loading) {

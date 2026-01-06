@@ -15,31 +15,32 @@ export default function AiReportsPage() {
     const { transactions } = useTransactions();
     const [summary, setSummary] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState<string | null>(null);
+    const hasFetched = React.useRef(false);
 
     React.useEffect(() => {
         async function fetchSummary() {
-            if (transactions.length > 0) {
+            if (transactions.length > 0 && !hasFetched.current) {
+                hasFetched.current = true;
                 setLoading(true);
+                setError(null);
                 try {
                     const result = await getFinancialSummary(transactions);
                     setSummary(result);
-                } catch (error) {
+                } catch (error: any) {
                     console.error("Error fetching AI summary:", error);
-                    setSummary({ error: "Couldn't load AI summary." });
+                    setError(error.message || "An unknown error occurred.");
+                    setSummary(null);
                 } finally {
                     setLoading(false);
                 }
-            } else {
+            } else if (transactions.length === 0) {
                 setSummary(null);
                 setLoading(false);
             }
         }
-        // Run only when transactions are loaded for the first time
-        if (transactions.length > 0) {
-            fetchSummary();
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions.length > 0]);
+        fetchSummary();
+    }, [transactions]);
 
     const renderContent = () => {
         if (loading) {
@@ -55,10 +56,18 @@ export default function AiReportsPage() {
                 </div>
             );
         }
-        if (!summary || summary.error) {
+        if (error) {
+            return (
+                <div className="text-center text-destructive py-20">
+                    <p className="font-bold">Couldn't load AI summary.</p>
+                    <p className="text-xs mt-2">{error}</p>
+                </div>
+            );
+        }
+        if (!summary) {
             return (
                 <div className="text-center text-muted-foreground py-20">
-                    {summary?.error || "No transaction data available for AI analysis."}
+                    No transaction data available for AI analysis.
                 </div>
             );
         }
