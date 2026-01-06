@@ -34,8 +34,12 @@ export default function AiReportsPage() {
                 setLoading(false);
             }
         }
-        fetchSummary();
-    }, [transactions]);
+        // Run only when transactions are loaded for the first time
+        if (transactions.length > 0) {
+            fetchSummary();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactions.length > 0]);
 
     const renderContent = () => {
         if (loading) {

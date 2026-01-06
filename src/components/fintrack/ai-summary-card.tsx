@@ -36,8 +36,12 @@ export function AISummaryCard() {
         setError(null);
       }
     }
-    fetchSummary();
-  }, [currentMonthTransactions]);
+    // Run only when transactions are loaded for the first time
+    if (currentMonthTransactions.length > 0) {
+      fetchSummary();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMonthTransactions.length > 0]);
 
   const renderContent = () => {
     if (loading) {
