@@ -37,6 +37,7 @@ export default function BudgetPage() {
     const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(budgets);
     const [categoryToDelete, setCategoryToDelete] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
+    const [isSaving, setIsSaving] = React.useState(false);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -46,16 +47,16 @@ export default function BudgetPage() {
         setLocalBudgets(budgets);
     }, [budgets]);
 
-    const handleAddCategory = () => {
+    const handleAddCategory = async () => {
         if (newCategory.trim()) {
-            addCategory(newCategory.trim());
+            await addCategory(newCategory.trim());
             setNewCategory('');
         }
     };
     
-    const handleDeleteCategory = () => {
+    const handleDeleteCategory = async () => {
         if (categoryToDelete) {
-            deleteCategory(categoryToDelete);
+            await deleteCategory(categoryToDelete);
             toast({
                 title: "Category Deleted",
                 description: `The "${categoryToDelete}" category has been deleted.`,
@@ -75,8 +76,10 @@ export default function BudgetPage() {
         }));
     };
 
-    const handleSave = () => {
-        setBudgets(localBudgets);
+    const handleSave = async () => {
+        setIsSaving(true);
+        await setBudgets(localBudgets);
+        setIsSaving(false);
         toast({
             title: "Budgets Saved",
             description: "Your new budget amounts have been saved successfully.",
@@ -183,7 +186,9 @@ export default function BudgetPage() {
                 })}
             </div>
             <div className='fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-sm px-4'>
-                <Button onClick={handleSave} className="w-full">Save Changes</Button>
+                <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
             </div>
 
             <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>

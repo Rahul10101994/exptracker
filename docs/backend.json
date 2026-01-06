@@ -49,6 +49,21 @@
                 }
             },
             "required": ["type", "name", "amount", "date", "category", "account"]
+        },
+        "Budget": {
+            "title": "Budget",
+            "description": "Represents the user's monthly budget settings.",
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "amount": {
+                        "type": "number"
+                    }
+                },
+                "required": ["amount"]
+            }
         }
     },
     "auth": {
@@ -66,6 +81,12 @@
                 "$ref": "#/entities/Transaction"
             },
             "description": "Stores a user's financial transactions."
+        },
+        "/users/{userId}/budgets/{budgetId}": {
+            "schema": {
+                "$ref": "#/entities/Budget"
+            },
+            "description": "Stores a user's budget settings. A single document with a fixed ID like 'main' should be used."
         }
     }
 }

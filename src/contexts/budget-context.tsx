@@ -1,7 +1,10 @@
+
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useTransactions } from './transactions-context';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 type Budget = {
     amount: number;
@@ -13,9 +16,9 @@ type Budgets = {
 
 interface BudgetContextType {
     budgets: Budgets;
-    setBudgets: (budgets: Budgets) => void;
-    addCategory: (category: string) => void;
-    deleteCategory: (category: string) => void;
+    setBudgets: (budgets: Budgets) => Promise<void>;
+    addCategory: (category: string) => Promise<void>;
+    deleteCategory: (category: string) => Promise<void>;
     getCategoryProgress: (category: string) => { spent: number; percentage: number };
 }
 
@@ -32,25 +35,52 @@ const initialBudgets: Budgets = {
 
 export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     const { currentMonthTransactions } = useTransactions();
-    const [budgets, setBudgets] = useState<Budgets>(initialBudgets);
+    const [budgets, setBudgetsState] = useState<Budgets>(initialBudgets);
+    const userContext = useUser();
+    const firestore = useFirestore();
 
-    const addCategory = (category: string) => {
-        const lowerCaseCategory = category.toLowerCase();
-        if (!budgets[lowerCaseCategory]) {
-            setBudgets(prev => ({
-                ...prev,
-                [lowerCaseCategory]: { amount: 0 }
-            }));
+    useEffect(() => {
+        if (firestore && userContext?.user) {
+            const budgetDocRef = doc(firestore, 'users', userContext.user.uid, 'budgets', 'main');
+            const unsubscribe = onSnapshot(budgetDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    setBudgetsState(docSnap.data() as Budgets);
+                } else {
+                    // If no budget doc exists, create one with initial values
+                    setDoc(budgetDocRef, initialBudgets);
+                    setBudgetsState(initialBudgets);
+                }
+            });
+            return () => unsubscribe();
+        } else {
+            setBudgetsState(initialBudgets);
+        }
+    }, [firestore, userContext]);
+
+    const setBudgets = async (newBudgets: Budgets) => {
+        setBudgetsState(newBudgets); // Optimistic update
+        if (firestore && userContext?.user) {
+            const budgetDocRef = doc(firestore, 'users', userContext.user.uid, 'budgets', 'main');
+            await setDoc(budgetDocRef, newBudgets);
         }
     };
     
-    const deleteCategory = (category: string) => {
+    const addCategory = async (category: string) => {
         const lowerCaseCategory = category.toLowerCase();
-        setBudgets(prev => {
-            const newBudgets = { ...prev };
-            delete newBudgets[lowerCaseCategory];
-            return newBudgets;
-        });
+        if (!budgets[lowerCaseCategory]) {
+            const newBudgets = {
+                ...budgets,
+                [lowerCaseCategory]: { amount: 0 }
+            };
+            await setBudgets(newBudgets);
+        }
+    };
+    
+    const deleteCategory = async (category: string) => {
+        const lowerCaseCategory = category.toLowerCase();
+        const newBudgets = { ...budgets };
+        delete newBudgets[lowerCaseCategory];
+        await setBudgets(newBudgets);
     };
 
     const getCategoryProgress = (category: string) => {
