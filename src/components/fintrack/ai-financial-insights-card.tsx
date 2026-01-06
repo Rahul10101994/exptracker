@@ -53,8 +53,10 @@ export function AiFinancialInsightsCard() {
           topCategory = category;
         }
       }
-      insightMessages.push(`Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
-      insightMessages.push(`You've spent the most on "${topCategory}". Is there an opportunity to find savings there?`);
+      if (topCategory) {
+        insightMessages.push(`Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
+        insightMessages.push(`You've spent the most on "${topCategory}". Is there an opportunity to find savings there?`);
+      }
 
       // Insight 2: Linear Regression Prediction
       const dailyEntriesMap = new Map<number, number>();
@@ -74,7 +76,7 @@ export function AiFinancialInsightsCard() {
       
       const predictMonthEndSpend = (entries: { day: number, totalSpentSoFar: number }[]) => {
         const n = entries.length;
-        if (n < 2) return 0; // Need at least 2 data points
+        if (n < 2) return 0;
 
         let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
         for (const entry of entries) {
@@ -84,7 +86,7 @@ export function AiFinancialInsightsCard() {
           sumXX += (entry.day * entry.day);
         }
 
-        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const slope = (n * sumXX - sumX * sumX) === 0 ? 0 : (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
         const intercept = (sumY - slope * sumX) / n;
 
         const daysInMonth = getDaysInMonth(now);
@@ -93,12 +95,16 @@ export function AiFinancialInsightsCard() {
 
       const predictedSpend = predictMonthEndSpend(dailyEntriesCumulative);
       
-      if (predictedSpend > 0) {
-        insightMessages.push(`Based on your spending so far, you're projected to spend $${predictedSpend.toFixed(2)} this month.`);
+      // If we have a valid prediction, prioritize it.
+      if (predictedSpend > cumulativeSpend) {
+        setInsight(`Based on your spending so far, you're projected to spend $${predictedSpend.toFixed(2)} this month.`);
+      } else if (insightMessages.length > 0) {
+        // Otherwise, pick a random insight from the available ones.
+        setInsight(insightMessages[Math.floor(Math.random() * insightMessages.length)]);
+      } else {
+        setInsight("Keep tracking your expenses to unlock more insights!");
       }
 
-      // Pick a random insight to display
-      setInsight(insightMessages[Math.floor(Math.random() * insightMessages.length)]);
       setIsLoading(false);
 
     }, 1200); // simulate network delay
