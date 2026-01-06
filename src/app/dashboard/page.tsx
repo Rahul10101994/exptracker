@@ -10,6 +10,7 @@ import { CategoryBreakdownChart } from '@/components/fintrack/category-breakdown
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { AiFinancialInsightsCard } from '@/components/fintrack/ai-financial-insights-card';
 import { FinancialHealthCard } from '@/components/fintrack/financial-health-card';
+import { AiChatSheet } from '@/components/fintrack/ai-chat-sheet';
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
       <SpendingTrendChart />
       <CategoryBreakdownChart />
       <TransactionHistory />
+      <AiChatSheet />
     </FinTrackLayout>
   );
 }
