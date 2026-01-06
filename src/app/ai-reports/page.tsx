@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, ThumbsUp, TrendingDown, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Sparkles, ThumbsUp, TrendingDown, Lightbulb, Calendar, TrendingUp, BarChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
@@ -45,6 +45,9 @@ export default function AiReportsPage() {
                     <Skeleton className="h-24 w-full" />
                     <Skeleton className="h-24 w-full" />
                     <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-24 w-full" />
                 </div>
             );
         }
@@ -63,6 +66,18 @@ export default function AiReportsPage() {
                     content={summary.summary}
                     iconColor="text-primary"
                 />
+                 <InfoCard
+                    icon={Calendar}
+                    title="Monthly Analysis"
+                    content={summary.monthlyAnalysis}
+                    iconColor="text-purple-500"
+                />
+                <InfoCard
+                    icon={BarChart}
+                    title="Yearly Analysis"
+                    content={summary.yearlyAnalysis}
+                    iconColor="text-teal-500"
+                />
                 <InfoCard
                     icon={ThumbsUp}
                     title="Positive Observation"
@@ -74,6 +89,12 @@ export default function AiReportsPage() {
                     title="Area for Improvement"
                     content={summary.areaForImprovement}
                     iconColor="text-orange-500"
+                />
+                 <InfoCard
+                    icon={TrendingUp}
+                    title="Future Prediction"
+                    content={summary.futurePrediction}
+                    iconColor="text-indigo-500"
                 />
                 <InfoCard
                     icon={Lightbulb}

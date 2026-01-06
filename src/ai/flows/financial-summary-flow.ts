@@ -22,6 +22,9 @@ const FinancialSummaryOutputSchema = z.object({
   positiveObservation: z.string().describe("A specific, positive spending habit observed from the data. Be encouraging."),
   areaForImprovement: z.string().describe("A specific category or habit where the user could improve their spending."),
   suggestion: z.string().describe("A single, actionable tip to help the user save money or improve their finances based on the data."),
+  monthlyAnalysis: z.string().describe("A look at spending patterns within the current month."),
+  yearlyAnalysis: z.string().describe("A high-level summary of spending throughout the year."),
+  futurePrediction: z.string().describe("A forecast of where your finances might be heading based on current trends."),
 });
 
 export async function getFinancialSummary(transactions: z.infer<typeof FinancialSummaryInputSchema>) {
@@ -38,7 +41,8 @@ const prompt = ai.definePrompt({
     Based on these transactions:
     {{{json input}}}
     
-    Generate a summary of the user's financial activity. Identify one positive trend and one area for potential improvement. Provide one actionable suggestion. Be brief and use a positive and helpful tone.`,
+    Generate a summary of the user's financial activity. Identify one positive trend and one area for potential improvement. Provide one actionable suggestion.
+    Also provide a monthly analysis, a yearly analysis, and a future prediction based on the data. Be brief and use a positive and helpful tone.`,
 });
 
 const financialSummaryFlow = ai.defineFlow(
