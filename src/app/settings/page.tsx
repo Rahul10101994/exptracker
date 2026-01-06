@@ -104,7 +104,7 @@ export default function SettingsPage() {
                     <CardTitle>AI Features</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Link href="#" className="flex items-center justify-between py-3">
+                    <Link href="/ai-reports" className="flex items-center justify-between py-3">
                         <div className="flex items-center gap-2">
                             <Bot className="h-5 w-5 text-primary" />
                             <span>AI Reports</span>
