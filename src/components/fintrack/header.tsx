@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -10,9 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUser } from "@/firebase";
 
 export function FinTrackHeader() {
   const currentDate = format(new Date(), "MMMM d");
+  const userContext = useUser();
+  const userName = userContext?.user?.displayName || 'User';
 
   return (
     <header
@@ -54,7 +58,7 @@ export function FinTrackHeader() {
       {/* Center: Name + Date */}
       <div className="flex items-baseline gap-2 text-center min-w-0">
         <h1 className="text-base sm:text-lg font-bold truncate">
-          Brooklyn Simmons
+          {userName}
         </h1>
         <p className="text-xs text-muted-foreground truncate">
           {currentDate}
