@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight, Download } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { DownloadDataDialog } from '@/components/fintrack/download-data-dialog';
+import { DeleteDataDialog } from '@/components/fintrack/delete-data-dialog';
 
 export default function SettingsPage() {
     const { theme, setTheme } = useTheme();
@@ -22,6 +23,7 @@ export default function SettingsPage() {
     const auth = useAuth();
     const [isMounted, setIsMounted] = React.useState(false);
     const [isDownloadOpen, setIsDownloadOpen] = React.useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
 
     React.useEffect(() => {
         setIsMounted(true);
@@ -101,10 +103,14 @@ export default function SettingsPage() {
                 <CardHeader>
                     <CardTitle>Data Management</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-2">
                     <Button variant="outline" className="w-full" onClick={() => setIsDownloadOpen(true)}>
                         <Download className="mr-2 h-4 w-4" />
                         Download Transaction Data
+                    </Button>
+                    <Button variant="destructive" className="w-full" onClick={() => setIsDeleteOpen(true)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Transaction Data
                     </Button>
                 </CardContent>
             </Card>
@@ -121,6 +127,7 @@ export default function SettingsPage() {
             </Card>
 
             <DownloadDataDialog isOpen={isDownloadOpen} onClose={() => setIsDownloadOpen(false)} />
+            <DeleteDataDialog isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
 
         </FinTrackLayout>
     );

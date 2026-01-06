@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, FC } from 'react';
-import { isSameMonth, isSameYear } from 'date-fns';
+import { isSameMonth, isSameYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { cuid } from '@/lib/utils';
 import * as LucideIcons from 'lucide-react';
 
@@ -23,6 +23,12 @@ export type Transaction = {
 
 export type NewTransaction = Omit<Transaction, 'id' | 'fgColor' | 'bgColor'>;
 
+type DeletionFilter = 
+    | { type: 'month', year: number, month: number }
+    | { type: 'year', year: number }
+    | { type: 'period', from: Date, to: Date }
+    | { type: 'all' };
+
 interface TransactionsContextType {
     transactions: Transaction[];
     addTransaction: (transaction: NewTransaction) => void;
@@ -30,6 +36,7 @@ interface TransactionsContextType {
     updateTransaction: (id: string, transaction: NewTransaction) => void;
     getIconForCategory: (category: string) => React.ElementType;
     currentMonthTransactions: Transaction[];
+    deleteTransactionsByFilter: (filter: DeletionFilter) => number;
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -171,6 +178,52 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         setTransactions(prev => prev.filter(t => t.id !== id));
     };
 
+    const deleteTransactionsByFilter = (filter: DeletionFilter): number => {
+        let transactionsToDelete: Set<string> = new Set();
+        let transactionsToKeep: Transaction[] = [];
+        let deletedCount = 0;
+
+        if (filter.type === 'all') {
+            deletedCount = transactions.length;
+            setTransactions([]);
+            return deletedCount;
+        }
+
+        transactions.forEach(t => {
+            const transactionDate = new Date(t.date);
+            let shouldDelete = false;
+
+            switch(filter.type) {
+                case 'month':
+                    const targetDate = new Date(filter.year, filter.month);
+                    if (isSameMonth(transactionDate, targetDate) && isSameYear(transactionDate, targetDate)) {
+                        shouldDelete = true;
+                    }
+                    break;
+                case 'year':
+                     if (isSameYear(transactionDate, new Date(filter.year, 0))) {
+                        shouldDelete = true;
+                    }
+                    break;
+                case 'period':
+                    if (isWithinInterval(transactionDate, { start: startOfDay(filter.from), end: endOfDay(filter.to) })) {
+                        shouldDelete = true;
+                    }
+                    break;
+            }
+
+            if (shouldDelete) {
+                transactionsToDelete.add(t.id);
+            }
+        });
+        
+        transactionsToKeep = transactions.filter(t => !transactionsToDelete.has(t.id));
+        deletedCount = transactions.length - transactionsToKeep.length;
+        
+        setTransactions(transactionsToKeep);
+        return deletedCount;
+    };
+
     const updateTransaction = (id: string, updatedData: NewTransaction) => {
         const styles = categoryStyles[updatedData.category.toLowerCase()] || categoryStyles.other;
         setTransactions(prev => prev.map(t => 
@@ -201,7 +254,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, updateTransaction, getIconForCategory, currentMonthTransactions }}>
+        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, deleteTransactionsByFilter, updateTransaction, getIconForCategory, currentMonthTransactions }}>
             {children}
         </TransactionsContext.Provider>
     );
