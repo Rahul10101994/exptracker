@@ -32,7 +32,7 @@ export function AiFinancialInsightsCard() {
       }
 
       // --- 1. Overspend Prediction (Highest Priority) ---
-      let highestOverspend = { category: '', amount: 0 };
+      let highestOverspend = { category: '', amount: 0, confidence: '' };
 
       for (const category in budgets) {
         const budgetAmount = budgets[category].amount;
@@ -47,33 +47,41 @@ export function AiFinancialInsightsCard() {
         
         if (categoryExpensesThisMonth.length === 0) continue;
 
-        // Separate recurring from non-recurring expenses
         const recurringTotal = categoryExpensesThisMonth
             .filter(t => t.recurring)
             .reduce((sum, t) => sum + t.amount, 0);
             
-        const nonRecurringSpend = categoryExpensesThisMonth
-            .filter(t => !t.recurring)
-            .reduce((sum, t) => sum + t.amount, 0);
+        const nonRecurringTransactions = categoryExpensesThisMonth.filter(t => !t.recurring);
+        const nonRecurringSpend = nonRecurringTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-        // Only project based on non-recurring spend
+        // --- INTELLIGENCE UPGRADE: Only predict if we have enough data points ---
+        if (nonRecurringTransactions.length < 5) continue;
+
         const dailySpendRate = nonRecurringSpend / daysPassed;
         const predictedNonRecurringSpend = dailySpendRate * totalDaysInMonth;
-
-        // Final prediction is the sum of projected non-recurring and fixed recurring costs
         const predictedSpend = predictedNonRecurringSpend + recurringTotal;
         
         if (predictedSpend > budgetAmount) {
           const overspendAmount = predictedSpend - budgetAmount;
+
+          // --- INTELLIGENCE UPGRADE: More nuanced confidence ---
+          let confidenceScore = 0;
+          if (daysPassed > 10) confidenceScore += 50;
+          if (daysPassed > 20) confidenceScore += 20; // Extra points for being late in month
+          if (nonRecurringTransactions.length > 10) confidenceScore += 30;
+          
+          let confidenceText = 'Low';
+          if (confidenceScore >= 70) confidenceText = 'High';
+          else if (confidenceScore >= 50) confidenceText = 'Medium';
+
           if (overspendAmount > highestOverspend.amount) {
-            highestOverspend = { category, amount: overspendAmount };
+            highestOverspend = { category, amount: overspendAmount, confidence: confidenceText };
           }
         }
       }
 
       if (highestOverspend.amount > 0) {
-        const confidence = daysPassed >= 10 ? "High" : "Medium";
-        setInsight(`At this pace, you may overspend on "${highestOverspend.category}" by ₹${highestOverspend.amount.toFixed(0)}. (Confidence: ${confidence})`);
+        setInsight(`At this pace, you may overspend on "${highestOverspend.category}" by ₹${highestOverspend.amount.toFixed(0)}. (Confidence: ${highestOverspend.confidence})`);
         setIsWarning(true);
         setIsLoading(false);
         return;
