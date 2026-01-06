@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
 import { useBudget } from "@/contexts/budget-context";
 import { cn } from "@/lib/utils";
+import { subMonths, isSameMonth, isSameYear } from 'date-fns';
 
 const SCORE_CONFIG = {
-  savingsRate: { weight: 30, target: 30 }, // Target 30% savings rate
+  savingsRate: { weight: 30, target: 20 }, // Target 20% savings rate
   budgetAdherence: { weight: 25 },
   spendingConsistency: { weight: 20 },
   emergencyBuffer: { weight: 15 },
@@ -18,7 +19,7 @@ const SCORE_CONFIG = {
 // Helper to calculate Standard Deviation
 const getStdDev = (arr: number[]): number => {
   const n = arr.length;
-  if (n === 0) return 0;
+  if (n < 2) return 0; // Std dev is 0 for less than 2 points
   const mean = arr.reduce((a, b) => a + b) / n;
   return Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
 };
@@ -39,20 +40,22 @@ export function FinancialHealthCard() {
     const expense = currentMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const savings = income - expense;
     const savingsPercent = income > 0 ? (savings / income) * 100 : 0;
-    const savingsScore = Math.min((savingsPercent / SCORE_CONFIG.savingsRate.target) * SCORE_CONFIG.savingsRate.weight, SCORE_CONFIG.savingsRate.weight);
+    const savingsRatio = Math.min(savingsPercent / SCORE_CONFIG.savingsRate.target, 1.5); // Cap at 150% of target
+    const savingsScore = savingsRatio > 0 ? savingsRatio * SCORE_CONFIG.savingsRate.weight : 0;
+
 
     // --- 2. Budget Adherence Score (25 pts) ---
     const budgetCategories = Object.keys(budgets);
-    let categoriesWithinBudget = 0;
+    let totalBudgetScore = 0;
     if (budgetCategories.length > 0) {
       budgetCategories.forEach(cat => {
         const budgetAmount = budgets[cat].amount;
+        if (budgetAmount <= 0) return;
         const spent = currentMonthTransactions.filter(t => t.category.toLowerCase() === cat.toLowerCase()).reduce((sum, t) => sum + t.amount, 0);
-        if (spent <= budgetAmount) {
-          categoriesWithinBudget++;
-        }
+        const adherence = spent > budgetAmount ? 0 : 1 - (spent / budgetAmount); // Score is higher the less you spend of the budget
+        totalBudgetScore += adherence;
       });
-      var budgetScore = (categoriesWithinBudget / budgetCategories.length) * SCORE_CONFIG.budgetAdherence.weight;
+      var budgetScore = (totalBudgetScore / budgetCategories.filter(cat => budgets[cat].amount > 0).length) * SCORE_CONFIG.budgetAdherence.weight;
     } else {
         var budgetScore = SCORE_CONFIG.budgetAdherence.weight; // Full points if no budget set
     }
@@ -66,31 +69,44 @@ export function FinancialHealthCard() {
     });
     const expenseValues = Array.from(dailyExpenses.values());
     const stdDev = getStdDev(expenseValues);
-    const avgDailyExpense = expense > 0 ? expense / expenseValues.length : 0;
-    // Score is higher if variation is low compared to average daily spend
-    const consistencyRatio = avgDailyExpense > 0 ? stdDev / avgDailyExpense : 1;
-    const consistencyScore = Math.max(0, (1 - consistencyRatio)) * SCORE_CONFIG.spendingConsistency.weight;
+    // Normalize std dev against income to get a stable ratio
+    const consistencyRatio = income > 0 ? stdDev / income : 1; 
+    const consistencyScore = Math.max(0, (1 - consistencyRatio * 5)) * SCORE_CONFIG.spendingConsistency.weight;
 
-    // --- 4. Emergency Buffer (15 pts) & 5. Income Stability (10 pts) ---
-    // Simplified for this context
-    const emergencyBufferScore = savings > 0 ? SCORE_CONFIG.emergencyBuffer.weight : 0;
-    const incomeStabilityScore = income > 0 ? SCORE_CONFIG.incomeStability.weight : 0;
+
+    // --- 4. Emergency Buffer (15 pts) ---
+    // A simple proxy: total savings across all time.
+    const totalSavings = transactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0);
+    const avgMonthlyExpense = (expense > 0 ? expense : (transactions.filter(t => t.type === 'expense').reduce((s,t) => s+t.amount, 0) / 12) || 1000);
+    const emergencyBufferRatio = Math.min(totalSavings / (avgMonthlyExpense * 3), 1); // Target 3 months of expenses
+    const emergencyBufferScore = emergencyBufferRatio > 0 ? emergencyBufferRatio * SCORE_CONFIG.emergencyBuffer.weight : 0;
+
+
+    // --- 5. Income Stability (10 pts) ---
+    const lastMonth = subMonths(new Date(), 1);
+    const lastMonthIncome = transactions.filter(t => isSameMonth(new Date(t.date), lastMonth) && t.type === 'income').reduce((s,t) => s+t.amount, 0);
+    const incomeStabilityRatio = (income > 0 && lastMonthIncome > 0) ? Math.min(income / lastMonthIncome, 1) : (income > 0 ? 1 : 0);
+    const incomeStabilityScore = incomeStabilityRatio * SCORE_CONFIG.incomeStability.weight;
+
 
     const finalScore = Math.round(savingsScore + budgetScore + consistencyScore + emergencyBufferScore + incomeStabilityScore);
 
     // --- Generate Tip ---
-    let generatedTip = "Keep up the great work and stay consistent!";
-    if (finalScore < 80) {
-      if (savingsScore < SCORE_CONFIG.savingsRate.weight * 0.8) {
-        generatedTip = "Try to increase your savings rate. Even small amounts help!";
-      } else if (budgetScore < SCORE_CONFIG.budgetAdherence.weight * 0.8) {
-        generatedTip = "Review your budgets to see where you can cut back.";
-      } else if (consistencyScore < SCORE_CONFIG.spendingConsistency.weight * 0.8) {
-        generatedTip = "Your spending is a bit erratic. Try to make it more predictable.";
+    let generatedTip = "Your financial health is looking strong. Keep it up!";
+    if (finalScore < 85) { // Higher threshold
+      if (savingsScore < SCORE_CONFIG.savingsRate.weight * 0.7) {
+        generatedTip = "Focus on increasing your savings rate. Even a small boost can make a big difference.";
+      } else if (budgetScore < SCORE_CONFIG.budgetAdherence.weight * 0.7) {
+        generatedTip = "You're getting close to your budget limits in some areas. A quick review could help.";
+      } else if (consistencyScore < SCORE_CONFIG.spendingConsistency.weight * 0.7) {
+        generatedTip = "Your spending is a bit irregular. Smoothing it out could improve your score.";
+      } else if (emergencyBufferScore < SCORE_CONFIG.emergencyBuffer.weight * 0.7) {
+        generatedTip = "Building up your emergency savings is a great next step for a stronger financial foundation.";
       }
     }
 
-    return { score: finalScore, tip: generatedTip };
+
+    return { score: Math.min(100, Math.max(0, finalScore)), tip: generatedTip };
 
   }, [currentMonthTransactions, budgets, transactions]);
 
