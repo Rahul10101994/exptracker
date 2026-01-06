@@ -15,13 +15,13 @@ const firebaseConfigValues = {
 
 // A mapping from the camelCase keys in firebaseConfigValues to the snake_case keys used in .env
 const keyMap: { [key: string]: string } = {
-    apiKey: "AIzaSyAPCwJh6gxvBn8IZ4xxFNlWgRVSkdAAHpA",
-  authDomain: "expense-tracker-79895.firebaseapp.com",
-  projectId: "expense-tracker-79895",
-  storageBucket: "expense-tracker-79895.firebasestorage.app",
-  messagingSenderId: "318328887426",
-  appId: "1:318328887426:web:748cf9374dfdfd4a5c7c9b",
-  measurementId: "G-LJ0QYESGZR",
+  apiKey: "API_KEY",
+  authDomain: "AUTH_DOMAIN",
+  projectId: "PROJECT_ID",
+  storageBucket: "STORAGE_BUCKET",
+  messagingSenderId: "MESSAGING_SENDER_ID",
+  appId: "APP_ID",
+  measurementId: "MEASUREMENT_ID",
 };
 
 // Validate that all required environment variables are present
