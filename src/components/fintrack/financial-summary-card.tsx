@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,7 @@ export function FinancialSummaryCard({
   prevMonthTransactions: Transaction[];
 }) {
   /* ---------- CURRENT MONTH ---------- */
-  const { income, expense, savings } = useMemo(() => {
+  const { income, expense, savings, investments } = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + t.amount, 0);
@@ -23,15 +24,20 @@ export function FinancialSummaryCard({
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + t.amount, 0);
 
+    const investments = transactions
+      .filter((t) => t.category.toLowerCase() === "investment")
+      .reduce((acc, t) => acc + t.amount, 0);
+
     return {
       income,
       expense,
       savings: income - expense,
+      investments,
     };
   }, [transactions]);
 
   /* ---------- PREVIOUS MONTH ---------- */
-  const { incomeChange, expenseChange, savingsChange } = useMemo(() => {
+  const { incomeChange, expenseChange, savingsChange, investmentChange } = useMemo(() => {
     const prevIncome = prevMonthTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + t.amount, 0);
@@ -42,6 +48,10 @@ export function FinancialSummaryCard({
 
     const prevSavings = prevIncome - prevExpense;
 
+    const prevInvestments = prevMonthTransactions
+        .filter(t => t.category.toLowerCase() === 'investment')
+        .reduce((sum, t) => sum + t.amount, 0);
+
     const change = (curr: number, prev: number) => {
       if (prev === 0) return curr > 0 ? 100 : curr < 0 ? -100 : 0;
       return ((curr - prev) / Math.abs(prev)) * 100;
@@ -51,18 +61,10 @@ export function FinancialSummaryCard({
       incomeChange: change(income, prevIncome),
       expenseChange: change(expense, prevExpense),
       savingsChange: change(savings, prevSavings),
+      investmentChange: change(investments, prevInvestments),
     };
-  }, [transactions, prevMonthTransactions, income, expense, savings]);
+  }, [transactions, prevMonthTransactions, income, expense, savings, investments]);
 
-  /* ---------- INVESTMENTS (PLACEHOLDER) ---------- */
-  const investments = 1200;
-  const prevInvestments = 1000;
-  const investmentChange =
-    prevInvestments > 0
-      ? ((investments - prevInvestments) / prevInvestments) * 100
-      : investments > 0
-      ? 100
-      : 0;
 
   /* ---------- TREND ---------- */
   const Trend = ({ value, invert = false }: { value: number; invert?: boolean }) => {
