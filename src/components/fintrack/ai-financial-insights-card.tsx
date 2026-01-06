@@ -4,44 +4,76 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
-import { Bot } from "lucide-react";
-import { getDaysInMonth } from "date-fns";
+import { useBudget } from "@/contexts/budget-context";
+import { Bot, AlertTriangle } from "lucide-react";
+import { getDaysInMonth, getDate } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export function AiFinancialInsightsCard() {
   const { transactions } = useTransactions();
+  const { budgets } = useBudget();
   const [insight, setInsight] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isWarning, setIsWarning] = React.useState(false);
 
   React.useEffect(() => {
     setIsLoading(true);
+    setIsWarning(false);
 
     const timer = setTimeout(() => {
+      const now = new Date();
+      const daysPassed = getDate(now);
+      const totalDaysInMonth = getDaysInMonth(now);
+      
       if (transactions.length === 0) {
         setInsight("No transaction data available to generate insights.");
         setIsLoading(false);
         return;
       }
-      
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
 
-      const expenses = transactions.filter(t => {
-        const tDate = new Date(t.date);
-        return t.type === 'expense' && tDate.getMonth() === currentMonth && tDate.getFullYear() === currentYear;
-      });
+      // --- 1. Overspend Prediction (Highest Priority) ---
+      let highestOverspend = { category: '', amount: 0 };
 
-      if (expenses.length === 0) {
+      for (const category in budgets) {
+        const budgetAmount = budgets[category].amount;
+        if (budgetAmount <= 0) continue;
+
+        const spentSoFar = transactions
+          .filter(t => t.type === 'expense' && t.category.toLowerCase() === category.toLowerCase() && new Date(t.date).getMonth() === now.getMonth())
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        if (spentSoFar === 0) continue;
+        
+        const dailySpendRate = spentSoFar / daysPassed;
+        const predictedSpend = dailySpendRate * totalDaysInMonth;
+
+        if (predictedSpend > budgetAmount) {
+          const overspendAmount = predictedSpend - budgetAmount;
+          if (overspendAmount > highestOverspend.amount) {
+            highestOverspend = { category, amount: overspendAmount };
+          }
+        }
+      }
+
+      if (highestOverspend.amount > 0) {
+        const confidence = daysPassed >= 10 ? "High" : "Medium";
+        setInsight(`At this pace, you may overspend on "${highestOverspend.category}" by $${highestOverspend.amount.toFixed(0)}. (Confidence: ${confidence})`);
+        setIsWarning(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // --- 2. Fallback to Top Spending Category ---
+      const categoryTotals: Record<string, number> = {};
+      const currentMonthExpenses = transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === now.getMonth());
+
+      if (currentMonthExpenses.length === 0) {
         setInsight("You haven't recorded any expenses this month. Great job on saving!");
         setIsLoading(false);
         return;
       }
 
-      const insightMessages = [];
-
-      // Insight 1: Top spending category
-      const categoryTotals: Record<string, number> = {};
-      expenses.forEach(t => {
+      currentMonthExpenses.forEach(t => {
         categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
       });
 
@@ -53,78 +85,35 @@ export function AiFinancialInsightsCard() {
           topCategory = category;
         }
       }
+      
       if (topCategory) {
-        insightMessages.push(`Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
-        insightMessages.push(`You've spent the most on "${topCategory}". Is there an opportunity to find savings there?`);
-      }
-
-      // Insight 2: Linear Regression Prediction
-      const dailyEntriesMap = new Map<number, number>();
-      expenses.forEach(t => {
-        const day = new Date(t.date).getDate();
-        dailyEntriesMap.set(day, (dailyEntriesMap.get(day) || 0) + t.amount);
-      });
-
-      const dailyEntriesCumulative: { day: number, totalSpentSoFar: number }[] = [];
-      let cumulativeSpend = 0;
-      Array.from(dailyEntriesMap.entries())
-        .sort((a, b) => a[0] - b[0])
-        .forEach(([day, amount]) => {
-          cumulativeSpend += amount;
-          dailyEntriesCumulative.push({ day, totalSpentSoFar: cumulativeSpend });
-        });
-      
-      const predictMonthEndSpend = (entries: { day: number, totalSpentSoFar: number }[]) => {
-        const n = entries.length;
-        if (n < 2) return 0;
-
-        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
-        for (const entry of entries) {
-          sumX += entry.day;
-          sumY += entry.totalSpentSoFar;
-          sumXY += (entry.day * entry.totalSpentSoFar);
-          sumXX += (entry.day * entry.day);
-        }
-
-        const slope = (n * sumXX - sumX * sumX) === 0 ? 0 : (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-        const intercept = (sumY - slope * sumX) / n;
-
-        const daysInMonth = getDaysInMonth(now);
-        return (slope * daysInMonth) + intercept;
-      };
-
-      const predictedSpend = predictMonthEndSpend(dailyEntriesCumulative);
-      
-      // If we have a valid prediction, prioritize it.
-      if (predictedSpend > cumulativeSpend) {
-        setInsight(`Based on your spending so far, you're projected to spend $${predictedSpend.toFixed(2)} this month.`);
-      } else if (insightMessages.length > 0) {
-        // Otherwise, pick a random insight from the available ones.
-        setInsight(insightMessages[Math.floor(Math.random() * insightMessages.length)]);
+        setInsight(`Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
       } else {
         setInsight("Keep tracking your expenses to unlock more insights!");
       }
-
+      
       setIsLoading(false);
-
     }, 1200); // simulate network delay
 
     return () => clearTimeout(timer);
-  }, [transactions]);
+  }, [transactions, budgets]);
 
   return (
-    <Card className="border-0 shadow-lg w-full bg-blue-50 text-blue-900">
+    <Card className={cn(
+      "border-0 shadow-lg w-full transition-colors",
+      isWarning ? "bg-amber-100 text-amber-900" : "bg-blue-50 text-blue-900"
+    )}>
       <CardHeader className="p-4 pb-2 flex-row items-center gap-3">
-        <Bot className="h-5 w-5" />
+        {isWarning ? <AlertTriangle className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
         <CardTitle className="text-base font-semibold">
-          Financial Insight
+          {isWarning ? "Spending Alert" : "Financial Insight"}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-0">
         {isLoading ? (
           <div className="space-y-2">
-            <div className="h-4 bg-blue-200/50 rounded w-full animate-pulse"></div>
-            <div className="h-4 bg-blue-200/50 rounded w-3/4 animate-pulse"></div>
+            <div className={cn("h-4 rounded w-full animate-pulse", isWarning ? "bg-amber-200/60" : "bg-blue-200/50")}></div>
+            <div className={cn("h-4 rounded w-3/4 animate-pulse", isWarning ? "bg-amber-200/60" : "bg-blue-200/50")}></div>
           </div>
         ) : (
           <p className="text-sm font-medium">
