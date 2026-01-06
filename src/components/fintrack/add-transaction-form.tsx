@@ -44,10 +44,18 @@ const formSchema = z
     spendingType: z.enum(["need", "want"]).optional(),
     recurring: z.boolean().default(false),
   })
-  .refine((data) => data.type === "income" || !!data.spendingType, {
-    message: "Please select if this is a need or a want.",
-    path: ["spendingType"],
-  });
+  .refine(
+    (data) => {
+      if (data.type === "expense") {
+        return !!data.spendingType;
+      }
+      return true;
+    },
+    {
+      message: "Please select if this is a need or a want.",
+      path: ["spendingType"],
+    }
+  );
 
 /* ---------------- Data ---------------- */
 
