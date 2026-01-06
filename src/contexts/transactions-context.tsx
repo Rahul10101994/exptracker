@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useMemo, FC } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, FC, useEffect } from 'react';
 import { isSameMonth, isSameYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { cuid } from '@/lib/utils';
 import * as LucideIcons from 'lucide-react';
@@ -152,16 +152,28 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
     other: MoreHorizontal
 };
 
+const LOCAL_STORAGE_KEY = 'fintrack-transactions';
 
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
-    const [transactions, setTransactions] = useState<Transaction[]>(() => 
-        initialTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    );
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isClient, setIsClient] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setIsClient(true);
+        const storedTransactions = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedTransactions) {
+            setTransactions(JSON.parse(storedTransactions));
+        } else {
+            const sortedInitial = initialTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setTransactions(sortedInitial);
+        }
     }, []);
+
+    useEffect(() => {
+        if (isClient) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(transactions));
+        }
+    }, [transactions, isClient]);
 
     const addTransaction = (transaction: NewTransaction) => {
         const styles = categoryStyles[transaction.category.toLowerCase()] || categoryStyles.other;
