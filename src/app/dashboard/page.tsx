@@ -8,6 +8,7 @@ import { TransactionHistory } from '@/components/fintrack/transaction-history';
 import { BudgetCard } from '@/components/fintrack/budget-card';
 import { CategoryBreakdownChart } from '@/components/fintrack/category-breakdown-chart';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
+import { AISummaryCard } from '@/components/fintrack/ai-summary-card';
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
         <SavingRateCard />
         <InvestmentCard />
       </div>
+      <AISummaryCard />
       <BudgetCard />
       <SpendingTrendChart />
       <CategoryBreakdownChart />
