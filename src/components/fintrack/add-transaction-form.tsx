@@ -93,7 +93,11 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: "expense",
+      name: "",
+      amount: 0,
       date: new Date(),
+      category: "",
+      account: "",
       recurring: false,
     },
   });
