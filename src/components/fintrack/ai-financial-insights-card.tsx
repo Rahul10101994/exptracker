@@ -5,6 +5,7 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
 import { Bot } from "lucide-react";
+import { getDaysInMonth } from "date-fns";
 
 export function AiFinancialInsightsCard() {
   const { transactions } = useTransactions();
@@ -14,7 +15,6 @@ export function AiFinancialInsightsCard() {
   React.useEffect(() => {
     setIsLoading(true);
 
-    // Simulate AI thinking for a moment
     const timer = setTimeout(() => {
       if (transactions.length === 0) {
         setInsight("No transaction data available to generate insights.");
@@ -37,6 +37,8 @@ export function AiFinancialInsightsCard() {
         return;
       }
 
+      const insightMessages = [];
+
       // Insight 1: Top spending category
       const categoryTotals: Record<string, number> = {};
       expenses.forEach(t => {
@@ -51,19 +53,49 @@ export function AiFinancialInsightsCard() {
           topCategory = category;
         }
       }
+      insightMessages.push(`Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`);
+      insightMessages.push(`You've spent the most on "${topCategory}". Is there an opportunity to find savings there?`);
 
-      // Insight 2: Spending vs average
-      const totalSpend = expenses.reduce((sum, t) => sum + t.amount, 0);
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-      const dayOfMonth = now.getDate();
-      const averageSpendPerDay = totalSpend / dayOfMonth;
-      const projectedSpend = averageSpendPerDay * daysInMonth;
+      // Insight 2: Linear Regression Prediction
+      const dailyEntriesMap = new Map<number, number>();
+      expenses.forEach(t => {
+        const day = new Date(t.date).getDate();
+        dailyEntriesMap.set(day, (dailyEntriesMap.get(day) || 0) + t.amount);
+      });
 
-      const insightMessages = [
-        `Your top spending category this month is "${topCategory}" at $${topAmount.toFixed(2)}. Consider reviewing those expenses.`,
-        `Based on your spending so far, you're projected to spend $${projectedSpend.toFixed(2)} this month.`,
-        `You've spent the most on "${topCategory}". Is there an opportunity to find savings there?`
-      ];
+      const dailyEntriesCumulative: { day: number, totalSpentSoFar: number }[] = [];
+      let cumulativeSpend = 0;
+      Array.from(dailyEntriesMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .forEach(([day, amount]) => {
+          cumulativeSpend += amount;
+          dailyEntriesCumulative.push({ day, totalSpentSoFar: cumulativeSpend });
+        });
+      
+      const predictMonthEndSpend = (entries: { day: number, totalSpentSoFar: number }[]) => {
+        const n = entries.length;
+        if (n < 2) return 0; // Need at least 2 data points
+
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        for (const entry of entries) {
+          sumX += entry.day;
+          sumY += entry.totalSpentSoFar;
+          sumXY += (entry.day * entry.totalSpentSoFar);
+          sumXX += (entry.day * entry.day);
+        }
+
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+
+        const daysInMonth = getDaysInMonth(now);
+        return (slope * daysInMonth) + intercept;
+      };
+
+      const predictedSpend = predictMonthEndSpend(dailyEntriesCumulative);
+      
+      if (predictedSpend > 0) {
+        insightMessages.push(`Based on your spending so far, you're projected to spend $${predictedSpend.toFixed(2)} this month.`);
+      }
 
       // Pick a random insight to display
       setInsight(insightMessages[Math.floor(Math.random() * insightMessages.length)]);
