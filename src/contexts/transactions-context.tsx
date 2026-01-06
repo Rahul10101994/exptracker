@@ -3,8 +3,10 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, FC, useEffect } from 'react';
 import { isSameMonth, isSameYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
-import { cuid } from '@/lib/utils';
 import * as LucideIcons from 'lucide-react';
+import { useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark } = LucideIcons;
 
@@ -33,96 +35,13 @@ interface TransactionsContextType {
     transactions: Transaction[];
     addTransaction: (transaction: NewTransaction) => void;
     deleteTransaction: (id: string) => void;
-    updateTransaction: (id: string, transaction: NewTransaction) => void;
+    updateTransaction: (id: string, transaction: Omit<NewTransaction, 'date'> & { date: Date }) => void;
     getIconForCategory: (category: string) => React.ElementType;
     currentMonthTransactions: Transaction[];
-    deleteTransactionsByFilter: (filter: DeletionFilter) => number;
+    deleteTransactionsByFilter: (filter: DeletionFilter) => Promise<number>;
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
-
-const initialTransactions: Transaction[] = [
-    // Incomes for current month
-    {
-        id: 'inc1', type: 'income', name: 'Monthly Salary', category: 'salary',
-        date: new Date(new Date().setDate(1)).toISOString(), amount: 4000.00,
-        account: 'bank', fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg'
-    },
-    {
-        id: 'inc2', type: 'income', name: 'Freelance Gig', category: 'freelance',
-        date: new Date(new Date().setDate(15)).toISOString(), amount: 750.00,
-        account: 'bank', fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg'
-    },
-    {
-        id: 'inc3', type: 'income', name: 'Performance Bonus', category: 'bonus',
-        date: new Date(new Date().setDate(20)).toISOString(), amount: 500.00,
-        account: 'bank', fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg'
-    },
-    {
-        id: 'inc4', type: 'income', name: 'Sold old chair', category: 'other',
-        date: new Date(new Date().setDate(18)).toISOString(), amount: 80.00,
-        account: 'cash', fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg'
-    },
-
-    // Expenses for current month
-    {
-        id: 'exp1', type: 'expense', name: 'Weekly Groceries', category: 'food',
-        date: new Date(new Date().setDate(2)).toISOString(), amount: 120.50,
-        account: 'card', spendingType: 'need', fgColor: 'text-orange-500', bgColor: 'bg-orange-100'
-    },
-    {
-        id: 'exp2', type: 'expense', name: 'Monthly Metro Pass', category: 'transport',
-        date: new Date(new Date().setDate(3)).toISOString(), amount: 85.00,
-        account: 'card', spendingType: 'need', fgColor: 'text-green-500', bgColor: 'bg-green-100'
-    },
-    {
-        id: 'exp3', type: 'expense', name: 'New Jacket', category: 'shopping',
-        date: new Date(new Date().setDate(5)).toISOString(), amount: 150.00,
-        account: 'card', spendingType: 'want', fgColor: 'text-blue-500', bgColor: 'bg-blue-100'
-    },
-    {
-        id: 'exp4', type: 'expense', name: 'Electricity Bill', category: 'bills',
-        date: new Date(new Date().setDate(10)).toISOString(), amount: 75.80,
-        account: 'bank', spendingType: 'need', fgColor: 'text-purple-500', bgColor: 'bg-purple-100'
-    },
-    {
-        id: 'exp5', type: 'expense', name: 'Spotify', category: 'subscription',
-        date: new Date(new Date().setDate(12)).toISOString(), amount: 12.99,
-        account: 'card', spendingType: 'want', fgColor: 'text-transaction-spotify-fg', bgColor: 'bg-transaction-spotify-bg'
-    },
-    {
-        id: 'exp6', type: 'expense', name: 'Vanguard ETF', category: 'investment',
-        date: new Date(new Date().setDate(16)).toISOString(), amount: 500.00,
-        account: 'bank', spendingType: 'want', fgColor: 'text-indigo-500', bgColor: 'bg-indigo-100'
-    },
-    {
-        id: 'exp7', type: 'expense', name: 'Cinema Tickets', category: 'other',
-        date: new Date(new Date().setDate(22)).toISOString(), amount: 30.00,
-        account: 'cash', spendingType: 'want', fgColor: 'text-gray-500', bgColor: 'bg-gray-100'
-    },
-    {
-        id: 'exp8', type: 'expense', name: 'Dinner with friends', category: 'food',
-        date: new Date(new Date().setDate(23)).toISOString(), amount: 65.00,
-        account: 'card', spendingType: 'want', fgColor: 'text-orange-500', bgColor: 'bg-orange-100'
-    },
-    {
-        id: 'exp9', type: 'expense', name: 'Netflix', category: 'subscription',
-        date: new Date(new Date().setDate(25)).toISOString(), amount: 15.99,
-        account: 'card', spendingType: 'want', fgColor: 'text-transaction-netflix-fg', bgColor: 'bg-transaction-netflix-bg'
-    },
-
-    // Transactions for previous month
-    {
-        id: 'prev_inc1', type: 'income', name: 'Previous Month Salary', category: 'salary',
-        date: new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString(), amount: 4000.00,
-        account: 'bank', fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg'
-    },
-    {
-        id: 'prev_exp1', type: 'expense', name: 'Rent', category: 'bills',
-        date: new Date(new Date().setMonth(new Date().getMonth() - 1, 1)).toISOString(), amount: 1200.00,
-        account: 'bank', spendingType: 'need', fgColor: 'text-purple-500', bgColor: 'bg-purple-100'
-    }
-];
 
 const categoryStyles: { [key: string]: { fgColor: string, bgColor: string } } = {
     subscription: { fgColor: 'text-transaction-spotify-fg', bgColor: 'bg-transaction-spotify-bg' },
@@ -152,102 +71,83 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
     other: MoreHorizontal
 };
 
-const LOCAL_STORAGE_KEY = 'fintrack-transactions';
-
 export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isClient, setIsClient] = useState(false);
+    const userContext = useUser();
+    const firestore = useFirestore();
 
     useEffect(() => {
         setIsClient(true);
-        const storedTransactions = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (storedTransactions) {
-            setTransactions(JSON.parse(storedTransactions));
-        } else {
-            const sortedInitial = initialTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            setTransactions(sortedInitial);
-        }
     }, []);
 
     useEffect(() => {
-        if (isClient) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(transactions));
-        }
-    }, [transactions, isClient]);
+        if (firestore && userContext?.user) {
+            const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
+            const q = query(transactionsCollection, orderBy('date', 'desc'));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const newTransactions = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const styles = categoryStyles[data.category.toLowerCase()] || categoryStyles.other;
+                    return {
+                        id: doc.id,
+                        ...data,
+                        ...styles
+                    } as Transaction;
+                });
+                setTransactions(newTransactions);
+            });
 
-    const addTransaction = (transaction: NewTransaction) => {
-        const styles = categoryStyles[transaction.category.toLowerCase()] || categoryStyles.other;
-        const newTransaction: Transaction = {
-            id: cuid(),
-            ...transaction,
-            date: transaction.date.toISOString(),
-            ...styles
-        };
-        setTransactions(prev => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    };
-
-    const deleteTransaction = (id: string) => {
-        setTransactions(prev => prev.filter(t => t.id !== id));
-    };
-
-    const deleteTransactionsByFilter = (filter: DeletionFilter): number => {
-        let transactionsToDelete: Set<string> = new Set();
-        let transactionsToKeep: Transaction[] = [];
-        let deletedCount = 0;
-
-        if (filter.type === 'all') {
-            deletedCount = transactions.length;
+            return () => unsubscribe();
+        } else {
             setTransactions([]);
-            return deletedCount;
         }
+    }, [firestore, userContext]);
 
-        transactions.forEach(t => {
-            const transactionDate = new Date(t.date);
-            let shouldDelete = false;
 
-            switch(filter.type) {
-                case 'month':
-                    const targetDate = new Date(filter.year, filter.month);
-                    if (isSameMonth(transactionDate, targetDate) && isSameYear(transactionDate, targetDate)) {
-                        shouldDelete = true;
-                    }
-                    break;
-                case 'year':
-                     if (isSameYear(transactionDate, new Date(filter.year, 0))) {
-                        shouldDelete = true;
-                    }
-                    break;
-                case 'period':
-                    if (isWithinInterval(transactionDate, { start: startOfDay(filter.from), end: endOfDay(filter.to) })) {
-                        shouldDelete = true;
-                    }
-                    break;
-            }
-
-            if (shouldDelete) {
-                transactionsToDelete.add(t.id);
-            }
-        });
-        
-        transactionsToKeep = transactions.filter(t => !transactionsToDelete.has(t.id));
-        deletedCount = transactions.length - transactionsToKeep.length;
-        
-        setTransactions(transactionsToKeep);
-        return deletedCount;
+    const addTransaction = async (transaction: NewTransaction) => {
+        if (!firestore || !userContext?.user) return;
+        const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
+        await addDoc(transactionsCollection, { ...transaction, date: transaction.date.toISOString() });
     };
 
-    const updateTransaction = (id: string, updatedData: NewTransaction) => {
-        const styles = categoryStyles[updatedData.category.toLowerCase()] || categoryStyles.other;
-        setTransactions(prev => prev.map(t => 
-            t.id === id 
-            ? { 
-                ...t, 
-                ...updatedData,
-                date: updatedData.date.toISOString(),
-                ...styles 
-              } 
-            : t
-        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    const deleteTransaction = async (id: string) => {
+        if (!firestore || !userContext?.user) return;
+        const transactionDoc = doc(firestore, 'users', userContext.user.uid, 'transactions', id);
+        await deleteDoc(transactionDoc);
+    };
+
+    const deleteTransactionsByFilter = async (filter: DeletionFilter): Promise<number> => {
+        if (!firestore || !userContext?.user) return 0;
+        
+        let transactionsToDelete = transactions;
+
+        if (filter.type !== 'all') {
+            transactionsToDelete = transactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                switch(filter.type) {
+                    case 'month':
+                        const targetDate = new Date(filter.year, filter.month);
+                        return isSameMonth(transactionDate, targetDate) && isSameYear(transactionDate, targetDate);
+                    case 'year':
+                        return isSameYear(transactionDate, new Date(filter.year, 0));
+                    case 'period':
+                        return isWithinInterval(transactionDate, { start: startOfDay(filter.from), end: endOfDay(filter.to) });
+                }
+                return false;
+            });
+        }
+        
+        const deletePromises = transactionsToDelete.map(t => deleteTransaction(t.id));
+        await Promise.all(deletePromises);
+        
+        return transactionsToDelete.length;
+    };
+
+    const updateTransaction = async (id: string, updatedData: Omit<NewTransaction, 'date'> & { date: Date }) => {
+        if (!firestore || !userContext?.user) return;
+        const transactionDoc = doc(firestore, 'users', userContext.user.uid, 'transactions', id);
+        await updateDoc(transactionDoc, { ...updatedData, date: updatedData.date.toISOString() });
     };
 
     const getIconForCategory = (category: string) => {
@@ -279,5 +179,3 @@ export const useTransactions = () => {
     }
     return context;
 };
-
-    
