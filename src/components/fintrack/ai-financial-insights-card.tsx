@@ -38,15 +38,31 @@ export function AiFinancialInsightsCard() {
         const budgetAmount = budgets[category].amount;
         if (budgetAmount <= 0) continue;
 
-        const spentSoFar = transactions
-          .filter(t => t.type === 'expense' && t.category.toLowerCase() === category.toLowerCase() && new Date(t.date).getMonth() === now.getMonth())
-          .reduce((sum, t) => sum + t.amount, 0);
-
-        if (spentSoFar === 0) continue;
+        const categoryExpensesThisMonth = transactions.filter(
+          (t) =>
+            t.type === "expense" &&
+            t.category.toLowerCase() === category.toLowerCase() &&
+            new Date(t.date).getMonth() === now.getMonth()
+        );
         
-        const dailySpendRate = spentSoFar / daysPassed;
-        const predictedSpend = dailySpendRate * totalDaysInMonth;
+        if (categoryExpensesThisMonth.length === 0) continue;
 
+        // Separate recurring from non-recurring expenses
+        const recurringTotal = categoryExpensesThisMonth
+            .filter(t => t.recurring)
+            .reduce((sum, t) => sum + t.amount, 0);
+            
+        const nonRecurringSpend = categoryExpensesThisMonth
+            .filter(t => !t.recurring)
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // Only project based on non-recurring spend
+        const dailySpendRate = nonRecurringSpend / daysPassed;
+        const predictedNonRecurringSpend = dailySpendRate * totalDaysInMonth;
+
+        // Final prediction is the sum of projected non-recurring and fixed recurring costs
+        const predictedSpend = predictedNonRecurringSpend + recurringTotal;
+        
         if (predictedSpend > budgetAmount) {
           const overspendAmount = predictedSpend - budgetAmount;
           if (overspendAmount > highestOverspend.amount) {
