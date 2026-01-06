@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { useAccounts, Account, NewAccount } from "@/contexts/account-context";
+import { useAccounts, Account } from "@/contexts/account-context";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter a name for the account."),
@@ -39,8 +40,8 @@ export function EditAccountForm({
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    updateAccount(account.id, values as NewAccount);
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    await updateAccount(account.id, values);
 
     toast({
       title: "Account Updated",

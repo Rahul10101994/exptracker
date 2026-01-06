@@ -64,6 +64,45 @@
                 },
                 "required": ["amount"]
             }
+        },
+        "Account": {
+            "title": "Account",
+            "description": "Represents a user's financial account.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "initialBalance": {
+                    "type": "number"
+                }
+            },
+            "required": ["name", "initialBalance"]
+        },
+        "Goal": {
+            "title": "Goal",
+            "description": "Represents a user's financial goal.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "targetAmount": {
+                    "type": "number"
+                },
+                "savedAmount": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["monthly", "yearly", "long-term"]
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "required": ["name", "targetAmount", "type", "createdAt"]
         }
     },
     "auth": {
@@ -87,6 +126,18 @@
                 "$ref": "#/entities/Budget"
             },
             "description": "Stores a user's budget settings. A single document with a fixed ID like 'main' should be used."
+        },
+        "/users/{userId}/accounts/{accountId}": {
+            "schema": {
+                "$ref": "#/entities/Account"
+            },
+            "description": "Stores a user's financial accounts."
+        },
+        "/users/{userId}/goals/{goalId}": {
+            "schema": {
+                "$ref": "#/entities/Goal"
+            },
+            "description": "Stores a user's financial goals."
         }
     }
 }

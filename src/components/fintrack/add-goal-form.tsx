@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,8 +33,8 @@ export function AddGoalForm({ onSubmit }: { onSubmit?: () => void }) {
     resolver: zodResolver(formSchema),
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    addGoal(values);
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    await addGoal(values);
     toast({
       title: "Goal Added",
       description: `Successfully added new goal: ${values.name}.`,

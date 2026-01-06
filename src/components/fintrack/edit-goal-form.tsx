@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
-import { useGoals, Goal, NewGoal } from "@/contexts/goal-context";
+import { useGoals, Goal } from "@/contexts/goal-context";
 
 const formSchema = z.object({
   name: z.string().min(1, "Please enter a name."),
@@ -44,8 +44,8 @@ export function EditGoalForm({
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    updateGoal(goal.id, values as NewGoal);
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    await updateGoal(goal.id, values);
     toast({
       title: "Goal Updated",
       description: `Successfully updated goal: ${values.name}.`,

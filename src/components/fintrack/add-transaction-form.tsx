@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,13 +33,12 @@ import { useAccounts } from "@/contexts/account-context";
 const formSchema = z
   .object({
     type: z.enum(["income", "expense"]),
-    description: z.string().min(1, "Please enter a description."),
+    name: z.string().min(1, "Please enter a description."),
     amount: z.coerce.number().positive("Amount must be positive"),
     date: z.date(),
-    category: z.string(),
-    account: z.string(),
+    category: z.string().min(1, "Please select a category."),
+    account: z.string().min(1, "Please select an account."),
     spendingType: z.enum(["need", "want"]).optional(),
-    recurring: z.boolean().optional(),
   })
   .refine((data) => data.type === "income" || !!data.spendingType, {
     message: "Please select if this is a need or a want.",
@@ -85,17 +85,13 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
     defaultValues: {
       type: "expense",
       date: new Date(),
-      recurring: false,
     },
   });
 
   const transactionType = form.watch("type");
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    addTransaction({
-      ...values,
-      name: values.description,
-    });
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    await addTransaction(values);
 
     toast({
       title: "Transaction Added",
@@ -104,10 +100,9 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
 
     form.reset({
       type: "expense",
-      description: "",
+      name: "",
       amount: 0,
       date: new Date(),
-      recurring: false,
     });
 
     onSubmit?.();
@@ -157,7 +152,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
         {/* Description */}
         <FormField
           control={form.control}
-          name="description"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
@@ -275,7 +270,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                   </FormControl>
                   <SelectContent>
                     {accounts.map((a) => (
-                      <SelectItem key={a.id} value={a.name}>
+                      <SelectItem key={a.id} value={a.name.toLowerCase()}>
                         {a.name}
                       </SelectItem>
                     ))}
@@ -317,35 +312,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
             )}
           />
         )}
-
-        {/* Recurring */}
-        {transactionType === "expense" && (
-          <FormField
-            control={form.control}
-            name="recurring"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between rounded-lg border px-4 py-3">
-                <div>
-                  <FormLabel className="text-sm">
-                    Recurring Transaction
-                  </FormLabel>
-                  <p className="text-xs text-muted-foreground">
-                    Repeats every month
-                  </p>
-                </div>
-                <FormControl>
-                  <input
-                    type="checkbox"
-                    checked={field.value || false}
-                    onChange={(e) => field.onChange(e.target.checked)}
-                    className="h-5 w-5 accent-primary"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        )}
-
+        
         <Button type="submit" className="w-full h-11 text-base font-semibold">
           Add Transaction
         </Button>

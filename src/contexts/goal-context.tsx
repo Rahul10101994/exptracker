@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useTransactions } from './transactions-context';
-import { cuid } from '@/lib/utils';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query } from 'firebase/firestore';
 
 export type Goal = {
     id: string;
@@ -18,74 +19,69 @@ export type NewGoal = Omit<Goal, 'id' | 'savedAmount' | 'createdAt'>;
 
 interface GoalContextType {
     goals: Goal[];
-    addGoal: (goal: NewGoal) => void;
-    updateGoal: (id: string, goal: NewGoal) => void;
-    deleteGoal: (id: string) => void;
+    addGoal: (goal: NewGoal) => Promise<void>;
+    updateGoal: (id: string, goal: NewGoal) => Promise<void>;
+    deleteGoal: (id: string) => Promise<void>;
     getGoalProgress: (goal: Goal) => { progress: number; saved: number };
 }
 
 const GoalContext = createContext<GoalContextType | undefined>(undefined);
 
-const initialGoals: Goal[] = [
-    {
-        id: 'g1',
-        name: 'Save for Vacation',
-        targetAmount: 2000,
-        savedAmount: 500,
-        type: 'long-term',
-        createdAt: "2024-01-01T00:00:00.000Z",
-    },
-    {
-        id: 'g2',
-        name: 'Monthly Savings',
-        targetAmount: 500,
-        savedAmount: 0, // This will be calculated from transactions
-        type: 'monthly',
-        createdAt: "2024-01-01T00:00:00.000Z",
-    },
-    {
-        id: 'g3',
-        name: 'Investment Portfolio',
-        targetAmount: 2000,
-        savedAmount: 0, // This will be calculated from transactions
-        type: 'monthly',
-        createdAt: "2024-01-01T00:00:00.000Z",
-    }
-];
-
 export const GoalProvider = ({ children }: { children: ReactNode }) => {
-    const [goals, setGoals] = useState<Goal[]>(initialGoals);
+    const [goals, setGoals] = useState<Goal[]>([]);
     const { transactions, currentMonthTransactions } = useTransactions();
+    const userContext = useUser();
+    const firestore = useFirestore();
 
-    const addGoal = (goal: NewGoal) => {
-        const newGoal: Goal = {
-            id: cuid(),
+    useEffect(() => {
+        if (firestore && userContext?.user) {
+            const goalsCollection = collection(firestore, 'users', userContext.user.uid, 'goals');
+            const q = query(goalsCollection);
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const newGoals = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as Goal));
+                setGoals(newGoals);
+            });
+            return () => unsubscribe();
+        } else {
+            setGoals([]);
+        }
+    }, [firestore, userContext]);
+
+    const addGoal = async (goal: NewGoal) => {
+        if (!firestore || !userContext?.user) return;
+        const newGoal = {
             ...goal,
             savedAmount: 0,
             createdAt: new Date().toISOString(),
         };
-        setGoals(prev => [...prev, newGoal]);
+        const goalsCollection = collection(firestore, 'users', userContext.user.uid, 'goals');
+        await addDoc(goalsCollection, newGoal);
     };
 
-    const updateGoal = (id: string, updatedData: NewGoal) => {
-        setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updatedData } : g));
+    const updateGoal = async (id: string, updatedData: NewGoal) => {
+        if (!firestore || !userContext?.user) return;
+        const goalDoc = doc(firestore, 'users', userContext.user.uid, 'goals', id);
+        await updateDoc(goalDoc, updatedData as any);
     };
 
-    const deleteGoal = (id: string) => {
-        setGoals(prev => prev.filter(g => g.id !== id));
+    const deleteGoal = async (id: string) => {
+        if (!firestore || !userContext?.user) return;
+        const goalDoc = doc(firestore, 'users', userContext.user.uid, 'goals', id);
+        await deleteDoc(goalDoc);
     };
     
     const getGoalProgress = (goal: Goal) => {
-        let saved = goal.savedAmount;
+        let saved = goal.savedAmount || 0;
 
         if (goal.name.toLowerCase().includes("investment")) {
-            // Use current month's transactions for monthly investment goals
             if (goal.type === 'monthly') {
                  saved = currentMonthTransactions
                     .filter(t => t.category.toLowerCase() === 'investment')
                     .reduce((sum, t) => sum + t.amount, 0);
             } else {
-                // Use all transactions for long-term/yearly investment goals
                 saved = transactions
                     .filter(t => t.category.toLowerCase() === 'investment')
                     .reduce((sum, t) => sum + t.amount, 0);

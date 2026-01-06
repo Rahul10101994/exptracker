@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,8 +34,8 @@ export function AddAccountForm({ onSubmit }: { onSubmit?: () => void }) {
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    addAccount({
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    await addAccount({
       name: values.name,
       initialBalance: values.initialBalance,
     });

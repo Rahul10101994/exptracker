@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useTransactions } from './transactions-context';
-import { cuid } from '@/lib/utils';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query } from 'firebase/firestore';
 
 export type Account = {
     id: string;
@@ -15,38 +16,54 @@ export type NewAccount = Omit<Account, 'id'>;
 
 interface AccountContextType {
     accounts: Account[];
-    addAccount: (account: NewAccount) => void;
-    updateAccount: (id: string, updatedAccount: NewAccount) => void;
-    deleteAccount: (id: string) => void;
+    addAccount: (account: NewAccount) => Promise<void>;
+    updateAccount: (id: string, updatedAccount: NewAccount) => Promise<void>;
+    deleteAccount: (id: string) => Promise<void>;
     correctBalance: (accountId: string, correctBalance: number) => void;
 }
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
-const initialAccounts: Account[] = [
-    { id: '1', name: 'Bank', initialBalance: 1000 },
-    { id: '2', name: 'Cash', initialBalance: 100 },
-    { id: '3', name: 'Card', initialBalance: 0 },
-];
-
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
-    const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+    const [accounts, setAccounts] = useState<Account[]>([]);
     const { transactions } = useTransactions();
+    const userContext = useUser();
+    const firestore = useFirestore();
 
-    const addAccount = (account: NewAccount) => {
-        const newAccount: Account = {
-            id: cuid(),
-            ...account
-        };
-        setAccounts(prev => [...prev, newAccount]);
+    useEffect(() => {
+        if (firestore && userContext?.user) {
+            const accountsCollection = collection(firestore, 'users', userContext.user.uid, 'accounts');
+            const q = query(accountsCollection);
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const newAccounts = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as Account));
+                setAccounts(newAccounts);
+            });
+            return () => unsubscribe();
+        } else {
+            setAccounts([]);
+        }
+    }, [firestore, userContext]);
+
+
+    const addAccount = async (account: NewAccount) => {
+        if (!firestore || !userContext?.user) return;
+        const accountsCollection = collection(firestore, 'users', userContext.user.uid, 'accounts');
+        await addDoc(accountsCollection, account);
     };
 
-    const updateAccount = (id: string, updatedAccount: NewAccount) => {
-        setAccounts(prev => prev.map(acc => acc.id === id ? { id, ...updatedAccount } : acc));
+    const updateAccount = async (id: string, updatedAccount: NewAccount) => {
+        if (!firestore || !userContext?.user) return;
+        const accountDoc = doc(firestore, 'users', userContext.user.uid, 'accounts', id);
+        await updateDoc(accountDoc, updatedAccount);
     };
 
-    const deleteAccount = (id: string) => {
-        setAccounts(prev => prev.filter(acc => acc.id !== id));
+    const deleteAccount = async (id: string) => {
+        if (!firestore || !userContext?.user) return;
+        const accountDoc = doc(firestore, 'users', userContext.user.uid, 'accounts', id);
+        await deleteDoc(accountDoc);
     };
 
     const correctBalance = (accountId: string, correctBalance: number) => {

@@ -29,7 +29,6 @@ import { toast } from "@/hooks/use-toast";
 import {
   useTransactions,
   Transaction,
-  NewTransaction,
 } from "@/contexts/transactions-context";
 import { useAccounts } from "@/contexts/account-context";
 
@@ -38,11 +37,11 @@ import { useAccounts } from "@/contexts/account-context";
 const formSchema = z
   .object({
     type: z.enum(["income", "expense"]),
-    description: z.string().min(1, "Please enter a description."),
+    name: z.string().min(1, "Please enter a description."),
     amount: z.coerce.number().positive("Amount must be positive"),
     date: z.date(),
-    category: z.string(),
-    account: z.string(),
+    category: z.string().min(1, "Please select a category."),
+    account: z.string().min(1, "Please select an account."),
     spendingType: z.enum(["need", "want"]).optional(),
   })
   .refine(
@@ -82,22 +81,18 @@ export function EditTransactionForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       ...transaction,
-      description: transaction.name,
       date: new Date(transaction.date),
     },
   });
 
   const transactionType = form.watch("type");
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    updateTransaction(transaction.id, {
-        ...values,
-        name: values.description
-    });
+  async function handleFormSubmit(values: z.infer<typeof formSchema>) {
+    await updateTransaction(transaction.id, values);
 
     toast({
       title: "Transaction Updated",
-      description: `Successfully updated transaction: ${values.description}.`,
+      description: `Successfully updated transaction: ${values.name}.`,
     });
 
     onSubmit?.();
@@ -166,7 +161,7 @@ export function EditTransactionForm({
         {/* Description */}
         <FormField
           control={form.control}
-          name="description"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-sm font-medium">
