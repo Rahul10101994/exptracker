@@ -69,17 +69,15 @@ export function DownloadDataDialog({ isOpen, onClose }: DownloadDataDialogProps)
       return;
     }
 
-    const headers = ['id', 'type', 'name', 'amount', 'date', 'category', 'account', 'spendingType'];
+    const headers = ['date', 'type', 'amount', 'category', 'name', 'spendingType'];
     const csvContent = [
       headers.join(','),
       ...dataToExport.map(t => [
-        t.id,
+        format(new Date(t.date), "dd-MM-yyyy"),
         t.type,
-        `"${t.name.replace(/"/g, '""')}"`,
         t.amount,
-        t.date,
         t.category,
-        t.account,
+        `"${t.name.replace(/"/g, '""')}"`,
         t.spendingType || ''
       ].join(','))
     ].join('\n');
