@@ -11,6 +11,37 @@ const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;
 export function getBotResponse(query: string, transactions: Transaction[], budgets: Budgets): string {
     const lowerQuery = query.toLowerCase();
 
+    // --- Needs vs. Wants ---
+    if (lowerQuery.includes('need') && lowerQuery.includes('want')) {
+        const needsTotal = transactions
+            .filter(t => t.type === 'expense' && t.spendingType === 'need')
+            .reduce((sum, t) => sum + t.amount, 0);
+        const wantsTotal = transactions
+            .filter(t => t.type === 'expense' && t.spendingType === 'want')
+            .reduce((sum, t) => sum + t.amount, 0);
+        return `This month, you've spent ${formatCurrency(needsTotal)} on needs and ${formatCurrency(wantsTotal)} on wants.`;
+    }
+
+    // --- Largest Expense ---
+    if (lowerQuery.includes('biggest') || lowerQuery.includes('largest') && lowerQuery.includes('expense')) {
+        const expenses = transactions.filter(t => t.type === 'expense');
+        if (expenses.length === 0) {
+            return "You don't have any expenses recorded for this month.";
+        }
+        const largestExpense = expenses.reduce((max, t) => t.amount > max.amount ? t : max, expenses[0]);
+        return `Your largest expense this month was "${largestExpense.name}" for ${formatCurrency(largestExpense.amount)}.`;
+    }
+
+    // --- Average Daily Spend ---
+    if (lowerQuery.includes('average') && lowerQuery.includes('daily')) {
+        const totalExpense = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, t) => sum + t.amount, 0);
+        const daysInMonth = new Date().getDate(); // Get current day of the month
+        const averageSpend = totalExpense / daysInMonth;
+        return `Your average daily spending so far this month is ${formatCurrency(averageSpend)}.`;
+    }
+
     // --- Spending Queries ---
     if (lowerQuery.includes('spend') || lowerQuery.includes('spent')) {
         // Total spending
