@@ -40,6 +40,23 @@ export function getBotResponse(query: string, transactions: Transaction[], budge
     
     // --- Budget Queries ---
     if (lowerQuery.includes('budget')) {
+        // Check for "anything" or "any categories"
+        if (lowerQuery.includes('anything') || lowerQuery.includes('any')) {
+            const overspentCategories = Object.keys(budgets).filter(cat => {
+                const budgetAmount = budgets[cat]?.amount || 0;
+                const spent = transactions
+                    .filter(t => t.type === 'expense' && t.category.toLowerCase() === cat)
+                    .reduce((sum, t) => sum + t.amount, 0);
+                return spent > budgetAmount;
+            });
+
+            if (overspentCategories.length > 0) {
+                return `Yes, you are over budget on: ${overspentCategories.join(', ')}.`;
+            } else {
+                return "No, you are within budget for all your categories. Great job!";
+            }
+        }
+        
         const categoryMatch = Object.keys(budgets).find(cat => lowerQuery.includes(cat));
         if (categoryMatch) {
             const budgetAmount = budgets[categoryMatch]?.amount || 0;

@@ -24,6 +24,12 @@ interface Message {
   sender: "user" | "bot";
 }
 
+const suggestedQuestions = [
+    "How much have I spent this month?",
+    "What are my top spending categories?",
+    "Am I over budget on anything?",
+]
+
 export function AiChatSheet() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
@@ -53,19 +59,19 @@ export function AiChatSheet() {
     }
   }, [messages]);
 
-  const handleSend = () => {
-    if (input.trim() === "") return;
+  const handleSend = (text: string) => {
+    if (text.trim() === "") return;
 
     const userMessage: Message = {
       id: Date.now(),
-      text: input,
+      text: text,
       sender: "user",
     };
     
     setMessages(prev => [...prev, userMessage]);
     
     // Get bot response
-    const botResponseText = getBotResponse(input, currentMonthTransactions, budgets);
+    const botResponseText = getBotResponse(text, currentMonthTransactions, budgets);
     const botMessage: Message = {
         id: Date.now() + 1,
         text: botResponseText,
@@ -134,6 +140,21 @@ export function AiChatSheet() {
                   )}
                 </div>
               ))}
+                {messages.length === 1 && (
+                    <div className="flex flex-col items-start gap-2 pt-4">
+                        {suggestedQuestions.map((q) => (
+                            <Button 
+                                key={q}
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleSend(q)}
+                                className="bg-background"
+                            >
+                                {q}
+                            </Button>
+                        ))}
+                    </div>
+                )}
             </div>
           </ScrollArea>
           
@@ -141,11 +162,11 @@ export function AiChatSheet() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              onKeyPress={(e) => e.key === "Enter" && handleSend(input)}
               placeholder="Ask about your finances..."
               className="h-11"
             />
-            <Button size="icon" onClick={handleSend} className="h-11 w-11">
+            <Button size="icon" onClick={() => handleSend(input)} className="h-11 w-11">
               <Send size={20} />
               <span className="sr-only">Send</span>
             </Button>
