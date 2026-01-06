@@ -1,0 +1,71 @@
+
+{
+    "entities": {
+        "UserProfile": {
+            "title": "User Profile",
+            "description": "Represents a user's profile in the application.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The user's full name."
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The user's email address."
+                }
+            },
+            "required": ["name", "email"]
+        },
+        "Transaction": {
+            "title": "Transaction",
+            "description": "Represents a single financial transaction.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["income", "expense"]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "account": {
+                    "type": "string"
+                },
+                "spendingType": {
+                    "type": "string",
+                    "enum": ["need", "want"]
+                }
+            },
+            "required": ["type", "name", "amount", "date", "category", "account"]
+        }
+    },
+    "auth": {
+        "providers": ["email"]
+    },
+    "firestore": {
+        "/users/{userId}": {
+            "schema": {
+                "$ref": "#/entities/UserProfile"
+            },
+            "description": "Stores user profile information."
+        },
+        "/users/{userId}/transactions/{transactionId}": {
+            "schema": {
+                "$ref": "#/entities/Transaction"
+            },
+            "description": "Stores a user's financial transactions."
+        }
+    }
+}
