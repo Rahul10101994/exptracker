@@ -109,7 +109,17 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const addTransaction = async (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => {
         if (!firestore || !userContext?.user) return;
         const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
-        await addDoc(transactionsCollection, { ...transaction, date: transaction.date.toISOString() });
+        
+        const dataToSave: any = {
+            ...transaction,
+            date: transaction.date.toISOString(),
+        };
+
+        if (dataToSave.spendingType === undefined) {
+            delete dataToSave.spendingType;
+        }
+        
+        await addDoc(transactionsCollection, dataToSave);
     };
 
     const deleteTransaction = async (id: string) => {
@@ -148,7 +158,17 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const updateTransaction = async (id: string, updatedData: Omit<NewTransaction, 'date'> & { date: Date }) => {
         if (!firestore || !userContext?.user) return;
         const transactionDoc = doc(firestore, 'users', userContext.user.uid, 'transactions', id);
-        await updateDoc(transactionDoc, { ...updatedData, date: updatedData.date.toISOString() });
+        
+        const dataToSave: any = {
+            ...updatedData,
+            date: updatedData.date.toISOString(),
+        };
+
+        if (dataToSave.spendingType === undefined) {
+            delete dataToSave.spendingType;
+        }
+
+        await updateDoc(transactionDoc, dataToSave);
     };
 
     const getIconForCategory = (category: string) => {

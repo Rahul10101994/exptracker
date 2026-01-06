@@ -31,6 +31,7 @@ import {
   Transaction,
 } from "@/contexts/transactions-context";
 import { useAccounts } from "@/contexts/account-context";
+import { useBudget } from "@/contexts/budget-context";
 import { Checkbox } from "@/components/ui/checkbox";
 
 /* ---------------- Schema ---------------- */
@@ -47,25 +48,17 @@ const formSchema = z
     recurring: z.boolean().default(false),
   })
   .refine(
-    (data) => data.type === "income" || !!data.spendingType,
+    (data) => {
+      if (data.type === "expense") {
+        return !!data.spendingType;
+      }
+      return true;
+    },
     {
       message: "Please select if this is a need or a want.",
       path: ["spendingType"],
     }
   );
-
-const categories = {
-  income: ["Freelance", "Salary", "Bonus", "Other"],
-  expense: [
-    "Food",
-    "Transport",
-    "Shopping",
-    "Bills",
-    "Subscription",
-    "Investment",
-    "Other",
-  ],
-};
 
 /* ---------------- Component ---------------- */
 
@@ -78,6 +71,15 @@ export function EditTransactionForm({
 }) {
   const { updateTransaction } = useTransactions();
   const { accounts } = useAccounts();
+  const { budgets } = useBudget();
+
+  const categories = React.useMemo(() => {
+    const expenseCategories = Object.keys(budgets);
+    return {
+        income: ["Freelance", "Salary", "Bonus", "Other"],
+        expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+    }
+  }, [budgets]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
