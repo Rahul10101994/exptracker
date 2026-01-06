@@ -29,6 +29,7 @@ import { toast } from "@/hooks/use-toast";
 import { useTransactions } from "@/contexts/transactions-context";
 import { useAccounts } from "@/contexts/account-context";
 import { useBudget } from "@/contexts/budget-context";
+import { Checkbox } from "@/components/ui/checkbox";
 
 /* ---------------- Schema ---------------- */
 
@@ -41,6 +42,7 @@ const formSchema = z
     category: z.string().min(1, "Please select a category."),
     account: z.string().min(1, "Please select an account."),
     spendingType: z.enum(["need", "want"]).optional(),
+    recurring: z.boolean().default(false),
   })
   .refine((data) => data.type === "income" || !!data.spendingType, {
     message: "Please select if this is a need or a want.",
@@ -84,6 +86,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
     defaultValues: {
       type: "expense",
       date: new Date(),
+      recurring: false,
     },
   });
 
@@ -102,6 +105,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       name: "",
       amount: 0,
       date: new Date(),
+      recurring: false,
     });
 
     onSubmit?.();
@@ -311,6 +315,24 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
             )}
           />
         )}
+        
+        <FormField
+          control={form.control}
+          name="recurring"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <FormLabel>Recurring Transaction</FormLabel>
+              </div>
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
         
         <Button type="submit" className="w-full h-11 text-base font-semibold">
           Add Transaction

@@ -31,6 +31,7 @@ import {
   Transaction,
 } from "@/contexts/transactions-context";
 import { useAccounts } from "@/contexts/account-context";
+import { Checkbox } from "@/components/ui/checkbox";
 
 /* ---------------- Schema ---------------- */
 
@@ -43,6 +44,7 @@ const formSchema = z
     category: z.string().min(1, "Please select a category."),
     account: z.string().min(1, "Please select an account."),
     spendingType: z.enum(["need", "want"]).optional(),
+    recurring: z.boolean().default(false),
   })
   .refine(
     (data) => data.type === "income" || !!data.spendingType,
@@ -82,6 +84,7 @@ export function EditTransactionForm({
     defaultValues: {
       ...transaction,
       date: new Date(transaction.date),
+      recurring: transaction.recurring || false,
     },
   });
 
@@ -327,6 +330,24 @@ export function EditTransactionForm({
             )}
           />
         )}
+
+        <FormField
+          control={form.control}
+          name="recurring"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <FormLabel>Recurring Transaction</FormLabel>
+              </div>
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
         {/* Submit */}
         <Button

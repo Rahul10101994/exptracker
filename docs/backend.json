@@ -46,6 +46,9 @@
                 "spendingType": {
                     "type": "string",
                     "enum": ["need", "want"]
+                },
+                "recurring": {
+                    "type": "boolean"
                 }
             },
             "required": ["type", "name", "amount", "date", "category", "account"]

@@ -19,6 +19,7 @@ export type Transaction = {
     category: string;
     account: string;
     spendingType?: 'need' | 'want';
+    recurring?: boolean;
     fgColor: string;
     bgColor: string;
 };
@@ -33,7 +34,7 @@ type DeletionFilter =
 
 interface TransactionsContextType {
     transactions: Transaction[];
-    addTransaction: (transaction: NewTransaction) => void;
+    addTransaction: (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => void;
     deleteTransaction: (id: string) => void;
     updateTransaction: (id: string, transaction: Omit<NewTransaction, 'date'> & { date: Date }) => void;
     getIconForCategory: (category: string) => React.ElementType;
@@ -105,7 +106,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     }, [firestore, userContext]);
 
 
-    const addTransaction = async (transaction: NewTransaction) => {
+    const addTransaction = async (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => {
         if (!firestore || !userContext?.user) return;
         const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
         await addDoc(transactionsCollection, { ...transaction, date: transaction.date.toISOString() });
