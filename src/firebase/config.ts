@@ -3,7 +3,7 @@
 // https://firebase.google.com/docs/web/setup
 
 // Your web app's Firebase configuration
-export const firebaseConfig = {
+const firebaseConfigValues = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
@@ -12,3 +12,12 @@ export const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
 };
+
+// Validate that all required environment variables are present
+for (const [key, value] of Object.entries(firebaseConfigValues)) {
+    if (!value) {
+        throw new Error(`Firebase config error: Missing environment variable NEXT_PUBLIC_${key.toUpperCase()}. Please set it in your Vercel project settings.`);
+    }
+}
+
+export const firebaseConfig = firebaseConfigValues;
