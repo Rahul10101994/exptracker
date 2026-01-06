@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTransactions } from "@/contexts/transactions-context";
 import { useBudget } from "@/contexts/budget-context";
 import { getBotResponse } from "@/lib/bot-logic";
+import { subMonths, isSameMonth, isSameYear } from "date-fns";
 
 interface Message {
   id: number;
@@ -37,8 +38,16 @@ export function AiChatSheet() {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
 
   // Bring in financial data
-  const { currentMonthTransactions } = useTransactions();
+  const { transactions, currentMonthTransactions } = useTransactions();
   const { budgets } = useBudget();
+
+  const previousMonthTransactions = React.useMemo(() => {
+    const prevMonthDate = subMonths(new Date(), 1);
+    return transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return isSameMonth(transactionDate, prevMonthDate) && isSameYear(transactionDate, prevMonthDate);
+    });
+  }, [transactions]);
 
 
   React.useEffect(() => {
@@ -71,7 +80,7 @@ export function AiChatSheet() {
     setMessages(prev => [...prev, userMessage]);
     
     // Get bot response
-    const botResponseText = getBotResponse(text, currentMonthTransactions, budgets);
+    const botResponseText = getBotResponse(text, currentMonthTransactions, previousMonthTransactions, budgets);
     const botMessage: Message = {
         id: Date.now() + 1,
         text: botResponseText,
