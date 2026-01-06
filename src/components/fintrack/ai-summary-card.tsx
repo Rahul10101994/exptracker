@@ -48,7 +48,7 @@ export function AISummaryCard() {
     if (!summary || summary.error) {
       return (
         <div className="text-center text-sm text-muted-foreground py-4">
-           {summary?.error || "No transaction data available for analysis."}
+           {summary?.error || "No transaction data for AI summary."}
         </div>
       );
     }
