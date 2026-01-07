@@ -10,8 +10,8 @@ import { getDaysInMonth, getDate } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export function AiFinancialInsightsCard() {
-  const { transactions } = useTransactions();
-  const { budgets } = useBudget();
+  const { currentMonthTransactions } = useTransactions();
+  const { expenseBudgets } = useBudget();
   const [insight, setInsight] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isWarning, setIsWarning] = React.useState(false);
@@ -25,7 +25,7 @@ export function AiFinancialInsightsCard() {
       const daysPassed = getDate(now);
       const totalDaysInMonth = getDaysInMonth(now);
       
-      if (transactions.length === 0) {
+      if (currentMonthTransactions.length === 0) {
         setInsight("No transaction data available to generate insights.");
         setIsLoading(false);
         return;
@@ -34,49 +34,50 @@ export function AiFinancialInsightsCard() {
       // --- 1. Overspend Prediction (Highest Priority) ---
       let highestOverspend = { category: '', amount: 0, confidence: '' };
 
-      for (const category in budgets) {
-        const budgetAmount = budgets[category].amount;
-        if (budgetAmount <= 0) continue;
+      if (expenseBudgets) {
+        for (const category in expenseBudgets) {
+            const budgetAmount = expenseBudgets[category].amount;
+            if (budgetAmount <= 0) continue;
 
-        const categoryExpensesThisMonth = transactions.filter(
-          (t) =>
-            t.type === "expense" &&
-            t.category.toLowerCase() === category.toLowerCase() &&
-            new Date(t.date).getMonth() === now.getMonth()
-        );
-        
-        if (categoryExpensesThisMonth.length === 0) continue;
-
-        const recurringTotal = categoryExpensesThisMonth
-            .filter(t => t.recurring)
-            .reduce((sum, t) => sum + t.amount, 0);
+            const categoryExpensesThisMonth = currentMonthTransactions.filter(
+            (t) =>
+                t.type === "expense" &&
+                t.category.toLowerCase() === category.toLowerCase()
+            );
             
-        const nonRecurringTransactions = categoryExpensesThisMonth.filter(t => !t.recurring);
-        const nonRecurringSpend = nonRecurringTransactions.reduce((sum, t) => sum + t.amount, 0);
+            if (categoryExpensesThisMonth.length === 0) continue;
 
-        // --- INTELLIGENCE UPGRADE: Only predict if we have enough data points ---
-        if (nonRecurringTransactions.length < 5) continue;
+            const recurringTotal = categoryExpensesThisMonth
+                .filter(t => t.recurring)
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const nonRecurringTransactions = categoryExpensesThisMonth.filter(t => !t.recurring);
+            const nonRecurringSpend = nonRecurringTransactions.reduce((sum, t) => sum + t.amount, 0);
 
-        const dailySpendRate = nonRecurringSpend / daysPassed;
-        const predictedNonRecurringSpend = dailySpendRate * totalDaysInMonth;
-        const predictedSpend = predictedNonRecurringSpend + recurringTotal;
-        
-        if (predictedSpend > budgetAmount) {
-          const overspendAmount = predictedSpend - budgetAmount;
+            // --- INTELLIGENCE UPGRADE: Only predict if we have enough data points ---
+            if (nonRecurringTransactions.length < 5) continue;
 
-          // --- INTELLIGENCE UPGRADE: More nuanced confidence ---
-          let confidenceScore = 0;
-          if (daysPassed > 10) confidenceScore += 50;
-          if (daysPassed > 20) confidenceScore += 20; // Extra points for being late in month
-          if (nonRecurringTransactions.length > 10) confidenceScore += 30;
-          
-          let confidenceText = 'Low';
-          if (confidenceScore >= 70) confidenceText = 'High';
-          else if (confidenceScore >= 50) confidenceText = 'Medium';
+            const dailySpendRate = nonRecurringSpend / daysPassed;
+            const predictedNonRecurringSpend = dailySpendRate * totalDaysInMonth;
+            const predictedSpend = predictedNonRecurringSpend + recurringTotal;
+            
+            if (predictedSpend > budgetAmount) {
+            const overspendAmount = predictedSpend - budgetAmount;
 
-          if (overspendAmount > highestOverspend.amount) {
-            highestOverspend = { category, amount: overspendAmount, confidence: confidenceText };
-          }
+            // --- INTELLIGENCE UPGRADE: More nuanced confidence ---
+            let confidenceScore = 0;
+            if (daysPassed > 10) confidenceScore += 50;
+            if (daysPassed > 20) confidenceScore += 20; // Extra points for being late in month
+            if (nonRecurringTransactions.length > 10) confidenceScore += 30;
+            
+            let confidenceText = 'Low';
+            if (confidenceScore >= 70) confidenceText = 'High';
+            else if (confidenceScore >= 50) confidenceText = 'Medium';
+
+            if (overspendAmount > highestOverspend.amount) {
+                highestOverspend = { category, amount: overspendAmount, confidence: confidenceText };
+            }
+            }
         }
       }
 
@@ -89,7 +90,7 @@ export function AiFinancialInsightsCard() {
 
       // --- 2. Fallback to Top Spending Category ---
       const categoryTotals: Record<string, number> = {};
-      const currentMonthExpenses = transactions.filter(t => t.type === 'expense' && new Date(t.date).getMonth() === now.getMonth());
+      const currentMonthExpenses = currentMonthTransactions.filter(t => t.type === 'expense');
 
       if (currentMonthExpenses.length === 0) {
         setInsight("You haven't recorded any expenses this month. Great job on saving!");
@@ -120,7 +121,7 @@ export function AiFinancialInsightsCard() {
     }, 1200); // simulate network delay
 
     return () => clearTimeout(timer);
-  }, [transactions, budgets]);
+  }, [currentMonthTransactions, expenseBudgets]);
 
   return (
     <Card className={cn(
