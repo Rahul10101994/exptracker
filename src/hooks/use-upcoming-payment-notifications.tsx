@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { differenceInDays, isToday, startOfDay } from "date-fns";
 import { Bell } from "lucide-react";
 
-const NOTIFICATION_SNOOZE_KEY = "payment_notification_snooze";
+const NOTIFICATION_SNOOZE_KEY_PREFIX = "payment_notification_snooze_";
 const SNOOZE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export function useUpcomingPaymentNotifications() {
@@ -23,12 +23,6 @@ export function useUpcomingPaymentNotifications() {
       return;
     }
     
-    // Check if notifications are snoozed
-    const snoozedUntil = localStorage.getItem(NOTIFICATION_SNOOZE_KEY);
-    if (snoozedUntil && Date.now() < parseInt(snoozedUntil)) {
-      return;
-    }
-
     const today = startOfDay(new Date());
 
     const upcomingPayments = plannedPayments.filter((p) => {
@@ -38,10 +32,14 @@ export function useUpcomingPaymentNotifications() {
     });
 
     if (upcomingPayments.length > 0) {
-      // Snooze notifications for 24 hours after showing them
-      localStorage.setItem(NOTIFICATION_SNOOZE_KEY, (Date.now() + SNOOZE_DURATION_MS).toString());
-      
       upcomingPayments.forEach((payment, index) => {
+        const snoozeKey = `${NOTIFICATION_SNOOZE_KEY_PREFIX}${payment.id}`;
+        const snoozedUntil = localStorage.getItem(snoozeKey);
+
+        if (snoozedUntil && Date.now() < parseInt(snoozedUntil)) {
+          return; // This specific notification is snoozed
+        }
+
         const paymentDate = startOfDay(new Date(payment.date));
         const daysUntil = differenceInDays(paymentDate, today);
 
@@ -70,7 +68,9 @@ export function useUpcomingPaymentNotifications() {
                 description: description,
                 duration: 10000, // Show for 10 seconds
             });
-        }, index * 500);
+            // Snooze this specific notification for 24 hours
+            localStorage.setItem(snoozeKey, (Date.now() + SNOOZE_DURATION_MS).toString());
+        }, index * 600); // Increased delay slightly
 
       });
     }
