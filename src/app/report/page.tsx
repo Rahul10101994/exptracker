@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -198,7 +199,12 @@ export default function ReportPage() {
                 from={periodFrom}
                 to={periodTo}
             />
-            <NeedWantBreakdownCard transactions={filteredTransactions} prevMonthTransactions={previousPeriodTransactions} />
+            <NeedWantBreakdownCard 
+              transactions={filteredTransactions} 
+              prevMonthTransactions={previousPeriodTransactions}
+              from={periodFrom}
+              to={periodTo}
+            />
             <ReportCategoryBreakdown transactions={filteredTransactions} />
             <BudgetBreakdownCard transactions={filteredTransactions} />
           </div>

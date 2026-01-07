@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -58,6 +59,7 @@ export default function TransactionsPage() {
 
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
+  const spendingTypeParam = searchParams.get("spendingType");
 
   const initialDate = fromParam ? new Date(fromParam) : new Date();
 
@@ -73,26 +75,34 @@ export default function TransactionsPage() {
   const [transactionToEdit, setTransactionToEdit] =
     React.useState<Transaction | null>(null);
   
-  const hasDateParams = fromParam && toParam;
+  const hasFilters = fromParam && toParam;
 
   /* -------------------- FILTER -------------------- */
 
   const filteredTransactions = React.useMemo(() => {
     return transactions.filter((transaction) => {
       const d = new Date(transaction.date);
-      if (hasDateParams) {
+      let matches = true;
+
+      if (hasFilters) {
         const fromDate = new Date(fromParam);
         const toDate = new Date(toParam);
         fromDate.setHours(0, 0, 0, 0);
         toDate.setHours(23, 59, 59, 999);
-        return d >= fromDate && d <= toDate;
+        matches = d >= fromDate && d <= toDate;
+      } else {
+        matches =
+          months[d.getMonth()] === selectedMonth &&
+          d.getFullYear() === selectedYear;
       }
-      return (
-        months[d.getMonth()] === selectedMonth &&
-        d.getFullYear() === selectedYear
-      );
+
+      if (matches && spendingTypeParam) {
+        matches = transaction.spendingType === spendingTypeParam;
+      }
+      
+      return matches;
     });
-  }, [transactions, selectedMonth, selectedYear, hasDateParams, fromParam, toParam]);
+  }, [transactions, selectedMonth, selectedYear, hasFilters, fromParam, toParam, spendingTypeParam]);
 
   /* -------------------- DELETE -------------------- */
 
@@ -118,7 +128,7 @@ export default function TransactionsPage() {
       {/* HEADER */}
       <header className="flex items-center pt-2">
         <Button variant="ghost" size="icon" asChild>
-          <Link href={hasDateParams ? "/report" : "/dashboard"}>
+          <Link href={hasFilters ? "/report" : "/dashboard"}>
             <ArrowLeft />
             <span className="sr-only">Back</span>
           </Link>
@@ -128,9 +138,11 @@ export default function TransactionsPage() {
         <div className="w-10" />
       </header>
       
-      {hasDateParams ? (
+      {hasFilters ? (
         <div className="text-center text-sm text-muted-foreground bg-accent p-2 rounded-md">
-          Showing transactions from <br />
+          {spendingTypeParam && (
+             <>Showing <span className="font-semibold capitalize">{spendingTypeParam}</span> transactions from <br/></>
+          )}
           <span className="font-semibold">{format(new Date(fromParam), "PPP")}</span> to <span className="font-semibold">{format(new Date(toParam), "PPP")}</span>
         </div>
       ) : (

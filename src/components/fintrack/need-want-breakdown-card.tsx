@@ -1,6 +1,8 @@
+
 "use client";
 
 import * as React from "react";
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction } from "@/contexts/transactions-context";
 import { ArrowDown, ArrowUp } from "lucide-react";
@@ -8,9 +10,13 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 export function NeedWantBreakdownCard({
   transactions,
   prevMonthTransactions,
+  from,
+  to,
 }: {
   transactions: Transaction[];
   prevMonthTransactions: Transaction[];
+  from?: string;
+  to?: string;
 }) {
   const { needTotal, wantTotal, totalExpense } = React.useMemo(() => {
     let need = 0;
@@ -78,7 +84,7 @@ export function NeedWantBreakdownCard({
       className="
         border-0 shadow-md
         w-full
-        max-w-full sm:max-w-[360px]
+        max-w-full
       "
     >
       <CardHeader className="p-3 pb-2">
@@ -103,7 +109,7 @@ export function NeedWantBreakdownCard({
         {/* Breakdown */}
         <div className="grid grid-cols-2 gap-3">
           {/* Needs */}
-          <div>
+          <Link href={`/transactions?from=${from}&to=${to}&spendingType=need`} className="block hover:bg-muted p-2 rounded-md">
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-green-500" />
               <span className="text-xs sm:text-sm font-medium">Needs</span>
@@ -117,10 +123,10 @@ export function NeedWantBreakdownCard({
             <p className="text-[10px] sm:text-xs text-muted-foreground">
               {needPercentage.toFixed(1)}% of spending
             </p>
-          </div>
+          </Link>
 
           {/* Wants */}
-          <div>
+           <Link href={`/transactions?from=${from}&to=${to}&spendingType=want`} className="block hover:bg-muted p-2 rounded-md">
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-orange-500" />
               <span className="text-xs sm:text-sm font-medium">Wants</span>
@@ -134,7 +140,7 @@ export function NeedWantBreakdownCard({
             <p className="text-[10px] sm:text-xs text-muted-foreground">
               {wantPercentage.toFixed(1)}% of spending
             </p>
-          </div>
+          </Link>
         </div>
       </CardContent>
     </Card>
