@@ -34,7 +34,7 @@ export function useUpcomingPaymentNotifications() {
     const upcomingPayments = plannedPayments.filter((p) => {
       const paymentDate = startOfDay(new Date(p.date));
       const daysUntil = differenceInDays(paymentDate, today);
-      return daysUntil >= 0 && daysUntil <= 3; // Due today or within the next 3 days
+      return daysUntil >= -7 && daysUntil <= 1; // Overdue by up to a week, or due today or tomorrow
     });
 
     if (upcomingPayments.length > 0) {
@@ -43,14 +43,19 @@ export function useUpcomingPaymentNotifications() {
       
       upcomingPayments.forEach((payment, index) => {
         const paymentDate = startOfDay(new Date(payment.date));
-        const isDueToday = isToday(paymentDate);
         const daysUntil = differenceInDays(paymentDate, today);
 
+        let title = "Upcoming Payment";
         let description = `Your payment for "${payment.name}" of ₹${payment.amount} is due `;
-        if (isDueToday) {
-            description += 'today.';
-        } else {
-            description += `in ${daysUntil} day${daysUntil > 1 ? 's' : ''}.`;
+
+        if (daysUntil === 1) {
+            description += 'tomorrow.';
+        } else if (daysUntil === 0) {
+            title = "Payment Due Today";
+            description = `Your payment for "${payment.name}" of ₹${payment.amount} is due today.`;
+        } else if (daysUntil < 0) {
+            title = "Payment Overdue";
+            description = `Your payment for "${payment.name}" of ₹${payment.amount} was due ${Math.abs(daysUntil)} day(s) ago.`;
         }
 
         // Delay each toast slightly to prevent them from overlapping
@@ -59,7 +64,7 @@ export function useUpcomingPaymentNotifications() {
                 title: (
                     <div className="flex items-center gap-2">
                         <Bell className="h-5 w-5" />
-                        <span>Upcoming Payment</span>
+                        <span>{title}</span>
                     </div>
                 ),
                 description: description,
