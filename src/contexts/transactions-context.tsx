@@ -76,7 +76,7 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
     other: MoreHorizontal
 };
 
-export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
+export const TransactionsProvider = ({ children }: { children: React.ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isClient, setIsClient] = useState(false);
     const userContext = useUser();
@@ -121,6 +121,15 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
 
         if (dataToSave.spendingType === undefined) {
             delete dataToSave.spendingType;
+        }
+        if (dataToSave.account === undefined) {
+            delete dataToSave.account;
+        }
+        if (dataToSave.fromAccount === undefined) {
+            delete dataToSave.fromAccount;
+        }
+        if (dataToSave.toAccount === undefined) {
+            delete dataToSave.toAccount;
         }
         
         await addDoc(transactionsCollection, dataToSave);
