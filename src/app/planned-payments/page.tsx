@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import { AddTransactionSheet } from "@/components/fintrack/add-transaction-sheet";
 
 export default function PlannedPaymentsPage() {

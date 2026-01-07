@@ -124,7 +124,7 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
       type: "expense",
       name: "",
       amount: 0,
-      date: isPlannedPayment ? addMonths(new Date(), 1) : new Date(),
+      date: new Date(),
       recurring: isPlannedPayment,
       category: "",
       account: "",
@@ -132,18 +132,6 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
   });
 
   const transactionType = form.watch("type");
-  const isRecurring = form.watch("recurring");
-
-  React.useEffect(() => {
-    if (isPlannedPayment) return;
-    const currentIsRecurring = form.getValues('recurring');
-    const currentDate = form.getValues('date');
-    if (currentIsRecurring) {
-        form.setValue('date', addMonths(currentDate, 1));
-    } else {
-        form.setValue('date', new Date());
-    }
-  }, [isRecurring, form, isPlannedPayment]);
 
   React.useEffect(() => {
     if (transactionType === 'transfer') {
@@ -165,7 +153,13 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
 
 
   async function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    await addTransaction(values as any);
+    const finalValues = { ...values };
+
+    if (isPlannedPayment || (values.recurring && !isPlannedPayment)) {
+      finalValues.date = addMonths(values.date, 1);
+    }
+    
+    await addTransaction(finalValues);
 
     toast({
       title: isPlannedPayment ? "Planned Payment Added" : "Transaction Added",
@@ -176,7 +170,7 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
       type: "expense",
       name: "",
       amount: 0,
-      date: isPlannedPayment ? addMonths(new Date(), 1) : new Date(),
+      date: new Date(),
       recurring: isPlannedPayment,
       category: '',
       account: '',
