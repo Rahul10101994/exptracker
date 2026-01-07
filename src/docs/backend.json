@@ -59,6 +59,42 @@
             },
             "required": ["type", "name", "amount", "date", "category"]
         },
+        "PlannedPayment": {
+            "title": "Planned Payment",
+            "description": "Represents a future or recurring payment.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["income", "expense", "investment"]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "account": {
+                    "type": "string"
+                },
+                "spendingType": {
+                    "type": "string",
+                    "enum": ["need", "want"]
+                },
+                "period": {
+                    "type": "string",
+                    "enum": ["one-time", "monthly", "yearly"]
+                }
+            },
+            "required": ["type", "name", "amount", "date", "category", "account", "period"]
+        },
         "Budget": {
             "title": "Budget",
             "description": "Represents the user's monthly budget settings.",
@@ -129,6 +165,12 @@
                 "$ref": "#/entities/Transaction"
             },
             "description": "Stores a user's financial transactions."
+        },
+        "/users/{userId}/plannedPayments/{paymentId}": {
+            "schema": {
+                "$ref": "#/entities/PlannedPayment"
+            },
+            "description": "Stores a user's upcoming planned payments."
         },
         "/users/{userId}/budgets/{budgetId}": {
             "schema": {
