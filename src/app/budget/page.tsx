@@ -126,14 +126,6 @@ export default function BudgetPage() {
                  <div className="w-10"></div>
             </header>
 
-            {/* This trigger is hidden and is activated programmatically */}
-            <AlertDialogTrigger asChild id="add-category-trigger">
-                <Button variant="ghost" size="icon" className="hidden">
-                    <PlusCircle />
-                </Button>
-            </AlertDialogTrigger>
-
-
             <div className="space-y-6 pb-16">
                 {/* ---------- EXPENSE CATEGORIES ---------- */}
                 <div>
@@ -247,6 +239,12 @@ export default function BudgetPage() {
             </div>
 
             <AlertDialog>
+                {/* This trigger is hidden and is activated programmatically */}
+                <AlertDialogTrigger asChild id="add-category-trigger">
+                    <Button variant="ghost" size="icon" className="hidden">
+                        <PlusCircle />
+                    </Button>
+                </AlertDialogTrigger>
                  <AlertDialogContent>
                     <AlertDialogHeader>
                     <AlertDialogTitle>Add New {newCategoryType} Category</AlertDialogTitle>
