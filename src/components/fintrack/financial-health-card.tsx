@@ -5,6 +5,7 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
 import { useBudget } from "@/contexts/budget-context";
+import { useAccounts } from "@/contexts/account-context";
 import { cn } from "@/lib/utils";
 import { subMonths, isSameMonth, isSameYear } from 'date-fns';
 
@@ -28,6 +29,7 @@ const getStdDev = (arr: number[]): number => {
 export function FinancialHealthCard() {
   const { currentMonthTransactions, transactions } = useTransactions();
   const { expenseBudgets } = useBudget();
+  const { accounts, getAccountBalance } = useAccounts();
   const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -41,27 +43,27 @@ export function FinancialHealthCard() {
     const savings = income - expense;
     const savingsPercent = income > 0 ? (savings / income) * 100 : 0;
     const savingsRatio = Math.min(savingsPercent / SCORE_CONFIG.savingsRate.target, 1.5); // Cap at 150% of target
-    const savingsScore = savingsRatio > 0 ? savingsRatio * SCORE_CONFIG.savingsRate.weight : 0;
+    let savingsScore = savingsRatio > 0 ? savingsRatio * SCORE_CONFIG.savingsRate.weight : 0;
 
 
     // --- 2. Budget Adherence Score (25 pts) ---
     const budgetCategories = expenseBudgets ? Object.keys(expenseBudgets) : [];
-    let totalBudgetScore = 0;
+    let totalBudgetScorePoints = 0;
     let budgetScore = 0;
-    if (budgetCategories.length > 0) {
-      budgetCategories.forEach(cat => {
+    const relevantBudgetCategories = budgetCategories.filter(cat => expenseBudgets[cat].amount > 0);
+    
+    if (relevantBudgetCategories.length > 0) {
+      relevantBudgetCategories.forEach(cat => {
         const budgetAmount = expenseBudgets[cat].amount;
-        if (budgetAmount <= 0) return;
         const spent = currentMonthTransactions.filter(t => t.category.toLowerCase() === cat.toLowerCase()).reduce((sum, t) => sum + t.amount, 0);
-        const adherence = spent > budgetAmount ? 0 : 1 - (spent / budgetAmount); // Score is higher the less you spend of the budget
-        totalBudgetScore += adherence;
+        // Score is higher the less you spend, but 0 if you go over.
+        const adherence = spent > budgetAmount ? 0 : 1 - (spent / budgetAmount); 
+        totalBudgetScorePoints += adherence;
       });
-      const relevantBudgetCategories = budgetCategories.filter(cat => expenseBudgets[cat].amount > 0);
-      budgetScore = relevantBudgetCategories.length > 0
-          ? (totalBudgetScore / relevantBudgetCategories.length) * SCORE_CONFIG.budgetAdherence.weight
-          : SCORE_CONFIG.budgetAdherence.weight; // Full points if no budgets with amount > 0
+      budgetScore = (totalBudgetScorePoints / relevantBudgetCategories.length) * SCORE_CONFIG.budgetAdherence.weight;
     } else {
-        budgetScore = SCORE_CONFIG.budgetAdherence.weight; // Full points if no budget set
+        // If no budgets are set, give a neutral score (e.g., 75% of possible points) to encourage setting them.
+        budgetScore = SCORE_CONFIG.budgetAdherence.weight * 0.75; 
     }
 
 
@@ -73,16 +75,15 @@ export function FinancialHealthCard() {
     });
     const expenseValues = Array.from(dailyExpenses.values());
     const stdDev = getStdDev(expenseValues);
-    // Normalize std dev against income to get a stable ratio
     const consistencyRatio = income > 0 ? stdDev / income : 1; 
     const consistencyScore = Math.max(0, (1 - consistencyRatio * 5)) * SCORE_CONFIG.spendingConsistency.weight;
 
 
     // --- 4. Emergency Buffer (15 pts) ---
-    // A simple proxy: total savings across all time.
-    const totalSavings = transactions.reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0);
+    // More accurate total balance from all accounts.
+    const totalBalance = accounts.reduce((acc, account) => acc + getAccountBalance(account.id), 0);
     const avgMonthlyExpense = (expense > 0 ? expense : (transactions.filter(t => t.type === 'expense').reduce((s,t) => s+t.amount, 0) / 12) || 1000);
-    const emergencyBufferRatio = Math.min(totalSavings / (avgMonthlyExpense * 3), 1); // Target 3 months of expenses
+    const emergencyBufferRatio = Math.min(totalBalance / (avgMonthlyExpense * 3), 1); // Target 3 months of expenses
     const emergencyBufferScore = emergencyBufferRatio > 0 ? emergencyBufferRatio * SCORE_CONFIG.emergencyBuffer.weight : 0;
 
 
@@ -92,12 +93,19 @@ export function FinancialHealthCard() {
     const incomeStabilityRatio = (income > 0 && lastMonthIncome > 0) ? Math.min(income / lastMonthIncome, 1) : (income > 0 ? 1 : 0);
     const incomeStabilityScore = incomeStabilityRatio * SCORE_CONFIG.incomeStability.weight;
 
-
     const finalScore = Math.round(savingsScore + budgetScore + consistencyScore + emergencyBufferScore + incomeStabilityScore);
 
     // --- Generate Tip ---
     let generatedTip = "Your financial health is looking strong. Keep it up!";
-    if (finalScore < 85) { // Higher threshold
+    if (finalScore < 50) {
+        if (emergencyBufferScore < SCORE_CONFIG.emergencyBuffer.weight * 0.5) {
+          generatedTip = "Building an emergency fund is critical. Try to save at least 3 months of expenses.";
+        } else if (savingsScore < SCORE_CONFIG.savingsRate.weight * 0.5) {
+           generatedTip = "Your savings rate is low. Try to find areas where you can cut back on spending.";
+        } else {
+          generatedTip = "There are several areas to improve. Let's start by reviewing your budgets.";
+        }
+    } else if (finalScore < 85) { 
       if (savingsScore < SCORE_CONFIG.savingsRate.weight * 0.7) {
         generatedTip = "Focus on increasing your savings rate. Even a small boost can make a big difference.";
       } else if (budgetScore < SCORE_CONFIG.budgetAdherence.weight * 0.7) {
@@ -112,7 +120,7 @@ export function FinancialHealthCard() {
 
     return { score: Math.min(100, Math.max(0, finalScore)), tip: generatedTip };
 
-  }, [currentMonthTransactions, expenseBudgets, transactions]);
+  }, [currentMonthTransactions, expenseBudgets, transactions, accounts, getAccountBalance]);
 
   const scoreColor = score < 50 ? "text-red-500" : score < 75 ? "text-yellow-500" : "text-green-500";
   const ringColor = score < 50 ? "ring-red-500/30" : score < 75 ? "ring-yellow-500/30" : "ring-green-500/30";
