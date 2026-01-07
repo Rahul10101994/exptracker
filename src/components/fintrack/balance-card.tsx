@@ -75,7 +75,7 @@ export function BalanceCard() {
             </div>
             <div className="min-w-0">
               <p className="text-[11px] sm:text-xs text-accent-foreground/80">
-                Expense
+                Money Out
               </p>
               <p className="text-sm sm:text-base font-semibold text-accent-foreground truncate">
                 ₹{expense.toFixed(2)}
