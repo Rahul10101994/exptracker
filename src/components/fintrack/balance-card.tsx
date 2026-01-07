@@ -1,13 +1,16 @@
+
 "use client";
 
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { useTransactions } from "@/contexts/transactions-context";
+import { useAccounts } from "@/contexts/account-context";
 import { useMemo } from "react";
 
 export function BalanceCard() {
   const { currentMonthTransactions } = useTransactions();
+  const { accounts, getAccountBalance } = useAccounts();
   const currentDate = format(new Date(), "MMMM yyyy");
 
   const { totalBalance, income, expense } = useMemo(() => {
@@ -16,15 +19,17 @@ export function BalanceCard() {
       .reduce((acc, t) => acc + t.amount, 0);
 
     const expense = currentMonthTransactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === "expense" || t.type === 'investment')
       .reduce((acc, t) => acc + t.amount, 0);
+    
+    const total = accounts.reduce((acc, account) => acc + getAccountBalance(account.id), 0);
 
     return {
-      totalBalance: income - expense,
+      totalBalance: total,
       income,
       expense,
     };
-  }, [currentMonthTransactions]);
+  }, [currentMonthTransactions, accounts, getAccountBalance]);
 
   return (
     <Card

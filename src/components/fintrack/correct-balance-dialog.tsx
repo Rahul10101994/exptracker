@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -46,7 +47,7 @@ export function CorrectBalanceDialog({
 
       toast({
         title: "Balance Corrected",
-        description: `The balance for "${account.name}" has been updated.`,
+        description: `The balance for "${account.name}" has been updated. An adjustment was made to the initial balance.`,
       });
 
       onClose();
@@ -78,8 +79,7 @@ export function CorrectBalanceDialog({
           </AlertDialogTitle>
 
           <AlertDialogDescription className="text-sm">
-            Enter the correct current balance for this account. An adjustment
-            transaction will be created automatically.
+            Enter the correct current balance for this account. The initial balance will be adjusted automatically.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

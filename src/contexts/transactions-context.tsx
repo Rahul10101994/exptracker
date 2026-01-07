@@ -8,16 +8,18 @@ import { useUser } from '@/firebase';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 
-const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark } = LucideIcons;
+const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark, ArrowRightLeft } = LucideIcons;
 
 export type Transaction = {
     id: string;
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'investment' | 'transfer';
     name: string;
     amount: number;
     date: string;
     category: string;
-    account: string;
+    account?: string;
+    fromAccount?: string;
+    toAccount?: string;
     spendingType?: 'need' | 'want';
     recurring?: boolean;
     fgColor: string;
@@ -55,6 +57,7 @@ const categoryStyles: { [key: string]: { fgColor: string, bgColor: string } } = 
     bonus: { fgColor: 'text-transaction-income-fg', bgColor: 'bg-transaction-income-bg' },
     bills: { fgColor: 'text-purple-500', bgColor: 'bg-purple-100' },
     investment: { fgColor: 'text-indigo-500', bgColor: 'bg-indigo-100' },
+    transfer: { fgColor: 'text-cyan-500', bgColor: 'bg-cyan-100' },
     other: { fgColor: 'text-gray-500', bgColor: 'bg-gray-100' },
 };
 
@@ -69,6 +72,7 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
     transport: Bus,
     bills: Tv,
     investment: Landmark,
+    transfer: ArrowRightLeft,
     other: MoreHorizontal
 };
 

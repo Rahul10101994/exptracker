@@ -35,12 +35,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z
   .object({
-    type: z.enum(["income", "expense"]),
+    type: z.enum(["income", "expense", "investment", "transfer"]),
     name: z.string().min(1, "Please enter a description."),
     amount: z.coerce.number().positive("Amount must be positive"),
     date: z.date(),
     category: z.string().min(1, "Please select a category."),
-    account: z.string().min(1, "Please select an account."),
+    account: z.string().optional(),
+    fromAccount: z.string().optional(),
+    toAccount: z.string().optional(),
     spendingType: z.enum(["need", "want"]).optional(),
     recurring: z.boolean().default(false),
   })
@@ -55,7 +57,32 @@ const formSchema = z
       message: "Please select if this is a need or a want.",
       path: ["spendingType"],
     }
-  );
+  ).refine(data => {
+    if (data.type === 'transfer') {
+      return !!data.fromAccount && !!data.toAccount;
+    }
+    return true;
+  }, {
+    message: "Both from and to accounts are required for a transfer.",
+    path: ['fromAccount'],
+  }).refine(data => {
+    if (data.type === 'transfer') {
+        return data.fromAccount !== data.toAccount;
+    }
+    return true;
+  }, {
+      message: "From and to accounts cannot be the same.",
+      path: ['toAccount']
+  })
+  .refine(data => {
+    if (data.type !== 'transfer') {
+        return !!data.account;
+    }
+    return true;
+  }, {
+      message: "Please select an account.",
+      path: ['account']
+  });
 
 /* ---------------- Data ---------------- */
 
@@ -85,6 +112,8 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
     return {
         income: ["Freelance", "Salary", "Bonus", "Other"],
         expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+        investment: ["Stocks", "Mutual Funds", "Crypto", "Other"],
+        transfer: ["Transfer"],
     }
   }, [budgets]);
 
@@ -97,15 +126,33 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       amount: 0,
       date: new Date(),
       category: "",
-      account: "",
       recurring: false,
     },
   });
 
   const transactionType = form.watch("type");
 
+  React.useEffect(() => {
+    if (transactionType === 'transfer') {
+        form.setValue('category', 'transfer');
+        form.setValue('account', undefined);
+    } else if (transactionType === 'investment') {
+        form.setValue('category', 'investment');
+        form.setValue('fromAccount', undefined);
+        form.setValue('toAccount', undefined);
+    } else {
+        form.setValue('fromAccount', undefined);
+        form.setValue('toAccount', undefined);
+        if (transactionType === 'income') {
+            form.setValue("spendingType", undefined);
+            form.clearErrors("spendingType");
+        }
+    }
+  }, [transactionType, form]);
+
+
   async function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    await addTransaction(values);
+    await addTransaction(values as any);
 
     toast({
       title: "Transaction Added",
@@ -118,6 +165,8 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       amount: 0,
       date: new Date(),
       recurring: false,
+      category: '',
+      account: '',
     });
 
     onSubmit?.();
@@ -149,7 +198,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                   }}
                   className="grid grid-cols-2 gap-3"
                 >
-                  {["income", "expense"].map((t) => (
+                  {["income", "expense", "investment", "transfer"].map((t) => (
                     <label
                       key={t}
                       className="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-muted"
@@ -239,63 +288,115 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           />
         </div>
 
-        {/* Category + Account (SAME ROW) */}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={!transactionType}
-                >
-                  <FormControl>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {transactionType &&
-                      categories[transactionType].map((c) => (
-                        <SelectItem key={c} value={c.toLowerCase()}>
-                          {c}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {transactionType === 'transfer' ? (
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="fromAccount"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>From Account</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                            <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select account" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {accounts.map((a) => (
+                            <SelectItem key={a.id} value={a.name.toLowerCase()}>
+                                {a.name}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="toAccount"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>To Account</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                            <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select account" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {accounts.map((a) => (
+                            <SelectItem key={a.id} value={a.name.toLowerCase()}>
+                                {a.name}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
+        ) : (
+            <div className="grid grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={!transactionType || transactionType === 'investment'}
+                    >
+                    <FormControl>
+                        <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        {transactionType &&
+                        categories[transactionType].map((c: string) => (
+                            <SelectItem key={c} value={c.toLowerCase()}>
+                            {c}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
 
-          <FormField
-            control={form.control}
-            name="account"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Account</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Select account" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {accounts.map((a) => (
-                      <SelectItem key={a.id} value={a.name.toLowerCase()}>
-                        {a.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+                control={form.control}
+                name="account"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Account</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                        <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        {accounts.map((a) => (
+                        <SelectItem key={a.id} value={a.name.toLowerCase()}>
+                            {a.name}
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            </div>
+        )}
 
         {/* Need / Want */}
         {transactionType === "expense" && (

@@ -1,0 +1,152 @@
+
+{
+    "entities": {
+        "UserProfile": {
+            "title": "User Profile",
+            "description": "Represents a user's profile in the application.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The user's full name."
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "The user's email address."
+                }
+            },
+            "required": ["name", "email"]
+        },
+        "Transaction": {
+            "title": "Transaction",
+            "description": "Represents a single financial transaction.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": ["income", "expense", "investment", "transfer"]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "account": {
+                    "type": "string"
+                },
+                "fromAccount": {
+                    "type": "string"
+                },
+                "toAccount": {
+                    "type": "string"
+                },
+                "spendingType": {
+                    "type": "string",
+                    "enum": ["need", "want"]
+                },
+                "recurring": {
+                    "type": "boolean"
+                }
+            },
+            "required": ["type", "name", "amount", "date", "category"]
+        },
+        "Budget": {
+            "title": "Budget",
+            "description": "Represents the user's monthly budget settings.",
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "amount": {
+                        "type": "number"
+                    }
+                },
+                "required": ["amount"]
+            }
+        },
+        "Account": {
+            "title": "Account",
+            "description": "Represents a user's financial account.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "initialBalance": {
+                    "type": "number"
+                }
+            },
+            "required": ["name", "initialBalance"]
+        },
+        "Goal": {
+            "title": "Goal",
+            "description": "Represents a user's financial goal.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "targetAmount": {
+                    "type": "number"
+                },
+                "savedAmount": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["monthly", "yearly", "long-term"]
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "required": ["name", "targetAmount", "type", "createdAt"]
+        }
+    },
+    "auth": {
+        "providers": ["email"]
+    },
+    "firestore": {
+        "/users/{userId}": {
+            "schema": {
+                "$ref": "#/entities/UserProfile"
+            },
+            "description": "Stores user profile information."
+        },
+        "/users/{userId}/transactions/{transactionId}": {
+            "schema": {
+                "$ref": "#/entities/Transaction"
+            },
+            "description": "Stores a user's financial transactions."
+        },
+        "/users/{userId}/budgets/{budgetId}": {
+            "schema": {
+                "$ref": "#/entities/Budget"
+            },
+            "description": "Stores a user's budget settings. A single document with a fixed ID like 'main' should be used."
+        },
+        "/users/{userId}/accounts/{accountId}": {
+            "schema": {
+                "$ref": "#/entities/Account"
+            },
+            "description": "Stores a user's financial accounts."
+        },
+        "/users/{userId}/goals/{goalId}": {
+            "schema": {
+                "$ref": "#/entities/Goal"
+            },
+            "description": "Stores a user's financial goals."
+        }
+    }
+}
