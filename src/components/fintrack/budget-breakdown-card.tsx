@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ export function BudgetBreakdownCard({
 }: {
   transactions: Transaction[];
 }) {
-  const { budgets } = useBudget();
+  const { expenseBudgets } = useBudget();
 
   const categorySpending = useMemo(() => {
     const spending: Record<string, number> = {};
@@ -25,8 +26,8 @@ export function BudgetBreakdownCard({
   }, [transactions]);
 
   const { budgetBreakdown, totalBudget, totalSpent } = useMemo(() => {
-    const breakdown = Object.keys(budgets).map((category) => {
-      const budgetAmount = budgets[category].amount;
+    const breakdown = Object.keys(expenseBudgets).map((category) => {
+      const budgetAmount = expenseBudgets[category].amount;
       const spent = categorySpending[category] || 0;
       const progress =
         budgetAmount > 0 ? (spent / budgetAmount) * 100 : 0;
@@ -44,7 +45,7 @@ export function BudgetBreakdownCard({
       };
     });
 
-    const totalBudget = Object.values(budgets).reduce(
+    const totalBudget = Object.values(expenseBudgets).reduce(
       (sum, b) => sum + b.amount,
       0
     );
@@ -54,7 +55,7 @@ export function BudgetBreakdownCard({
     );
 
     return { budgetBreakdown: breakdown, totalBudget, totalSpent };
-  }, [budgets, categorySpending]);
+  }, [expenseBudgets, categorySpending]);
 
   const remainingBudget = totalBudget - totalSpent;
 
