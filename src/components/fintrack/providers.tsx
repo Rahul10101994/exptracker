@@ -30,9 +30,9 @@ export function Providers({
           <AccountProvider>
             <BudgetProvider>
               <PlannedPaymentProvider>
-                  <GoalProvider>
-                    {children}
-                  </GoalProvider>
+                <GoalProvider>
+                  {children}
+                </GoalProvider>
               </PlannedPaymentProvider>
             </BudgetProvider>
           </AccountProvider>
