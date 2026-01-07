@@ -25,7 +25,7 @@ export function FinancialSummaryCard({
       .reduce((acc, t) => acc + t.amount, 0);
 
     const investments = transactions
-      .filter((t) => t.category.toLowerCase() === "investment")
+      .filter((t) => t.type === "investment")
       .reduce((acc, t) => acc + t.amount, 0);
 
     return {
@@ -49,7 +49,7 @@ export function FinancialSummaryCard({
     const prevSavings = prevIncome - prevExpense;
 
     const prevInvestments = prevMonthTransactions
-        .filter(t => t.category.toLowerCase() === 'investment')
+        .filter(t => t.type === 'investment')
         .reduce((sum, t) => sum + t.amount, 0);
 
     const change = (curr: number, prev: number) => {

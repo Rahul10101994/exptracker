@@ -18,7 +18,7 @@ export function BudgetBreakdownCard({
   const categorySpending = useMemo(() => {
     const spending: Record<string, number> = {};
     transactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === "expense" || t.type === "investment")
       .forEach((t) => {
         spending[t.category] = (spending[t.category] || 0) + t.amount;
       });
