@@ -197,7 +197,7 @@ export function EditTransactionForm({
                         text-xs
                         cursor-pointer
                         [&:has(:checked)]:border-primary
-                        [&:has(:checked)]:bg-muted
+                        [&:has(:checked)]:bg-accent
                       "
                     >
                       <RadioGroupItem value={t} />

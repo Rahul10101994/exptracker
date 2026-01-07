@@ -202,7 +202,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                   {["income", "expense", "investment", "transfer"].map((t) => (
                     <label
                       key={t}
-                      className="flex items-center justify-center gap-2 border rounded-lg p-2 text-xs cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-muted"
+                      className="flex items-center justify-center gap-2 border rounded-lg p-2 text-xs cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-accent"
                     >
                       <RadioGroupItem value={t} />
                       {t.charAt(0).toUpperCase() + t.slice(1)}
