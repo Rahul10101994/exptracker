@@ -2,10 +2,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { usePlannedPayments } from "@/contexts/planned-payment-context";
 import { toast } from "@/hooks/use-toast";
-import { differenceInDays, isToday, startOfDay } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { Bell } from "lucide-react";
+import { ToastAction } from "@/components/ui/toast";
 
 export function useUpcomingPaymentNotifications() {
   const { plannedPayments } = usePlannedPayments();
@@ -20,17 +22,21 @@ export function useUpcomingPaymentNotifications() {
       return;
     }
     
-    const today = startOfDay(new Date());
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const upcomingPayments = plannedPayments.filter((p) => {
-      const paymentDate = startOfDay(new Date(p.date));
+      const paymentDate = new Date(p.date);
+      paymentDate.setHours(0, 0, 0, 0);
       const daysUntil = differenceInDays(paymentDate, today);
-      return daysUntil >= -7 && daysUntil <= 1; // Overdue by up to a week, or due today or tomorrow
+      // Notify for payments due in the next day, today, or are overdue by up to a week.
+      return daysUntil <= 1 && daysUntil >= -7;
     });
 
     if (upcomingPayments.length > 0) {
       upcomingPayments.forEach((payment, index) => {
-        const paymentDate = startOfDay(new Date(payment.date));
+        const paymentDate = new Date(payment.date);
+        paymentDate.setHours(0, 0, 0, 0);
         const daysUntil = differenceInDays(paymentDate, today);
 
         let title = "Upcoming Payment";
@@ -44,12 +50,7 @@ export function useUpcomingPaymentNotifications() {
         } else if (daysUntil < 0) {
             title = "Payment Overdue";
             description = `Your payment for "${payment.name}" of ₹${payment.amount} was due ${Math.abs(daysUntil)} day(s) ago.`;
-        } else {
-            // This handles the case for daysUntil > 1, which shouldn't happen with the current filter
-            // but is good for safety.
-             description += `in ${daysUntil} days.`;
         }
-
 
         // Delay each toast slightly to prevent them from overlapping
         setTimeout(() => {
@@ -61,7 +62,12 @@ export function useUpcomingPaymentNotifications() {
                     </div>
                 ),
                 description: description,
-                duration: 10000, // Show for 10 seconds
+                duration: 10000,
+                action: (
+                  <ToastAction asChild altText="View planned payments">
+                    <Link href="/planned-payments">View</Link>
+                  </ToastAction>
+                )
             });
         }, index * 600); 
 
