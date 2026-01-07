@@ -63,7 +63,7 @@ export default function PlannedPaymentsPage() {
       </Card>
 
       <div className="mt-4">
-        <AddTransactionSheet>
+        <AddTransactionSheet isPlannedPayment={true}>
             <Button className="w-full">
                 <CalendarPlus className="mr-2 h-4 w-4" />
                 Add Planned Payment

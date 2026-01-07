@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -12,8 +13,10 @@ import { AddTransactionForm } from "./add-transaction-form";
 
 export function AddTransactionSheet({
   children,
+  isPlannedPayment = false
 }: {
   children: React.ReactNode;
+  isPlannedPayment?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -36,12 +39,15 @@ export function AddTransactionSheet({
 
         <SheetHeader className="mb-2 text-left">
           <SheetTitle className="text-base sm:text-lg">
-            Add Transaction
+            {isPlannedPayment ? "Add Planned Payment" : "Add Transaction"}
           </SheetTitle>
         </SheetHeader>
 
         {/* Scrollable form handles its own scrolling */}
-        <AddTransactionForm onSubmit={() => setOpen(false)} />
+        <AddTransactionForm 
+            onSubmit={() => setOpen(false)} 
+            isPlannedPayment={isPlannedPayment}
+        />
       </SheetContent>
     </Sheet>
   );

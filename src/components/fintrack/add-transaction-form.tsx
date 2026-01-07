@@ -102,7 +102,7 @@ const smartCategoryMap: Record<string, string> = {
 
 /* ---------------- Component ---------------- */
 
-export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
+export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onSubmit?: () => void, isPlannedPayment?: boolean }) {
   const { addTransaction } = useTransactions();
   const { accounts } = useAccounts();
   const { expenseBudgets, incomeCategories } = useBudget();
@@ -125,7 +125,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       name: "",
       amount: 0,
       date: new Date(),
-      recurring: false,
+      recurring: isPlannedPayment,
       category: "",
       account: "",
     },
@@ -156,7 +156,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
     await addTransaction(values as any);
 
     toast({
-      title: "Transaction Added",
+      title: isPlannedPayment ? "Planned Payment Added" : "Transaction Added",
       description: `Added ${values.type} of ₹${values.amount}`,
     });
 
@@ -165,7 +165,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       name: "",
       amount: 0,
       date: new Date(),
-      recurring: false,
+      recurring: isPlannedPayment,
       category: '',
       account: '',
     });
@@ -430,30 +430,30 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
           />
         )}
         
-        <FormField
-          control={form.control}
-          name="recurring"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-              <div className="space-y-0.5">
-                <FormLabel>Recurring Transaction</FormLabel>
-              </div>
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        {!isPlannedPayment && (
+            <FormField
+            control={form.control}
+            name="recurring"
+            render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                <div className="space-y-0.5">
+                    <FormLabel>Recurring Transaction</FormLabel>
+                </div>
+                <FormControl>
+                    <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    />
+                </FormControl>
+                </FormItem>
+            )}
+            />
+        )}
         
         <Button type="submit" className="w-full h-11 text-base font-semibold">
-          Add Transaction
+          {isPlannedPayment ? "Add Planned Payment" : "Add Transaction"}
         </Button>
       </form>
     </Form>
   );
 }
-
-    
