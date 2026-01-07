@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
+import { format } from "date-fns";
 
 export default function PlannedPaymentsPage() {
   const { transactions } = useTransactions();
@@ -41,7 +42,7 @@ export default function PlannedPaymentsPage() {
                     <div>
                         <p className="font-semibold">{t.name}</p>
                         <p className="text-sm text-muted-foreground">
-                            Next payment: TBD
+                           Last payment: {format(new Date(t.date), "PPP")}
                         </p>
                     </div>
                     <p className="font-semibold text-red-500">-₹{t.amount.toFixed(2)}</p>
