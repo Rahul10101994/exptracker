@@ -27,7 +27,7 @@ const getStdDev = (arr: number[]): number => {
 
 export function FinancialHealthCard() {
   const { currentMonthTransactions, transactions } = useTransactions();
-  const { budgets } = useBudget();
+  const { expenseBudgets } = useBudget();
   const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -45,19 +45,23 @@ export function FinancialHealthCard() {
 
 
     // --- 2. Budget Adherence Score (25 pts) ---
-    const budgetCategories = Object.keys(budgets);
+    const budgetCategories = expenseBudgets ? Object.keys(expenseBudgets) : [];
     let totalBudgetScore = 0;
+    let budgetScore = 0;
     if (budgetCategories.length > 0) {
       budgetCategories.forEach(cat => {
-        const budgetAmount = budgets[cat].amount;
+        const budgetAmount = expenseBudgets[cat].amount;
         if (budgetAmount <= 0) return;
         const spent = currentMonthTransactions.filter(t => t.category.toLowerCase() === cat.toLowerCase()).reduce((sum, t) => sum + t.amount, 0);
         const adherence = spent > budgetAmount ? 0 : 1 - (spent / budgetAmount); // Score is higher the less you spend of the budget
         totalBudgetScore += adherence;
       });
-      var budgetScore = (totalBudgetScore / budgetCategories.filter(cat => budgets[cat].amount > 0).length) * SCORE_CONFIG.budgetAdherence.weight;
+      const relevantBudgetCategories = budgetCategories.filter(cat => expenseBudgets[cat].amount > 0);
+      budgetScore = relevantBudgetCategories.length > 0
+          ? (totalBudgetScore / relevantBudgetCategories.length) * SCORE_CONFIG.budgetAdherence.weight
+          : SCORE_CONFIG.budgetAdherence.weight; // Full points if no budgets with amount > 0
     } else {
-        var budgetScore = SCORE_CONFIG.budgetAdherence.weight; // Full points if no budget set
+        budgetScore = SCORE_CONFIG.budgetAdherence.weight; // Full points if no budget set
     }
 
 
@@ -108,7 +112,7 @@ export function FinancialHealthCard() {
 
     return { score: Math.min(100, Math.max(0, finalScore)), tip: generatedTip };
 
-  }, [currentMonthTransactions, budgets, transactions]);
+  }, [currentMonthTransactions, expenseBudgets, transactions]);
 
   const scoreColor = score < 50 ? "text-red-500" : score < 75 ? "text-yellow-500" : "text-green-500";
   const ringColor = score < 50 ? "ring-red-500/30" : score < 75 ? "ring-yellow-500/30" : "ring-green-500/30";
