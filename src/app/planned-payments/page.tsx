@@ -27,13 +27,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTransactions } from "@/contexts/transactions-context";
-
 
 export default function PlannedPaymentsPage() {
-  const { plannedPayments, deletePlannedPayment, markPaymentAsPaid } = usePlannedPayments();
+  const { plannedPayments, deletePlannedPayment, deleteAllPlannedPayments, markPaymentAsPaid } = usePlannedPayments();
 
   const [paymentToDelete, setPaymentToDelete] = React.useState<PlannedPayment | null>(null);
+  const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = React.useState(false);
+
 
   const handleMarkAsPaid = async (payment: PlannedPayment) => {
     try {
@@ -60,7 +60,6 @@ export default function PlannedPaymentsPage() {
         title: "Planned Payment Deleted",
         description: `"${paymentToDelete.name}" has been deleted.`,
       });
-      setPaymentToDelete(null);
     } catch (error) {
        toast({
         variant: "destructive",
@@ -68,8 +67,29 @@ export default function PlannedPaymentsPage() {
         description: "Could not delete payment. Please try again.",
       });
       console.error("Failed to delete payment:", error);
+    } finally {
+      setPaymentToDelete(null);
     }
   };
+
+  const handleDeleteAll = async () => {
+    try {
+      await deleteAllPlannedPayments();
+      toast({
+        title: "All Planned Payments Deleted",
+        description: "All of your future payments have been removed.",
+      });
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not delete all payments. Please try again.",
+      });
+      console.error("Failed to delete all payments:", error);
+    } finally {
+      setIsDeleteAllConfirmOpen(false);
+    }
+  }
 
 
   return (
@@ -82,12 +102,20 @@ export default function PlannedPaymentsPage() {
           </Link>
         </Button>
         <h1 className="text-lg font-bold mx-auto">Planned Payments</h1>
-        <AddPlannedPaymentSheet>
-          <Button variant="ghost" size="icon">
-            <CalendarPlus />
-            <span className="sr-only">Add Planned Payment</span>
-          </Button>
-        </AddPlannedPaymentSheet>
+        <div className="flex items-center">
+            {plannedPayments.length > 0 && (
+                <Button variant="ghost" size="icon" onClick={() => setIsDeleteAllConfirmOpen(true)}>
+                    <Trash2 className="text-destructive"/>
+                    <span className="sr-only">Delete All</span>
+                </Button>
+            )}
+            <AddPlannedPaymentSheet>
+            <Button variant="ghost" size="icon">
+                <CalendarPlus />
+                <span className="sr-only">Add Planned Payment</span>
+            </Button>
+            </AddPlannedPaymentSheet>
+        </div>
       </header>
 
       <Card>
@@ -167,6 +195,29 @@ export default function PlannedPaymentsPage() {
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={isDeleteAllConfirmOpen}
+        onOpenChange={setIsDeleteAllConfirmOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete All Planned Payments?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete all of your upcoming and recurring payments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAll}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

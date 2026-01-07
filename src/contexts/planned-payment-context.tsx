@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, getDocs } from 'firebase/firestore';
 
 export type PlannedPayment = {
     id: string;
@@ -22,6 +22,7 @@ interface PlannedPaymentContextType {
     plannedPayments: PlannedPayment[];
     addPlannedPayment: (payment: Omit<NewPlannedPayment, 'date'> & { date: Date }) => Promise<void>;
     deletePlannedPayment: (id: string) => Promise<void>;
+    deleteAllPlannedPayments: () => Promise<void>;
     markPaymentAsPaid: (payment: PlannedPayment) => Promise<void>;
 }
 
@@ -70,39 +71,47 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
         await deleteDoc(paymentDoc);
     };
 
+    const deleteAllPlannedPayments = async () => {
+        if (!firestore || !userContext?.user) return;
+        const paymentsCollection = collection(firestore, 'users', userContext.user.uid, 'plannedPayments');
+        const snapshot = await getDocs(paymentsCollection);
+        if (snapshot.empty) return;
+
+        const batch = writeBatch(firestore);
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+    }
+
     const markPaymentAsPaid = async (payment: PlannedPayment) => {
         if (!firestore || !userContext?.user) return;
 
-        // 1. Create the new transaction object
         const newTransaction = {
             name: payment.name,
             amount: payment.amount,
-            date: new Date().toISOString(), // Mark as paid today
+            date: new Date().toISOString(), 
             category: payment.category,
             type: payment.type,
             account: payment.account,
             spendingType: payment.spendingType,
-            recurring: false, // It's now a one-time transaction record
+            recurring: false, 
         };
 
-        // 2. Use a batch write to ensure atomicity
         const batch = writeBatch(firestore);
 
-        // Add the new transaction
         const newTransactionRef = doc(collection(firestore, 'users', userContext.user.uid, 'transactions'));
         batch.set(newTransactionRef, newTransaction);
         
-        // Delete the old planned payment
         const plannedPaymentRef = doc(firestore, 'users', userContext.user.uid, 'plannedPayments', payment.id);
         batch.delete(plannedPaymentRef);
 
-        // Commit the batch
         await batch.commit();
     };
 
 
     return (
-        <PlannedPaymentContext.Provider value={{ plannedPayments, addPlannedPayment, deletePlannedPayment, markPaymentAsPaid }}>
+        <PlannedPaymentContext.Provider value={{ plannedPayments, addPlannedPayment, deletePlannedPayment, deleteAllPlannedPayments, markPaymentAsPaid }}>
             {children}
         </PlannedPaymentContext.Provider>
     );
