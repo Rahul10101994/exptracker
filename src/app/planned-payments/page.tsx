@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 
 export default function PlannedPaymentsPage() {
   const { transactions } = useTransactions();
@@ -15,6 +16,11 @@ export default function PlannedPaymentsPage() {
   const recurringTransactions = React.useMemo(() => {
     return transactions.filter(t => t.recurring);
   }, [transactions]);
+
+  const getNextPaymentDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return addMonths(date, 1);
+  };
 
   return (
     <FinTrackLayout>
@@ -41,10 +47,12 @@ export default function PlannedPaymentsPage() {
                     <div>
                         <p className="font-semibold">{t.name}</p>
                         <p className="text-sm text-muted-foreground">
-                           Next payment: {format(new Date(t.date), "PPP")}
+                           Next payment: {format(getNextPaymentDate(t.date), "PPP")}
                         </p>
                     </div>
-                    <p className="font-semibold text-red-500">-₹{t.amount.toFixed(2)}</p>
+                    <p className={`font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
+                        {t.type === 'income' ? '+' : '-'}₹{t.amount.toFixed(2)}
+                    </p>
                 </div>
               ))}
             </div>
