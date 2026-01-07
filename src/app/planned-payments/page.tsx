@@ -27,6 +27,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useTransactions } from "@/contexts/transactions-context";
+
 
 export default function PlannedPaymentsPage() {
   const { plannedPayments, deletePlannedPayment, markPaymentAsPaid } = usePlannedPayments();

@@ -4,7 +4,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from 'firebase/firestore';
-import { useTransactions } from './transactions-context';
 
 export type PlannedPayment = {
     id: string;
@@ -32,7 +31,6 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
     const [plannedPayments, setPlannedPayments] = useState<PlannedPayment[]>([]);
     const userContext = useUser();
     const firestore = useFirestore();
-    const { addTransactionFromPlannedPayment } = useTransactions();
 
     useEffect(() => {
         if (firestore && userContext?.user) {
@@ -114,4 +112,3 @@ export const usePlannedPayments = () => {
     }
     return context;
 };
-
