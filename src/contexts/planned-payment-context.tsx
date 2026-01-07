@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, getDocs, updateDoc } from 'firebase/firestore';
-import { addMonths, addYears } from 'date-fns';
+import { addMonths, addYears, addWeeks } from 'date-fns';
 
 export type PlannedPayment = {
     id: string;
@@ -15,7 +15,7 @@ export type PlannedPayment = {
     category: string;
     account?: string;
     spendingType?: 'need' | 'want';
-    period?: 'one-time' | 'monthly' | 'yearly';
+    period?: 'one-time' | 'weekly' | 'monthly' | 'half-yearly' | 'yearly';
 };
 
 export type NewPlannedPayment = Omit<PlannedPayment, 'id'>;
@@ -108,13 +108,19 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
         
         const plannedPaymentRef = doc(firestore, 'users', userContext.user.uid, 'plannedPayments', payment.id);
         
-        if (payment.period === 'monthly') {
+        if (payment.period === 'weekly') {
+            const nextDate = addWeeks(new Date(payment.date), 1);
+            batch.update(plannedPaymentRef, { date: nextDate.toISOString() });
+        } else if (payment.period === 'monthly') {
             const nextDate = addMonths(new Date(payment.date), 1);
+            batch.update(plannedPaymentRef, { date: nextDate.toISOString() });
+        } else if (payment.period === 'half-yearly') {
+            const nextDate = addMonths(new Date(payment.date), 6);
             batch.update(plannedPaymentRef, { date: nextDate.toISOString() });
         } else if (payment.period === 'yearly') {
             const nextDate = addYears(new Date(payment.date), 1);
             batch.update(plannedPaymentRef, { date: nextDate.toISOString() });
-        } else {
+        } else { // 'one-time'
             batch.delete(plannedPaymentRef);
         }
 

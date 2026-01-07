@@ -90,7 +90,7 @@
                 },
                 "period": {
                     "type": "string",
-                    "enum": ["one-time", "monthly", "yearly"]
+                    "enum": ["one-time", "weekly", "monthly", "half-yearly", "yearly"]
                 }
             },
             "required": ["type", "name", "amount", "date", "category", "account", "period"]
