@@ -99,17 +99,17 @@ export function EditTransactionForm({
 }) {
   const { updateTransaction } = useTransactions();
   const { accounts } = useAccounts();
-  const { budgets } = useBudget();
+  const { expenseBudgets, incomeCategories } = useBudget();
 
   const categories = React.useMemo(() => {
-    const expenseCategories = Object.keys(budgets);
+    const expenseCategories = Object.keys(expenseBudgets);
     return {
-        income: ["Freelance", "Salary", "Bonus", "Other"],
+        income: incomeCategories,
         expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
         investment: ["Stocks", "Mutual Funds", "Crypto", "Other"],
         transfer: ["Transfer"],
     }
-  }, [budgets]);
+  }, [expenseBudgets, incomeCategories]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useTransactions } from '@/contexts/transactions-context';
 import { toast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 type LocalBudgets = {
     [category: string]: {
@@ -31,11 +32,23 @@ type LocalBudgets = {
 };
 
 export default function BudgetPage() {
-    const { budgets, setBudgets, addCategory, getCategoryProgress, deleteCategory } = useBudget();
+    const { 
+        expenseBudgets, 
+        incomeCategories,
+        setExpenseBudgets, 
+        addExpenseCategory, 
+        deleteExpenseCategory, 
+        addIncomeCategory, 
+        deleteIncomeCategory,
+        getCategoryProgress 
+    } = useBudget();
+
     const { getIconForCategory } = useTransactions();
     const [newCategory, setNewCategory] = React.useState('');
-    const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(budgets);
-    const [categoryToDelete, setCategoryToDelete] = React.useState<string | null>(null);
+    const [newCategoryType, setNewCategoryType] = React.useState<'expense' | 'income'>('expense');
+    
+    const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(expenseBudgets);
+    const [categoryToDelete, setCategoryToDelete] = React.useState<{name: string, type: 'expense' | 'income'} | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const [isSaving, setIsSaving] = React.useState(false);
 
@@ -44,22 +57,30 @@ export default function BudgetPage() {
     }, []);
 
     React.useEffect(() => {
-        setLocalBudgets(budgets);
-    }, [budgets]);
+        setLocalBudgets(expenseBudgets);
+    }, [expenseBudgets]);
 
     const handleAddCategory = async () => {
         if (newCategory.trim()) {
-            await addCategory(newCategory.trim());
+            if (newCategoryType === 'expense') {
+                await addExpenseCategory(newCategory.trim());
+            } else {
+                await addIncomeCategory(newCategory.trim());
+            }
             setNewCategory('');
         }
     };
     
     const handleDeleteCategory = async () => {
         if (categoryToDelete) {
-            await deleteCategory(categoryToDelete);
+            if (categoryToDelete.type === 'expense') {
+                await deleteExpenseCategory(categoryToDelete.name);
+            } else {
+                await deleteIncomeCategory(categoryToDelete.name);
+            }
             toast({
                 title: "Category Deleted",
-                description: `The "${categoryToDelete}" category has been deleted.`,
+                description: `The "${categoryToDelete.name}" category has been deleted.`,
             });
             setCategoryToDelete(null);
         }
@@ -78,7 +99,7 @@ export default function BudgetPage() {
 
     const handleSave = async () => {
         setIsSaving(true);
-        await setBudgets(localBudgets);
+        await setExpenseBudgets(localBudgets);
         setIsSaving(false);
         toast({
             title: "Budgets Saved",
@@ -86,6 +107,12 @@ export default function BudgetPage() {
         });
     };
     
+    const openAddCategoryDialog = (type: 'expense' | 'income') => {
+        setNewCategoryType(type);
+        const trigger = document.getElementById('add-category-trigger');
+        trigger?.click();
+    }
+
     return (
         <FinTrackLayout>
             <header className="flex items-center pt-2">
@@ -95,109 +122,158 @@ export default function BudgetPage() {
                         <span className="sr-only">Back</span>
                     </Link>
                 </Button>
-                <h1 className="text-lg font-bold text-foreground mx-auto">Manage Budget</h1>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <PlusCircle />
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>Add New Category</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Enter the name for the new budget category.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <Input 
-                            placeholder="e.g. Entertainment"
-                            value={newCategory}
-                            onChange={(e) => setNewCategory(e.target.value)}
-                        />
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleAddCategory}>Add</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <h1 className="text-lg font-bold text-foreground mx-auto">Manage Categories</h1>
+                 <div className="w-10"></div>
             </header>
 
-            <Card className="text-center">
-                <CardHeader className="p-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 pt-0">
-                    <p className="text-3xl font-bold">₹{totalBudget.toFixed(2)}</p>
-                </CardContent>
-            </Card>
+            {/* This trigger is hidden and is activated programmatically */}
+            <AlertDialogTrigger asChild id="add-category-trigger">
+                <Button variant="ghost" size="icon" className="hidden">
+                    <PlusCircle />
+                </Button>
+            </AlertDialogTrigger>
 
-            <div className="space-y-4 pb-16">
-                {isClient && Object.entries(localBudgets).map(([category, budget]) => {
-                    const Icon = getIconForCategory(category);
-                    const { spent, percentage } = getCategoryProgress(category);
-                    
-                    return (
-                        <Card key={category}>
-                            <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-1 rounded-md">
-                                        <Icon className="h-5 w-5 text-muted-foreground" />
+
+            <div className="space-y-6 pb-16">
+                {/* ---------- EXPENSE CATEGORIES ---------- */}
+                <div>
+                    <div className='flex justify-between items-center mb-2'>
+                        <h2 className='text-base font-semibold'>Expense Budgets</h2>
+                        <Button variant="ghost" size="icon" onClick={() => openAddCategoryDialog('expense')}>
+                            <PlusCircle className='h-5 w-5' />
+                        </Button>
+                    </div>
+                    <Card className="text-center">
+                        <CardHeader className="p-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-0">
+                            <p className="text-3xl font-bold">₹{totalBudget.toFixed(2)}</p>
+                        </CardContent>
+                    </Card>
+
+                    <div className="space-y-4 mt-4">
+                        {isClient && Object.entries(localBudgets).map(([category, budget]) => {
+                            const Icon = getIconForCategory(category);
+                            const { spent, percentage } = getCategoryProgress(category);
+                            
+                            return (
+                                <Card key={category}>
+                                    <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1 rounded-md">
+                                                <Icon className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                            <CardTitle className="text-base capitalize">{category}</CardTitle>
+                                             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete({ name: category, type: 'expense' })}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            <span className={percentage > 100 ? 'text-destructive' : ''}>
+                                                ₹{spent.toFixed(2)}
+                                            </span>
+                                             / ₹{budget.amount.toFixed(2)}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-2 pt-0">
+                                       <div className='relative'>
+                                         <div 
+                                             className="absolute top-0 left-0 h-2 rounded-full bg-primary"
+                                             style={{ width: `${Math.min(percentage, 100)}%`, transition: 'width 0.3s' }}
+                                         ></div>
+                                         {percentage > 100 && (
+                                             <div 
+                                                 className="absolute top-0 left-0 h-2 rounded-full bg-destructive"
+                                                 style={{ width: `${Math.min(percentage - 100, 100)}%`, transition: 'width 0.3s' }}
+                                             ></div>
+                                         )}
+                                         <div className="h-2 w-full rounded-full bg-primary/20"></div>
+                                       </div>
+                                        <div className="mt-2">
+                                            <Label htmlFor={`budget-${category}`} className="sr-only">Set Budget for {category}</Label>
+                                            <Input
+                                                id={`budget-${category}`}
+                                                type="number"
+                                                placeholder="Set Budget"
+                                                value={budget.amount === 0 ? '' : budget.amount}
+                                                onChange={(e) => handleBudgetChange(category, parseFloat(e.target.value) || 0)}
+                                                className="text-right h-8"
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })}
+                    </div>
+                     <div className='mt-4'>
+                        <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+                            {isSaving ? 'Saving...' : 'Save Budget Changes'}
+                        </Button>
+                    </div>
+                </div>
+
+                <Separator />
+
+                {/* ---------- INCOME CATEGORIES ---------- */}
+                <div>
+                     <div className='flex justify-between items-center mb-2'>
+                        <h2 className='text-base font-semibold'>Income Categories</h2>
+                        <Button variant="ghost" size="icon" onClick={() => openAddCategoryDialog('income')}>
+                            <PlusCircle className='h-5 w-5'/>
+                        </Button>
+                    </div>
+                    <Card>
+                        <CardContent className="pt-6 space-y-4">
+                            {isClient && incomeCategories.map((category) => {
+                                const Icon = getIconForCategory(category);
+                                return (
+                                <div key={category} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                         <Icon className="h-5 w-5 text-muted-foreground" />
+                                        <span className="font-medium capitalize">{category}</span>
                                     </div>
-                                    <CardTitle className="text-base capitalize">{category}</CardTitle>
-                                     <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete(category)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete({ name: category, type: 'income' })}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
-                                <div className="text-sm text-muted-foreground">
-                                    <span className={percentage > 100 ? 'text-destructive' : ''}>
-                                        ₹{spent.toFixed(2)}
-                                    </span>
-                                     / ₹{budget.amount.toFixed(2)}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-2 pt-0">
-                               <div className='relative'>
-                                 <div 
-                                     className="absolute top-0 left-0 h-2 rounded-full bg-primary"
-                                     style={{ width: `${Math.min(percentage, 100)}%`, transition: 'width 0.3s' }}
-                                 ></div>
-                                 {percentage > 100 && (
-                                     <div 
-                                         className="absolute top-0 left-0 h-2 rounded-full bg-destructive"
-                                         style={{ width: `${Math.min(percentage - 100, 100)}%`, transition: 'width 0.3s' }}
-                                     ></div>
-                                 )}
-                                 <div className="h-2 w-full rounded-full bg-primary/20"></div>
-                               </div>
-                                <div className="mt-2">
-                                    <Label htmlFor={`budget-${category}`} className="sr-only">Set Budget for {category}</Label>
-                                    <Input
-                                        id={`budget-${category}`}
-                                        type="number"
-                                        placeholder="Set Budget"
-                                        value={budget.amount === 0 ? '' : budget.amount}
-                                        onChange={(e) => handleBudgetChange(category, parseFloat(e.target.value) || 0)}
-                                        className="text-right h-8"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )
-                })}
+                            )})}
+                            {isClient && incomeCategories.length === 0 && (
+                                <p className="text-center text-muted-foreground">No income categories defined.</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-            <div className='fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-sm px-4'>
-                <Button onClick={handleSave} className="w-full" disabled={isSaving}>
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
-            </div>
+
+            <AlertDialog>
+                 <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Add New {newCategoryType} Category</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Enter the name for the new category.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <Input 
+                        placeholder="e.g. Entertainment"
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                    />
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleAddCategory}>Add</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
 
             <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the budget for {'"'}
-                        <span className="capitalize font-semibold">{categoryToDelete}</span>
+                        This action cannot be undone. This will permanently delete the category {'"'}
+                        <span className="capitalize font-semibold">{categoryToDelete?.name}</span>
                         {'"'}.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
