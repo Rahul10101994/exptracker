@@ -6,8 +6,7 @@ import { isSameMonth, isSameYear, isWithinInterval, startOfDay, endOfDay } from 
 import * as LucideIcons from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { usePlannedPayments } from './planned-payment-context';
+import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy, writeBatch } from 'firebase/firestore';
 
 const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark, ArrowRightLeft } = LucideIcons;
 
@@ -37,9 +36,9 @@ type DeletionFilter =
 
 interface TransactionsContextType {
     transactions: Transaction[];
-    addTransaction: (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => void;
-    deleteTransaction: (id: string) => void;
-    updateTransaction: (id: string, transaction: Omit<NewTransaction, 'date'> & { date: Date }) => void;
+    addTransaction: (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => Promise<void>;
+    deleteTransaction: (id: string) => Promise<void>;
+    updateTransaction: (id: string, transaction: Omit<NewTransaction, 'date'> & { date: Date }) => Promise<void>;
     getIconForCategory: (category: string) => React.ElementType;
     currentMonthTransactions: Transaction[];
     deleteTransactionsByFilter: (filter: DeletionFilter) => Promise<number>;
@@ -77,9 +76,8 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
     other: MoreHorizontal
 };
 
-export const TransactionsProvider = ({ children }: { children: React.ReactNode }) => {
+export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const { addPlannedPayment } = usePlannedPayments();
     const [isClient, setIsClient] = useState(false);
     const userContext = useUser();
     const firestore = useFirestore();
@@ -115,16 +113,6 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
     const addTransaction = async (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => {
         if (!firestore || !userContext?.user) return;
         
-        if (transaction.recurring) {
-            const { recurring, ...plannedPaymentData } = transaction;
-            await addPlannedPayment({ ...plannedPaymentData, date: transaction.date });
-            toast({
-                title: "Planned Payment Created",
-                description: `A new planned payment for "${transaction.name}" has been scheduled.`,
-            });
-            return;
-        }
-
         const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
         
         const dataToSave: any = {
@@ -168,8 +156,12 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
             });
         }
         
-        const deletePromises = transactionsToDelete.map(t => deleteTransaction(t.id));
-        await Promise.all(deletePromises);
+        const batch = writeBatch(firestore);
+        transactionsToDelete.forEach(t => {
+            const docRef = doc(firestore, 'users', userContext.user!.uid, 'transactions', t.id);
+            batch.delete(docRef);
+        });
+        await batch.commit();
         
         return transactionsToDelete.length;
     };
