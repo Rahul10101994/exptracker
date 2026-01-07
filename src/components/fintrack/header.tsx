@@ -9,13 +9,12 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/firebase";
 
 export function FinTrackHeader() {
-  const [isMounted, setIsMounted] = React.useState(false);
-  const currentDate = format(new Date(), "MMMM d");
+  const [currentDate, setCurrentDate] = React.useState("");
   const userContext = useUser();
   const userName = userContext?.user?.displayName || 'User';
 
   React.useEffect(() => {
-    setIsMounted(true);
+    setCurrentDate(format(new Date(), "MMMM d"));
   }, []);
 
   return (
@@ -28,7 +27,7 @@ export function FinTrackHeader() {
     >
       {/* Left: Menu */}
       <div className="h-8 w-8">
-        {isMounted && (
+        {currentDate && (
           <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
             <Link href="/settings">
               <Settings className="h-5 w-5" />
