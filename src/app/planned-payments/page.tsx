@@ -36,19 +36,17 @@ export default function PlannedPaymentsPage() {
   const [paymentToDelete, setPaymentToDelete] = React.useState<PlannedPayment | null>(null);
 
   const handleMarkAsPaid = async (payment: PlannedPayment) => {
-    const newTransaction = {
-      name: payment.name,
-      amount: payment.amount,
-      date: new Date(), // Mark as paid today
-      category: payment.category,
-      type: payment.type,
-      account: payment.account,
-      spendingType: payment.spendingType,
-      recurring: false, // It's now a one-time transaction record
-    };
-
     try {
-      await addTransaction(newTransaction as any);
+      await addTransaction({
+        name: payment.name,
+        amount: payment.amount,
+        date: new Date(), // Mark as paid today
+        category: payment.category,
+        type: payment.type,
+        account: payment.account,
+        spendingType: payment.spendingType,
+        recurring: false, // It's now a one-time transaction record
+      });
       await deletePlannedPayment(payment.id);
 
       toast({
@@ -73,7 +71,7 @@ export default function PlannedPaymentsPage() {
       description: `"${paymentToDelete.name}" has been deleted.`,
     });
     setPaymentToDelete(null);
-  }
+  };
 
   return (
     <FinTrackLayout>

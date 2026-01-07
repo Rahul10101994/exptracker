@@ -124,6 +124,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         if (dataToSave.account === undefined) delete dataToSave.account;
         if (dataToSave.fromAccount === undefined) delete dataToSave.fromAccount;
         if (dataToSave.toAccount === undefined) delete dataToSave.toAccount;
+        // recurring should not trigger planned payment creation here
         if (dataToSave.recurring === undefined) delete dataToSave.recurring;
 
         await addDoc(transactionsCollection, dataToSave);
@@ -158,7 +159,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         
         const batch = writeBatch(firestore);
         transactionsToDelete.forEach(t => {
-            const docRef = doc(firestore, 'users', userContext.user!.uid, 'transactions', t.id);
+            const docRef = doc(firestore, 'users', userContext!.uid, 'transactions', t.id);
             batch.delete(docRef);
         });
         await batch.commit();
