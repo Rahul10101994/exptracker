@@ -1,4 +1,5 @@
 import { BottomNavBar } from "./bottom-nav-bar";
+import { PaymentNotifier } from "./payment-notifier";
 
 export function FinTrackLayout({
   children,
@@ -22,6 +23,7 @@ export function FinTrackLayout({
           pb-32
         "
       >
+        <PaymentNotifier />
         {children}
       </main>
 
