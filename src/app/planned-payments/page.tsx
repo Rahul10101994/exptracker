@@ -3,20 +3,38 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarPlus } from "lucide-react";
+import { ArrowLeft, CalendarPlus, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
+import { usePlannedPayments } from "@/contexts/planned-payment-context";
+import { AddPlannedPaymentSheet } from "@/components/fintrack/add-planned-payment-sheet";
 import { useTransactions } from "@/contexts/transactions-context";
-import { format, addMonths } from "date-fns";
-import { AddTransactionSheet } from "@/components/fintrack/add-transaction-sheet";
+import { toast } from "@/hooks/use-toast";
 
 export default function PlannedPaymentsPage() {
-  const { transactions } = useTransactions();
+  const { plannedPayments, deletePlannedPayment } = usePlannedPayments();
+  const { addTransaction } = useTransactions();
 
-  const recurringTransactions = React.useMemo(() => {
-    return transactions.filter(t => t.recurring);
-  }, [transactions]);
+  const handleMarkAsPaid = async (payment: any) => {
+    const transaction = {
+      ...payment,
+      date: new Date(payment.date), // Ensure date is a Date object
+      recurring: true, // Mark it as a recurring transaction in history
+    };
+    
+    // Add to actual transactions
+    await addTransaction(transaction);
+
+    // Delete from planned payments
+    await deletePlannedPayment(payment.id);
+
+    toast({
+      title: "Payment Recorded",
+      description: `"${payment.name}" has been marked as paid and added to your transactions.`,
+    });
+  };
 
   return (
     <FinTrackLayout>
@@ -28,24 +46,35 @@ export default function PlannedPaymentsPage() {
           </Link>
         </Button>
         <h1 className="text-lg font-bold mx-auto">Planned Payments</h1>
-        <div className="w-10"></div>
+        <AddPlannedPaymentSheet>
+          <Button variant="ghost" size="icon">
+            <CalendarPlus />
+            <span className="sr-only">Add Planned Payment</span>
+          </Button>
+        </AddPlannedPaymentSheet>
       </header>
 
       <Card>
         <CardContent className="pt-6">
-          {recurringTransactions.length > 0 ? (
+          {plannedPayments.length > 0 ? (
             <div className="space-y-4">
-              {recurringTransactions.map(t => (
+              {plannedPayments.map(t => (
                 <div key={t.id} className="flex items-center justify-between">
                     <div>
                         <p className="font-semibold">{t.name}</p>
                         <p className="text-sm text-muted-foreground">
-                           Next payment: {format(new Date(t.date), "PPP")}
+                           Due: {format(new Date(t.date), "PPP")}
                         </p>
                     </div>
-                    <p className={`font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                        {t.type === 'income' ? '+' : '-'}₹{t.amount.toFixed(2)}
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className={`font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
+                          {t.type === 'income' ? '+' : '-'}₹{t.amount.toFixed(2)}
+                      </p>
+                      <Button size="sm" variant="ghost" onClick={() => handleMarkAsPaid(t)} className="h-8">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                        <span className="text-xs">Paid</span>
+                      </Button>
+                    </div>
                 </div>
               ))}
             </div>
@@ -56,15 +85,6 @@ export default function PlannedPaymentsPage() {
           )}
         </CardContent>
       </Card>
-
-      <div className="mt-4">
-        <AddTransactionSheet isPlannedPayment={true}>
-            <Button className="w-full">
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                Add Planned Payment
-            </Button>
-        </AddTransactionSheet>
-      </div>
     </FinTrackLayout>
   );
 }

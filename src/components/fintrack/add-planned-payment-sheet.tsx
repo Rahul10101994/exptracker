@@ -9,9 +9,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { AddTransactionForm } from "./add-transaction-form";
+import { AddPlannedPaymentForm } from "./add-planned-payment-form";
 
-export function AddTransactionSheet({
+export function AddPlannedPaymentSheet({
   children,
 }: {
   children: React.ReactNode;
@@ -37,12 +37,12 @@ export function AddTransactionSheet({
 
         <SheetHeader className="mb-2 text-left">
           <SheetTitle className="text-base sm:text-lg">
-            Add Transaction
+            Add Planned Payment
           </SheetTitle>
         </SheetHeader>
 
         {/* Scrollable form handles its own scrolling */}
-        <AddTransactionForm 
+        <AddPlannedPaymentForm 
             onSubmit={() => setOpen(false)} 
         />
       </SheetContent>

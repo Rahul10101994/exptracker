@@ -6,6 +6,7 @@ import { TransactionsProvider } from '@/contexts/transactions-context';
 import { AccountProvider } from '@/contexts/account-context';
 import { BudgetProvider } from '@/contexts/budget-context';
 import { GoalProvider } from '@/contexts/goal-context';
+import { PlannedPaymentProvider } from '@/contexts/planned-payment-context';
 import { FirebaseClientProvider } from '@/firebase';
 import { useMemo } from 'react';
 import { initializeFirebase } from '@/firebase';
@@ -25,15 +26,17 @@ export function Providers({
       disableTransitionOnChange
     >
       <FirebaseClientProvider app={firebaseApp}>
-        <TransactionsProvider>
-          <AccountProvider>
-            <BudgetProvider>
-              <GoalProvider>
-                {children}
-              </GoalProvider>
-            </BudgetProvider>
-          </AccountProvider>
-        </TransactionsProvider>
+        <PlannedPaymentProvider>
+          <TransactionsProvider>
+            <AccountProvider>
+              <BudgetProvider>
+                <GoalProvider>
+                  {children}
+                </GoalProvider>
+              </BudgetProvider>
+            </AccountProvider>
+          </TransactionsProvider>
+        </PlannedPaymentProvider>
       </FirebaseClientProvider>
     </ThemeProvider>
   );

@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format, addMonths } from "date-fns";
+import { format } from "date-fns";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -102,7 +102,7 @@ const smartCategoryMap: Record<string, string> = {
 
 /* ---------------- Component ---------------- */
 
-export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onSubmit?: () => void, isPlannedPayment?: boolean }) {
+export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addTransaction } = useTransactions();
   const { accounts } = useAccounts();
   const { expenseBudgets, incomeCategories } = useBudget();
@@ -125,7 +125,7 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
       name: "",
       amount: 0,
       date: new Date(),
-      recurring: isPlannedPayment,
+      recurring: false,
       category: "",
       account: "",
     },
@@ -153,16 +153,10 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
 
 
   async function handleFormSubmit(values: z.infer<typeof formSchema>) {
-    const finalValues = { ...values };
-
-    if (isPlannedPayment || (values.recurring && !isPlannedPayment)) {
-      finalValues.date = addMonths(values.date, 1);
-    }
-    
-    await addTransaction(finalValues);
+    await addTransaction(values);
 
     toast({
-      title: isPlannedPayment ? "Planned Payment Added" : "Transaction Added",
+      title: "Transaction Added",
       description: `Added ${values.type} of ₹${values.amount}`,
     });
 
@@ -171,7 +165,7 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
       name: "",
       amount: 0,
       date: new Date(),
-      recurring: isPlannedPayment,
+      recurring: false,
       category: '',
       account: '',
     });
@@ -436,14 +430,13 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
           />
         )}
         
-        {!isPlannedPayment && (
-            <FormField
+        <FormField
             control={form.control}
             name="recurring"
             render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
-                    <FormLabel>Recurring Transaction</FormLabel>
+                    <FormLabel>Mark as a Planned Payment</FormLabel>
                 </div>
                 <FormControl>
                     <Checkbox
@@ -453,11 +446,10 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
                 </FormControl>
                 </FormItem>
             )}
-            />
-        )}
+        />
         
         <Button type="submit" className="w-full h-11 text-base font-semibold">
-          {isPlannedPayment ? "Add Planned Payment" : "Add Transaction"}
+          Add Transaction
         </Button>
       </form>
     </Form>

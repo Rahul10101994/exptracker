@@ -7,6 +7,7 @@ import * as LucideIcons from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { usePlannedPayments } from './planned-payment-context';
 
 const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark, ArrowRightLeft } = LucideIcons;
 
@@ -78,6 +79,7 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
 
 export const TransactionsProvider = ({ children }: { children: React.ReactNode }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const { addPlannedPayment } = usePlannedPayments();
     const [isClient, setIsClient] = useState(false);
     const userContext = useUser();
     const firestore = useFirestore();
@@ -112,6 +114,17 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
 
     const addTransaction = async (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => {
         if (!firestore || !userContext?.user) return;
+        
+        if (transaction.recurring) {
+            const { recurring, ...plannedPaymentData } = transaction;
+            await addPlannedPayment({ ...plannedPaymentData, date: transaction.date });
+            toast({
+                title: "Planned Payment Created",
+                description: `A new planned payment for "${transaction.name}" has been scheduled.`,
+            });
+            return;
+        }
+
         const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
         
         const dataToSave: any = {
@@ -123,7 +136,8 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
         if (dataToSave.account === undefined) delete dataToSave.account;
         if (dataToSave.fromAccount === undefined) delete dataToSave.fromAccount;
         if (dataToSave.toAccount === undefined) delete dataToSave.toAccount;
-        
+        if (dataToSave.recurring === undefined) delete dataToSave.recurring;
+
         await addDoc(transactionsCollection, dataToSave);
     };
 
@@ -173,7 +187,8 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
         if (dataToSave.account === undefined) delete dataToSave.account;
         if (dataToSave.fromAccount === undefined) delete dataToSave.fromAccount;
         if (dataToSave.toAccount === undefined) delete dataToSave.toAccount;
-
+        if (dataToSave.recurring === undefined) delete dataToSave.recurring;
+        
         await updateDoc(transactionDoc, dataToSave);
     };
 
