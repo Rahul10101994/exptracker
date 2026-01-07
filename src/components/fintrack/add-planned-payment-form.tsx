@@ -39,6 +39,7 @@ const formSchema = z
     category: z.string().min(1, "Please select a category."),
     account: z.string().min(1, "Please select an account."),
     spendingType: z.enum(["need", "want"]).optional(),
+    period: z.enum(['one-time', 'monthly', 'yearly']).default('one-time'),
   })
   .refine(
     (data) => {
@@ -91,6 +92,7 @@ export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
       date: undefined,
       category: "",
       account: "",
+      period: 'one-time',
     },
   });
 
@@ -123,6 +125,7 @@ export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
       date: undefined,
       category: '',
       account: '',
+      period: 'one-time',
     });
 
     onSubmit?.();
@@ -328,6 +331,34 @@ export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
             )}
           />
         )}
+
+        <FormField
+          control={form.control}
+          name="period"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Repeats</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="grid grid-cols-3 gap-2"
+                >
+                  {['one-time', 'monthly', 'yearly'].map((t) => (
+                    <label
+                      key={t}
+                      className="flex items-center justify-center gap-2 border rounded-lg p-2 text-xs cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-accent"
+                    >
+                      <RadioGroupItem value={t} />
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </label>
+                  ))}
+                </RadioGroup>
+              </FormControl>
+               <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <Button type="submit" className="w-full h-11 text-base font-semibold">
           Add Planned Payment

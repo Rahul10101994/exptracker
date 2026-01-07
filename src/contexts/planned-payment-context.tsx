@@ -14,6 +14,7 @@ export type PlannedPayment = {
     category: string;
     account?: string;
     spendingType?: 'need' | 'want';
+    period?: 'one-time' | 'monthly' | 'yearly';
 };
 
 export type NewPlannedPayment = Omit<PlannedPayment, 'id'>;
@@ -61,6 +62,7 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
 
         if (dataToSave.spendingType === undefined) delete dataToSave.spendingType;
         if (dataToSave.account === undefined) delete dataToSave.account;
+        if (dataToSave.period === undefined) delete dataToSave.period;
         
         await addDoc(paymentsCollection, dataToSave);
     };

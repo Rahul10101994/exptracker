@@ -87,6 +87,10 @@
                 "spendingType": {
                     "type": "string",
                     "enum": ["need", "want"]
+                },
+                "period": {
+                    "type": "string",
+                    "enum": ["one-time", "monthly", "yearly"]
                 }
             },
             "required": ["type", "name", "amount", "date", "category", "account"]
