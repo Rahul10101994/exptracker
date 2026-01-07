@@ -3,19 +3,37 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarPlus, CheckCircle } from "lucide-react";
+import { ArrowLeft, CalendarPlus, CheckCircle, MoreHorizontal, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
-import { usePlannedPayments } from "@/contexts/planned-payment-context";
+import { PlannedPayment, usePlannedPayments } from "@/contexts/planned-payment-context";
 import { AddPlannedPaymentSheet } from "@/components/fintrack/add-planned-payment-sheet";
 import { useTransactions } from "@/contexts/transactions-context";
 import { toast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function PlannedPaymentsPage() {
   const { plannedPayments, deletePlannedPayment } = usePlannedPayments();
   const { addTransaction } = useTransactions();
+  const [paymentToDelete, setPaymentToDelete] = React.useState<PlannedPayment | null>(null);
+
 
   const handleMarkAsPaid = async (payment: any) => {
     const transaction = {
@@ -35,6 +53,16 @@ export default function PlannedPaymentsPage() {
       description: `"${payment.name}" has been marked as paid and added to your transactions.`,
     });
   };
+
+  const handleDelete = () => {
+    if (!paymentToDelete) return;
+    deletePlannedPayment(paymentToDelete.id);
+    toast({
+      title: "Planned Payment Deleted",
+      description: `"${paymentToDelete.name}" has been deleted.`,
+    });
+    setPaymentToDelete(null);
+  }
 
   return (
     <FinTrackLayout>
@@ -70,10 +98,37 @@ export default function PlannedPaymentsPage() {
                       <p className={`font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
                           {t.type === 'income' ? '+' : '-'}₹{t.amount.toFixed(2)}
                       </p>
-                      <Button size="sm" variant="ghost" onClick={() => handleMarkAsPaid(t)} className="h-8">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="text-xs">Paid</span>
-                      </Button>
+                      
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                          >
+                            <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleMarkAsPaid(t)}
+                            className="text-green-600 focus:text-green-700"
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Mark as Paid
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => setPaymentToDelete(t)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
                     </div>
                 </div>
               ))}
@@ -85,6 +140,29 @@ export default function PlannedPaymentsPage() {
           )}
         </CardContent>
       </Card>
+       <AlertDialog
+        open={!!paymentToDelete}
+        onOpenChange={(open) => !open && setPaymentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the planned payment for {" "}
+              <span className="font-semibold">{paymentToDelete?.name}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </FinTrackLayout>
   );
 }
