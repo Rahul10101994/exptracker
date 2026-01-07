@@ -94,14 +94,14 @@ export default function PlannedPaymentsPage() {
 
   return (
     <FinTrackLayout>
-      <header className="flex items-center pt-2">
+      <header className="flex items-center justify-between pt-2">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/settings">
             <ArrowLeft />
             <span className="sr-only">Back</span>
           </Link>
         </Button>
-        <h1 className="text-lg font-bold mx-auto">Planned Payments</h1>
+        <h1 className="text-lg font-bold">Planned Payments</h1>
         <div className="flex items-center">
             {plannedPayments.length > 0 && (
                 <Button variant="ghost" size="icon" onClick={() => setIsDeleteAllConfirmOpen(true)}>
