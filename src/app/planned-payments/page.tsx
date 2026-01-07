@@ -32,7 +32,7 @@ export default function PlannedPaymentsPage() {
           </Link>
         </Button>
         <h1 className="text-lg font-bold mx-auto">Planned Payments</h1>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" disabled>
             <CalendarPlus />
             <span className="sr-only">Add Planned Payment</span>
         </Button>
@@ -63,6 +63,13 @@ export default function PlannedPaymentsPage() {
           )}
         </CardContent>
       </Card>
+
+      <div className="mt-4">
+        <Button className="w-full">
+            <CalendarPlus className="mr-2 h-4 w-4" />
+            Add Planned Payment
+        </Button>
+      </div>
     </FinTrackLayout>
   );
 }
