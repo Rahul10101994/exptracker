@@ -119,18 +119,10 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
             date: transaction.date.toISOString(),
         };
 
-        if (dataToSave.spendingType === undefined) {
-            delete dataToSave.spendingType;
-        }
-        if (dataToSave.account === undefined) {
-            delete dataToSave.account;
-        }
-        if (dataToSave.fromAccount === undefined) {
-            delete dataToSave.fromAccount;
-        }
-        if (dataToSave.toAccount === undefined) {
-            delete dataToSave.toAccount;
-        }
+        if (dataToSave.spendingType === undefined) delete dataToSave.spendingType;
+        if (dataToSave.account === undefined) delete dataToSave.account;
+        if (dataToSave.fromAccount === undefined) delete dataToSave.fromAccount;
+        if (dataToSave.toAccount === undefined) delete dataToSave.toAccount;
         
         await addDoc(transactionsCollection, dataToSave);
     };
@@ -177,9 +169,10 @@ export const TransactionsProvider = ({ children }: { children: React.ReactNode }
             date: updatedData.date.toISOString(),
         };
 
-        if (dataToSave.spendingType === undefined) {
-            delete dataToSave.spendingType;
-        }
+        if (dataToSave.spendingType === undefined) delete dataToSave.spendingType;
+        if (dataToSave.account === undefined) delete dataToSave.account;
+        if (dataToSave.fromAccount === undefined) delete dataToSave.fromAccount;
+        if (dataToSave.toAccount === undefined) delete dataToSave.toAccount;
 
         await updateDoc(transactionDoc, dataToSave);
     };
