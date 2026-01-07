@@ -5,17 +5,20 @@ import { createContext, useContext, useMemo } from 'react';
 import type { Auth } from 'firebase/auth';
 import type { FirebaseApp } from 'firebase/app';
 import type { Firestore } from 'firebase/firestore';
+import type { Messaging } from 'firebase/messaging';
 
 export type FirebaseContext = {
   app: FirebaseApp | null;
   auth: Auth | null;
   firestore: Firestore | null;
+  messaging: Messaging | null;
 };
 
 const FirebaseContext = createContext<FirebaseContext>({
   app: null,
   auth: null,
   firestore: null,
+  messaging: null,
 });
 
 export function FirebaseProvider(props: {
@@ -23,16 +26,18 @@ export function FirebaseProvider(props: {
   app: FirebaseApp;
   auth: Auth;
   firestore: Firestore;
+  messaging: Messaging | null;
 }) {
-  const { app, auth, firestore, children } = props;
+  const { app, auth, firestore, messaging, children } = props;
 
   const context = useMemo(
     () => ({
       app,
       auth,
       firestore,
+      messaging,
     }),
-    [app, auth, firestore]
+    [app, auth, firestore, messaging]
   );
 
   return (
@@ -56,4 +61,8 @@ export function useAuth() {
 
 export function useFirestore() {
   return useContext(FirebaseContext).firestore;
+}
+
+export function useMessaging() {
+  return useContext(FirebaseContext).messaging;
 }

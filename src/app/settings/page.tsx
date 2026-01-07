@@ -16,11 +16,13 @@ import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { DownloadDataDialog } from '@/components/fintrack/download-data-dialog';
 import { DeleteDataDialog } from '@/components/fintrack/delete-data-dialog';
+import { useFcmToken } from '@/hooks/use-fcm-token';
 
 export default function SettingsPage() {
     const { theme, setTheme } = useTheme();
     const router = useRouter();
     const auth = useAuth();
+    const { notificationPermission, requestNotificationPermission } = useFcmToken();
     const [isMounted, setIsMounted] = React.useState(false);
     const [isDownloadOpen, setIsDownloadOpen] = React.useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
@@ -40,6 +42,14 @@ export default function SettingsPage() {
     if (!isMounted) {
         return null;
     }
+
+    const handlePushNotificationToggle = async (checked: boolean) => {
+        if (checked) {
+            await requestNotificationPermission();
+        } 
+        // Note: To fully disable, user must revoke permission in browser settings.
+        // We can only request permission, not revoke it via code.
+    };
 
     return (
         <FinTrackLayout>
@@ -77,7 +87,12 @@ export default function SettingsPage() {
                 <CardContent className="space-y-4">
                      <div className="flex items-center justify-between">
                         <Label htmlFor="push-notifications">Push Notifications</Label>
-                        <Switch id="push-notifications" checked />
+                        <Switch 
+                            id="push-notifications" 
+                            checked={notificationPermission === 'granted'}
+                            onCheckedChange={handlePushNotificationToggle}
+                            disabled={notificationPermission === 'denied'}
+                        />
                     </div>
                     <Separator />
                      <div className="flex items-center justify-between">

@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getMessaging, Messaging } from 'firebase/messaging';
 import { firebaseConfig } from './config';
 
 import { FirebaseClientProvider } from './client-provider';
@@ -11,6 +12,7 @@ import {
   useFirebaseApp,
   useFirestore,
   useAuth,
+  useMessaging,
 } from './provider';
 
 import { useDoc } from './firestore/use-doc';
@@ -23,18 +25,26 @@ function initializeFirebase() {
   let app: FirebaseApp;
   let auth: Auth;
   let firestore: Firestore;
+  let messaging: Messaging | null = null;
 
   if (apps.length === 0) {
     app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    firestore = getFirestore(app);
   } else {
     app = getApp();
-    auth = getAuth(app);
-    firestore = getFirestore(app);
+  }
+  
+  auth = getAuth(app);
+  firestore = getFirestore(app);
+
+  if (typeof window !== 'undefined') {
+    try {
+      messaging = getMessaging(app);
+    } catch (e) {
+      console.error("Firebase Messaging not supported in this browser:", e);
+    }
   }
 
-  return { app, auth, firestore };
+  return { app, auth, firestore, messaging };
 }
 
 export {
@@ -48,4 +58,5 @@ export {
   useFirebaseApp,
   useFirestore,
   useAuth,
+  useMessaging,
 };
