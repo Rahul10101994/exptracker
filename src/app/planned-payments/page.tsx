@@ -9,6 +9,7 @@ import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
 import { format, addMonths } from "date-fns";
+import { AddTransactionSheet } from "@/components/fintrack/add-transaction-sheet";
 
 export default function PlannedPaymentsPage() {
   const { transactions } = useTransactions();
@@ -32,10 +33,7 @@ export default function PlannedPaymentsPage() {
           </Link>
         </Button>
         <h1 className="text-lg font-bold mx-auto">Planned Payments</h1>
-        <Button variant="ghost" size="icon" disabled>
-            <CalendarPlus />
-            <span className="sr-only">Add Planned Payment</span>
-        </Button>
+        <div className="w-10"></div>
       </header>
 
       <Card>
@@ -65,10 +63,12 @@ export default function PlannedPaymentsPage() {
       </Card>
 
       <div className="mt-4">
-        <Button className="w-full">
-            <CalendarPlus className="mr-2 h-4 w-4" />
-            Add Planned Payment
-        </Button>
+        <AddTransactionSheet>
+            <Button className="w-full">
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Add Planned Payment
+            </Button>
+        </AddTransactionSheet>
       </div>
     </FinTrackLayout>
   );
