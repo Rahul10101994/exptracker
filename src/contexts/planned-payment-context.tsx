@@ -88,12 +88,15 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
         // 2. Use a batch write to ensure atomicity
         const batch = writeBatch(firestore);
 
+        // Add the new transaction
         const newTransactionRef = doc(collection(firestore, 'users', userContext.user.uid, 'transactions'));
         batch.set(newTransactionRef, newTransaction);
         
+        // Delete the old planned payment
         const plannedPaymentRef = doc(firestore, 'users', userContext.user.uid, 'plannedPayments', payment.id);
         batch.delete(plannedPaymentRef);
 
+        // Commit the batch
         await batch.commit();
     };
 

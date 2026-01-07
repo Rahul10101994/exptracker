@@ -101,10 +101,10 @@ export function DeleteDataDialog({ isOpen, onClose }: DeleteDataDialogProps) {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!filterToDelete) return;
 
-    const deletedCount = deleteTransactionsByFilter(filterToDelete);
+    const deletedCount = await deleteTransactionsByFilter(filterToDelete);
     
     toast({
       title: "Data Deleted",

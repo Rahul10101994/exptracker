@@ -162,9 +162,13 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
             });
         }
         
+        if (transactionsToDelete.length === 0) {
+            return 0;
+        }
+
         const batch = writeBatch(firestore);
         transactionsToDelete.forEach(t => {
-            const docRef = doc(firestore, 'users', userContext!.uid, 'transactions', t.id);
+            const docRef = doc(firestore, 'users', userContext!.user!.uid, 'transactions', t.id);
             batch.delete(docRef);
         });
         await batch.commit();
