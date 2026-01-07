@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -42,7 +41,7 @@ export default function PlannedPaymentsPage() {
                     <div>
                         <p className="font-semibold">{t.name}</p>
                         <p className="text-sm text-muted-foreground">
-                           Last payment: {format(new Date(t.date), "PPP")}
+                           Next payment: {format(new Date(t.date), "PPP")}
                         </p>
                     </div>
                     <p className="font-semibold text-red-500">-₹{t.amount.toFixed(2)}</p>
