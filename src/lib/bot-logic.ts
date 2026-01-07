@@ -2,7 +2,7 @@
 import { Transaction } from "@/contexts/transactions-context";
 import { useBudget } from "@/contexts/budget-context";
 
-type Budgets = ReturnType<typeof useBudget>['budgets'];
+type Budgets = ReturnType<typeof useBudget>['expenseBudgets'];
 
 // Helper to format currency
 const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;

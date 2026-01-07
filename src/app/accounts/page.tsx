@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -37,12 +38,10 @@ import {
 
 import { toast } from "@/hooks/use-toast";
 import { EditAccountSheet } from "@/components/fintrack/edit-account-sheet";
-import { useTransactions } from "@/contexts/transactions-context";
 import { CorrectBalanceDialog } from "@/components/fintrack/correct-balance-dialog";
 
 export default function AccountsPage() {
-  const { accounts, deleteAccount } = useAccounts();
-  const { transactions } = useTransactions();
+  const { accounts, deleteAccount, getAccountBalance } = useAccounts();
 
   const [accountToDelete, setAccountToDelete] =
     React.useState<Account | null>(null);
@@ -50,31 +49,6 @@ export default function AccountsPage() {
     React.useState<Account | null>(null);
   const [accountToCorrect, setAccountToCorrect] =
     React.useState<Account | null>(null);
-
-  /* ---------- BALANCES ---------- */
-  const accountBalances = React.useMemo(() => {
-    const balances: Record<string, number> = {};
-
-    accounts.forEach((account) => {
-      const accountTransactions = transactions.filter(
-        (t) =>
-          t.account.toLowerCase() ===
-          account.name.toLowerCase()
-      );
-
-      const balance = accountTransactions.reduce(
-        (acc, t) =>
-          t.type === "income"
-            ? acc + t.amount
-            : acc - t.amount,
-        account.initialBalance
-      );
-
-      balances[account.id] = balance;
-    });
-
-    return balances;
-  }, [accounts, transactions]);
 
   /* ---------- SAFE DELETE ---------- */
   const handleDelete = React.useCallback(() => {
@@ -146,9 +120,9 @@ export default function AccountsPage() {
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground">
                     ₹
-                    {accountBalances[
+                    {getAccountBalance(
                       account.id
-                    ]?.toFixed(2) ?? "0.00"}
+                    )?.toFixed(2) ?? "0.00"}
                   </p>
 
                   {/* SAFE DROPDOWN */}
@@ -214,7 +188,7 @@ export default function AccountsPage() {
         <CorrectBalanceDialog
           account={accountToCorrect}
           currentBalance={
-            accountBalances[accountToCorrect.id]
+            getAccountBalance(accountToCorrect.id)
           }
           isOpen
           onClose={() =>

@@ -67,7 +67,14 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         await deleteDoc(accountDoc);
     };
 
-    const getAccountBalance = useMemo(() => (accountId: string) => {
+    const getAccountBalance = useMemo(() => {
+    const balanceCache: Record<string, number> = {};
+    
+    return (accountId: string) => {
+        if (balanceCache[accountId] !== undefined) {
+            return balanceCache[accountId];
+        }
+
         const account = accounts.find(a => a.id === accountId);
         if (!account) return 0;
     
@@ -87,7 +94,9 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
             return acc;
         }, account.initialBalance);
         
+        balanceCache[accountId] = balance;
         return balance;
+    }
     }, [accounts, transactions]);
 
 

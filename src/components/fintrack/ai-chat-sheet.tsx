@@ -39,7 +39,7 @@ export function AiChatSheet() {
 
   // Bring in financial data
   const { transactions, currentMonthTransactions } = useTransactions();
-  const { budgets } = useBudget();
+  const { expenseBudgets } = useBudget();
 
   const previousMonthTransactions = React.useMemo(() => {
     const prevMonthDate = subMonths(new Date(), 1);
@@ -80,7 +80,7 @@ export function AiChatSheet() {
     setMessages(prev => [...prev, userMessage]);
     
     // Get bot response
-    const botResponseText = getBotResponse(text, currentMonthTransactions, previousMonthTransactions, budgets);
+    const botResponseText = getBotResponse(text, currentMonthTransactions, previousMonthTransactions, expenseBudgets);
     const botMessage: Message = {
         id: Date.now() + 1,
         text: botResponseText,
