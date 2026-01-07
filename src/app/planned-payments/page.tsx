@@ -35,15 +35,21 @@ export default function PlannedPaymentsPage() {
   const [paymentToDelete, setPaymentToDelete] = React.useState<PlannedPayment | null>(null);
 
 
-  const handleMarkAsPaid = async (payment: any) => {
-    const transaction = {
-      ...payment,
-      date: new Date(payment.date), // Ensure date is a Date object
-      recurring: true, // Mark it as a recurring transaction in history
+  const handleMarkAsPaid = async (payment: PlannedPayment) => {
+    // Create a new transaction from the planned payment
+    const newTransaction = {
+      name: payment.name,
+      amount: payment.amount,
+      date: new Date(payment.date),
+      category: payment.category,
+      type: payment.type,
+      account: payment.account,
+      spendingType: payment.spendingType,
+      recurring: false, // It's now a one-time transaction record
     };
     
     // Add to actual transactions
-    await addTransaction(transaction);
+    await addTransaction(newTransaction);
 
     // Delete from planned payments
     await deletePlannedPayment(payment.id);
