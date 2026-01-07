@@ -90,7 +90,7 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
     const markPaymentAsPaid = async (payment: PlannedPayment) => {
         if (!firestore || !userContext?.user) return;
 
-        const newTransaction = {
+        const newTransaction: any = {
             name: payment.name,
             amount: payment.amount,
             date: new Date().toISOString(), 
@@ -100,6 +100,10 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
             spendingType: payment.spendingType,
             recurring: false, 
         };
+
+        // Firestore does not allow 'undefined' fields.
+        if (newTransaction.spendingType === undefined) delete newTransaction.spendingType;
+        if (newTransaction.account === undefined) delete newTransaction.account;
 
         const batch = writeBatch(firestore);
 
