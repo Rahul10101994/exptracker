@@ -7,9 +7,6 @@ import { toast } from "@/hooks/use-toast";
 import { differenceInDays, isToday, startOfDay } from "date-fns";
 import { Bell } from "lucide-react";
 
-const NOTIFICATION_SNOOZE_KEY_PREFIX = "payment_notification_snooze_";
-const SNOOZE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
-
 export function useUpcomingPaymentNotifications() {
   const { plannedPayments } = usePlannedPayments();
   const [isClient, setIsClient] = useState(false);
@@ -33,13 +30,6 @@ export function useUpcomingPaymentNotifications() {
 
     if (upcomingPayments.length > 0) {
       upcomingPayments.forEach((payment, index) => {
-        const snoozeKey = `${NOTIFICATION_SNOOZE_KEY_PREFIX}${payment.id}`;
-        const snoozedUntil = localStorage.getItem(snoozeKey);
-
-        if (snoozedUntil && Date.now() < parseInt(snoozedUntil)) {
-          return; // This specific notification is snoozed
-        }
-
         const paymentDate = startOfDay(new Date(payment.date));
         const daysUntil = differenceInDays(paymentDate, today);
 
@@ -54,7 +44,12 @@ export function useUpcomingPaymentNotifications() {
         } else if (daysUntil < 0) {
             title = "Payment Overdue";
             description = `Your payment for "${payment.name}" of ₹${payment.amount} was due ${Math.abs(daysUntil)} day(s) ago.`;
+        } else {
+            // This handles the case for daysUntil > 1, which shouldn't happen with the current filter
+            // but is good for safety.
+             description += `in ${daysUntil} days.`;
         }
+
 
         // Delay each toast slightly to prevent them from overlapping
         setTimeout(() => {
@@ -68,9 +63,7 @@ export function useUpcomingPaymentNotifications() {
                 description: description,
                 duration: 10000, // Show for 10 seconds
             });
-            // Snooze this specific notification for 24 hours
-            localStorage.setItem(snoozeKey, (Date.now() + SNOOZE_DURATION_MS).toString());
-        }, index * 600); // Increased delay slightly
+        }, index * 600); 
 
       });
     }
