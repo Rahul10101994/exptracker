@@ -185,17 +185,17 @@ export function EditTransactionForm({
                       form.clearErrors("spendingType");
                     }
                   }}
-                  className="grid grid-cols-2 gap-3"
+                  className="grid grid-cols-4 gap-2"
                 >
                   {["income", "expense", "investment", "transfer"].map((t) => (
                     <label
                       key={t}
                       className="
-                        flex items-center gap-3
+                        flex items-center justify-center gap-2
                         border rounded-lg
-                        px-4 py-3
+                        p-2
+                        text-xs
                         cursor-pointer
-                        text-sm
                         [&:has(:checked)]:border-primary
                         [&:has(:checked)]:bg-muted
                       "
@@ -463,3 +463,5 @@ export function EditTransactionForm({
     </Form>
   );
 }
+
+    

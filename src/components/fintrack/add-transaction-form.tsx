@@ -125,8 +125,9 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
       name: "",
       amount: 0,
       date: new Date(),
-      category: "",
       recurring: false,
+      category: "",
+      account: "",
     },
   });
 
@@ -196,12 +197,12 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                       form.clearErrors("spendingType");
                     }
                   }}
-                  className="grid grid-cols-2 gap-3"
+                  className="grid grid-cols-4 gap-2"
                 >
                   {["income", "expense", "investment", "transfer"].map((t) => (
                     <label
                       key={t}
-                      className="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-muted"
+                      className="flex items-center justify-center gap-2 border rounded-lg p-2 text-xs cursor-pointer [&:has(:checked)]:border-primary [&:has(:checked)]:bg-muted"
                     >
                       <RadioGroupItem value={t} />
                       {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -454,3 +455,5 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
     </Form>
   );
 }
+
+    
