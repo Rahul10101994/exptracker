@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,29 +54,45 @@ const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 export default function TransactionsPage() {
   const { transactions, getIconForCategory, deleteTransaction } =
     useTransactions();
+  const searchParams = useSearchParams();
+
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+
+  const initialDate = fromParam ? new Date(fromParam) : new Date();
 
   const [selectedMonth, setSelectedMonth] = React.useState(
-    months[new Date().getMonth()]
+    months[initialDate.getMonth()]
   );
-  const [selectedYear, setSelectedYear] = React.useState(currentYear);
+  const [selectedYear, setSelectedYear] = React.useState(
+    initialDate.getFullYear()
+  );
 
   const [transactionToDelete, setTransactionToDelete] =
     React.useState<Transaction | null>(null);
-
   const [transactionToEdit, setTransactionToEdit] =
     React.useState<Transaction | null>(null);
+  
+  const hasDateParams = fromParam && toParam;
 
   /* -------------------- FILTER -------------------- */
 
   const filteredTransactions = React.useMemo(() => {
     return transactions.filter((transaction) => {
       const d = new Date(transaction.date);
+      if (hasDateParams) {
+        const fromDate = new Date(fromParam);
+        const toDate = new Date(toParam);
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
+        return d >= fromDate && d <= toDate;
+      }
       return (
         months[d.getMonth()] === selectedMonth &&
         d.getFullYear() === selectedYear
       );
     });
-  }, [transactions, selectedMonth, selectedYear]);
+  }, [transactions, selectedMonth, selectedYear, hasDateParams, fromParam, toParam]);
 
   /* -------------------- DELETE -------------------- */
 
@@ -100,7 +118,7 @@ export default function TransactionsPage() {
       {/* HEADER */}
       <header className="flex items-center pt-2">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard">
+          <Link href={hasDateParams ? "/report" : "/dashboard"}>
             <ArrowLeft />
             <span className="sr-only">Back</span>
           </Link>
@@ -109,38 +127,45 @@ export default function TransactionsPage() {
         <h1 className="text-lg font-bold mx-auto">All Transactions</h1>
         <div className="w-10" />
       </header>
+      
+      {hasDateParams ? (
+        <div className="text-center text-sm text-muted-foreground bg-accent p-2 rounded-md">
+          Showing transactions from <br />
+          <span className="font-semibold">{format(new Date(fromParam), "PPP")}</span> to <span className="font-semibold">{format(new Date(toParam), "PPP")}</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger>
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month} value={month}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-      {/* FILTERS */}
-      <div className="grid grid-cols-2 gap-4">
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-          <SelectTrigger>
-            <SelectValue placeholder="Month" />
-          </SelectTrigger>
-          <SelectContent>
-            {months.map((month) => (
-              <SelectItem key={month} value={month}>
-                {month}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select
+            value={selectedYear.toString()}
+            onValueChange={(v) => setSelectedYear(Number(v))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-        <Select
-          value={selectedYear.toString()}
-          onValueChange={(v) => setSelectedYear(Number(v))}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Year" />
-          </SelectTrigger>
-          <SelectContent>
-            {years.map((year) => (
-              <SelectItem key={year} value={year.toString()}>
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* LIST */}
       <Card className="shadow-lg border-0">

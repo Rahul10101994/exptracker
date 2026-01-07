@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -11,7 +10,7 @@ import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { FinancialSummaryCard } from '@/components/fintrack/financial-summary-card';
 import { ReportCategoryBreakdown } from '@/components/fintrack/report-category-breakdown';
 import { BudgetBreakdownCard } from '@/components/fintrack/budget-breakdown-card';
-import { isSameMonth, isSameYear, subMonths, isWithinInterval, startOfDay, endOfDay, subYears, getYear, sub, differenceInDays } from 'date-fns';
+import { isSameMonth, isSameYear, subMonths, isWithinInterval, startOfDay, endOfDay, subYears, getYear, sub, differenceInDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import { NeedWantBreakdownCard } from '@/components/fintrack/need-want-breakdown-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -43,14 +42,18 @@ export default function ReportPage() {
   const [dateTo, setDateTo] = React.useState<Date | undefined>(new Date());
 
 
-  const { filteredTransactions, previousPeriodTransactions } = React.useMemo(() => {
+  const { filteredTransactions, previousPeriodTransactions, periodFrom, periodTo } = React.useMemo(() => {
     let filtered: typeof transactions = [];
     let previous: typeof transactions = [];
+    let from: Date | undefined;
+    let to: Date | undefined;
 
     switch (activeTab) {
       case 'monthly': {
         const monthIndex = months.indexOf(selectedMonth);
         const selectedDate = new Date(selectedYearForMonth, monthIndex);
+        from = startOfMonth(selectedDate);
+        to = endOfMonth(selectedDate);
         
         filtered = transactions.filter(t => {
             const tDate = new Date(t.date);
@@ -65,6 +68,10 @@ export default function ReportPage() {
         break;
       }
       case 'yearly': {
+        const selectedDate = new Date(selectedYear, 0, 1);
+        from = startOfYear(selectedDate);
+        to = endOfYear(selectedDate);
+
         filtered = transactions.filter(t => getYear(new Date(t.date)) === selectedYear);
         
         const prevYearDate = subYears(new Date(selectedYear, 0, 1), 1);
@@ -73,13 +80,13 @@ export default function ReportPage() {
       }
       case 'period': {
         if (dateFrom && dateTo) {
-            const periodStart = startOfDay(dateFrom);
-            const periodEnd = endOfDay(dateTo);
-            filtered = transactions.filter(t => isWithinInterval(new Date(t.date), { start: periodStart, end: periodEnd }));
+            from = startOfDay(dateFrom);
+            to = endOfDay(dateTo);
+            filtered = transactions.filter(t => isWithinInterval(new Date(t.date), { start: from, end: to }));
         
-            const duration = differenceInDays(periodEnd, periodStart);
-            const prevPeriodStart = sub(periodStart, { days: duration + 1 });
-            const prevPeriodEnd = sub(periodEnd, { days: duration + 1 });
+            const duration = differenceInDays(to, from);
+            const prevPeriodStart = sub(from, { days: duration + 1 });
+            const prevPeriodEnd = sub(to, { days: duration + 1 });
 
             previous = transactions.filter(t => isWithinInterval(new Date(t.date), { start: prevPeriodStart, end: prevPeriodEnd }));
         }
@@ -87,7 +94,12 @@ export default function ReportPage() {
       }
     }
     
-    return { filteredTransactions: filtered, previousPeriodTransactions: previous };
+    return { 
+        filteredTransactions: filtered, 
+        previousPeriodTransactions: previous,
+        periodFrom: from?.toISOString(),
+        periodTo: to?.toISOString()
+    };
 
   }, [transactions, activeTab, selectedMonth, selectedYearForMonth, selectedYear, dateFrom, dateTo]);
 
@@ -180,7 +192,12 @@ export default function ReportPage() {
 
         {filteredTransactions.length > 0 || previousPeriodTransactions.length > 0 ? (
           <div className="space-y-4">
-            <FinancialSummaryCard transactions={filteredTransactions} prevMonthTransactions={previousPeriodTransactions} />
+            <FinancialSummaryCard 
+                transactions={filteredTransactions} 
+                prevMonthTransactions={previousPeriodTransactions}
+                from={periodFrom}
+                to={periodTo}
+            />
             <NeedWantBreakdownCard transactions={filteredTransactions} prevMonthTransactions={previousPeriodTransactions} />
             <ReportCategoryBreakdown transactions={filteredTransactions} />
             <BudgetBreakdownCard transactions={filteredTransactions} />
