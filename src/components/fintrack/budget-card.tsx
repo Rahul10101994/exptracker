@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,20 +10,20 @@ import { useMemo } from "react";
 
 export function BudgetCard() {
   const { currentMonthTransactions } = useTransactions();
-  const { budgets } = useBudget();
+  const { expenseBudgets } = useBudget();
 
   const { utilized, totalBudget } = useMemo(() => {
     const utilized = currentMonthTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + t.amount, 0);
 
-    const totalBudget = Object.values(budgets).reduce(
+    const totalBudget = Object.values(expenseBudgets).reduce(
       (acc, budget) => acc + budget.amount,
       0
     );
 
     return { utilized, totalBudget };
-  }, [currentMonthTransactions, budgets]);
+  }, [currentMonthTransactions, expenseBudgets]);
 
   const progress =
     totalBudget > 0 ? (utilized / totalBudget) * 100 : 0;
