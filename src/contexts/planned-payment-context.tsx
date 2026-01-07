@@ -3,7 +3,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, getDocs, updateDoc } from 'firebase/firestore';
+import { addMonths, addYears } from 'date-fns';
 
 export type PlannedPayment = {
     id: string;
@@ -106,7 +107,16 @@ export const PlannedPaymentProvider = ({ children }: { children: ReactNode }) =>
         batch.set(newTransactionRef, newTransaction);
         
         const plannedPaymentRef = doc(firestore, 'users', userContext.user.uid, 'plannedPayments', payment.id);
-        batch.delete(plannedPaymentRef);
+        
+        if (payment.period === 'monthly') {
+            const nextDate = addMonths(new Date(payment.date), 1);
+            batch.update(plannedPaymentRef, { date: nextDate.toISOString() });
+        } else if (payment.period === 'yearly') {
+            const nextDate = addYears(new Date(payment.date), 1);
+            batch.update(plannedPaymentRef, { date: nextDate.toISOString() });
+        } else {
+            batch.delete(plannedPaymentRef);
+        }
 
         await batch.commit();
     };
