@@ -56,6 +56,11 @@ export default function TransactionsPage() {
   const { transactions, getIconForCategory, deleteTransaction } =
     useTransactions();
   const searchParams = useSearchParams();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
@@ -84,7 +89,7 @@ export default function TransactionsPage() {
       const d = new Date(transaction.date);
       let matches = true;
 
-      if (hasFilters) {
+      if (hasFilters && fromParam && toParam) {
         const fromDate = new Date(fromParam);
         const toDate = new Date(toParam);
         fromDate.setHours(0, 0, 0, 0);
@@ -140,10 +145,14 @@ export default function TransactionsPage() {
       
       {hasFilters ? (
         <div className="text-center text-sm text-muted-foreground bg-accent p-2 rounded-md">
-          {spendingTypeParam && (
-             <>Showing <span className="font-semibold capitalize">{spendingTypeParam}</span> transactions from <br/></>
+          {isClient && fromParam && toParam && (
+            <>
+              {spendingTypeParam && (
+                <>Showing <span className="font-semibold capitalize">{spendingTypeParam}</span> transactions from <br/></>
+              )}
+              <span className="font-semibold">{format(new Date(fromParam), "PPP")}</span> to <span className="font-semibold">{format(new Date(toParam), "PPP")}</span>
+            </>
           )}
-          <span className="font-semibold">{format(new Date(fromParam), "PPP")}</span> to <span className="font-semibold">{format(new Date(toParam), "PPP")}</span>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4">
