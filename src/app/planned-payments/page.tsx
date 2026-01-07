@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTransactions } from "@/contexts/transactions-context";
-import { format, addMonths } from "date-fns";
+import { format } from "date-fns";
 import { AddTransactionSheet } from "@/components/fintrack/add-transaction-sheet";
 
 export default function PlannedPaymentsPage() {
@@ -17,11 +17,6 @@ export default function PlannedPaymentsPage() {
   const recurringTransactions = React.useMemo(() => {
     return transactions.filter(t => t.recurring);
   }, [transactions]);
-
-  const getNextPaymentDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return addMonths(date, 1);
-  };
 
   return (
     <FinTrackLayout>
@@ -45,7 +40,7 @@ export default function PlannedPaymentsPage() {
                     <div>
                         <p className="font-semibold">{t.name}</p>
                         <p className="text-sm text-muted-foreground">
-                           Next payment: {format(getNextPaymentDate(t.date), "PPP")}
+                           Next payment: {format(new Date(t.date), "PPP")}
                         </p>
                     </div>
                     <p className={`font-semibold ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>

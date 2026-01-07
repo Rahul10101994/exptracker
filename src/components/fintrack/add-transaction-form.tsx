@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -124,7 +124,7 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
       type: "expense",
       name: "",
       amount: 0,
-      date: new Date(),
+      date: isPlannedPayment ? addMonths(new Date(), 1) : new Date(),
       recurring: isPlannedPayment,
       category: "",
       account: "",
@@ -132,6 +132,18 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
   });
 
   const transactionType = form.watch("type");
+  const isRecurring = form.watch("recurring");
+
+  React.useEffect(() => {
+    if (isPlannedPayment) return;
+    const currentIsRecurring = form.getValues('recurring');
+    const currentDate = form.getValues('date');
+    if (currentIsRecurring) {
+        form.setValue('date', addMonths(currentDate, 1));
+    } else {
+        form.setValue('date', new Date());
+    }
+  }, [isRecurring, form, isPlannedPayment]);
 
   React.useEffect(() => {
     if (transactionType === 'transfer') {
@@ -164,7 +176,7 @@ export function AddTransactionForm({ onSubmit, isPlannedPayment = false }: { onS
       type: "expense",
       name: "",
       amount: 0,
-      date: new Date(),
+      date: isPlannedPayment ? addMonths(new Date(), 1) : new Date(),
       recurring: isPlannedPayment,
       category: '',
       account: '',

@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -121,6 +121,18 @@ export function EditTransactionForm({
   });
 
   const transactionType = form.watch("type");
+  const isRecurring = form.watch("recurring");
+  const wasRecurring = React.useRef(transaction.recurring);
+
+  React.useEffect(() => {
+    const currentDate = new Date(form.getValues('date'));
+    if (isRecurring && !wasRecurring.current) {
+        form.setValue('date', addMonths(currentDate, 1));
+    } else if (!isRecurring && wasRecurring.current) {
+        form.setValue('date', new Date());
+    }
+    wasRecurring.current = isRecurring;
+  }, [isRecurring, form]);
 
     React.useEffect(() => {
     if (transactionType === 'transfer') {
