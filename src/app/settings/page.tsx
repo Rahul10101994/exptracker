@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Trash2, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -94,6 +94,21 @@ export default function SettingsPage() {
                 <CardContent className="space-y-0 flex flex-col">
                     <Link href="/accounts" className="flex items-center justify-between py-3">
                         <span>Accounts</span>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </Link>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Planned Payments</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-0 flex flex-col">
+                    <Link href="/planned-payments" className="flex items-center justify-between py-3">
+                        <div className="flex items-center gap-2">
+                            <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                            <span>Recurring & Bills</span>
+                        </div>
                         <ChevronRight className="h-5 w-5 text-muted-foreground" />
                     </Link>
                 </CardContent>
