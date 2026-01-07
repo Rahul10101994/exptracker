@@ -9,8 +9,8 @@ import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { PlannedPayment, usePlannedPayments } from "@/contexts/planned-payment-context";
-import { AddPlannedPaymentSheet } from "@/components/fintrack/add-planned-payment-sheet";
 import { useTransactions } from "@/contexts/transactions-context";
+import { AddPlannedPaymentSheet } from "@/components/fintrack/add-planned-payment-sheet";
 import { toast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -32,32 +32,37 @@ import {
 export default function PlannedPaymentsPage() {
   const { plannedPayments, deletePlannedPayment } = usePlannedPayments();
   const { addTransaction } = useTransactions();
+
   const [paymentToDelete, setPaymentToDelete] = React.useState<PlannedPayment | null>(null);
 
-
   const handleMarkAsPaid = async (payment: PlannedPayment) => {
-    // Create a new transaction from the planned payment
     const newTransaction = {
       name: payment.name,
       amount: payment.amount,
-      date: new Date(payment.date),
+      date: new Date(), // Mark as paid today
       category: payment.category,
       type: payment.type,
       account: payment.account,
       spendingType: payment.spendingType,
       recurring: false, // It's now a one-time transaction record
     };
-    
-    // Add to actual transactions
-    await addTransaction(newTransaction);
 
-    // Delete from planned payments
-    await deletePlannedPayment(payment.id);
+    try {
+      await addTransaction(newTransaction as any);
+      await deletePlannedPayment(payment.id);
 
-    toast({
-      title: "Payment Recorded",
-      description: `"${payment.name}" has been marked as paid and added to your transactions.`,
-    });
+      toast({
+        title: "Payment Recorded",
+        description: `"${payment.name}" has been marked as paid and added to your transactions.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not mark payment as paid. Please try again.",
+      });
+      console.error("Failed to mark payment as paid:", error);
+    }
   };
 
   const handleDelete = () => {

@@ -26,17 +26,17 @@ export function Providers({
       disableTransitionOnChange
     >
       <FirebaseClientProvider app={firebaseApp}>
-        <PlannedPaymentProvider>
-          <TransactionsProvider>
-            <AccountProvider>
-              <BudgetProvider>
-                <GoalProvider>
-                  {children}
-                </GoalProvider>
-              </BudgetProvider>
-            </AccountProvider>
-          </TransactionsProvider>
-        </PlannedPaymentProvider>
+        <TransactionsProvider>
+          <AccountProvider>
+            <BudgetProvider>
+              <PlannedPaymentProvider>
+                  <GoalProvider>
+                    {children}
+                  </GoalProvider>
+              </PlannedPaymentProvider>
+            </BudgetProvider>
+          </AccountProvider>
+        </TransactionsProvider>
       </FirebaseClientProvider>
     </ThemeProvider>
   );
