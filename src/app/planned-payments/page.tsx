@@ -9,7 +9,6 @@ import { FinTrackLayout } from "@/components/fintrack/fintrack-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { PlannedPayment, usePlannedPayments } from "@/contexts/planned-payment-context";
-import { useTransactions } from "@/contexts/transactions-context";
 import { AddPlannedPaymentSheet } from "@/components/fintrack/add-planned-payment-sheet";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -30,25 +29,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function PlannedPaymentsPage() {
-  const { plannedPayments, deletePlannedPayment } = usePlannedPayments();
-  const { addTransaction } = useTransactions();
+  const { plannedPayments, deletePlannedPayment, markPaymentAsPaid } = usePlannedPayments();
 
   const [paymentToDelete, setPaymentToDelete] = React.useState<PlannedPayment | null>(null);
 
   const handleMarkAsPaid = async (payment: PlannedPayment) => {
     try {
-      await addTransaction({
-        name: payment.name,
-        amount: payment.amount,
-        date: new Date(), // Mark as paid today
-        category: payment.category,
-        type: payment.type,
-        account: payment.account,
-        spendingType: payment.spendingType,
-        recurring: false, // It's now a one-time transaction record
-      });
-      await deletePlannedPayment(payment.id);
-
+      await markPaymentAsPaid(payment);
       toast({
         title: "Payment Recorded",
         description: `"${payment.name}" has been marked as paid and added to your transactions.`,
@@ -62,16 +49,26 @@ export default function PlannedPaymentsPage() {
       console.error("Failed to mark payment as paid:", error);
     }
   };
-
-  const handleDelete = () => {
+  
+  const handleDelete = async () => {
     if (!paymentToDelete) return;
-    deletePlannedPayment(paymentToDelete.id);
-    toast({
-      title: "Planned Payment Deleted",
-      description: `"${paymentToDelete.name}" has been deleted.`,
-    });
-    setPaymentToDelete(null);
+    try {
+      await deletePlannedPayment(paymentToDelete.id);
+      toast({
+        title: "Planned Payment Deleted",
+        description: `"${paymentToDelete.name}" has been deleted.`,
+      });
+      setPaymentToDelete(null);
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not delete payment. Please try again.",
+      });
+      console.error("Failed to delete payment:", error);
+    }
   };
+
 
   return (
     <FinTrackLayout>

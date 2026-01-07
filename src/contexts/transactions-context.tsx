@@ -37,6 +37,7 @@ type DeletionFilter =
 interface TransactionsContextType {
     transactions: Transaction[];
     addTransaction: (transaction: Omit<NewTransaction, 'date'> & { date: Date }) => Promise<void>;
+    addTransactionFromPlannedPayment: (transaction: any) => Promise<void>;
     deleteTransaction: (id: string) => Promise<void>;
     updateTransaction: (id: string, transaction: Omit<NewTransaction, 'date'> & { date: Date }) => Promise<void>;
     getIconForCategory: (category: string) => React.ElementType;
@@ -124,11 +125,15 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
         if (dataToSave.account === undefined) delete dataToSave.account;
         if (dataToSave.fromAccount === undefined) delete dataToSave.fromAccount;
         if (dataToSave.toAccount === undefined) delete dataToSave.toAccount;
-        // recurring should not trigger planned payment creation here
-        if (dataToSave.recurring === undefined) delete dataToSave.recurring;
-
+        
         await addDoc(transactionsCollection, dataToSave);
     };
+
+    const addTransactionFromPlannedPayment = async (transaction: any) => {
+        if (!firestore || !userContext?.user) return;
+        const transactionsCollection = collection(firestore, 'users', userContext.user.uid, 'transactions');
+        await addDoc(transactionsCollection, transaction);
+    }
 
     const deleteTransaction = async (id: string) => {
         if (!firestore || !userContext?.user) return;
@@ -201,7 +206,7 @@ export const TransactionsProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <TransactionsContext.Provider value={{ transactions, addTransaction, deleteTransaction, deleteTransactionsByFilter, updateTransaction, getIconForCategory, currentMonthTransactions }}>
+        <TransactionsContext.Provider value={{ transactions, addTransaction, addTransactionFromPlannedPayment, deleteTransaction, deleteTransactionsByFilter, updateTransaction, getIconForCategory, currentMonthTransactions }}>
             {children}
         </TransactionsContext.Provider>
     );
