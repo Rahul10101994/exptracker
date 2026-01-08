@@ -41,6 +41,7 @@ const initialBudgets: BudgetsData = {
         shopping: { amount: 300 },
         bills: { amount: 200 },
         subscription: { amount: 50 },
+        investment: { amount: 8000 },
         other: { amount: 100 },
     },
     income: ["Freelance", "Salary", "Bonus", "Other"]
@@ -122,7 +123,10 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     const getCategoryProgress = (category: string) => {
         const budgetAmount = expenseBudgets[category]?.amount || 0;
         const spent = currentMonthTransactions
-            .filter(t => t.type === 'expense' && t.category.toLowerCase() === category.toLowerCase())
+            .filter(t => 
+                (t.type === 'expense' && t.category.toLowerCase() === category.toLowerCase()) ||
+                (t.type === 'investment' && category.toLowerCase() === 'investment')
+            )
             .reduce((sum, t) => sum + t.amount, 0);
         
         const percentage = budgetAmount > 0 ? (spent / budgetAmount) * 100 : 0;

@@ -57,6 +57,7 @@ export default function BudgetPage() {
     }, []);
 
     React.useEffect(() => {
+        // Deep copy to prevent mutation issues
         setLocalBudgets(JSON.parse(JSON.stringify(expenseBudgets)));
     }, [expenseBudgets]);
 
