@@ -47,7 +47,7 @@ export default function BudgetPage() {
     const [newCategory, setNewCategory] = React.useState('');
     const [newCategoryType, setNewCategoryType] = React.useState<'expense' | 'income'>('expense');
     
-    const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>(expenseBudgets);
+    const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>({});
     const [categoryToDelete, setCategoryToDelete] = React.useState<{name: string, type: 'expense' | 'income'} | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const [isSaving, setIsSaving] = React.useState(false);
@@ -57,7 +57,7 @@ export default function BudgetPage() {
     }, []);
 
     React.useEffect(() => {
-        setLocalBudgets(expenseBudgets);
+        setLocalBudgets(JSON.parse(JSON.stringify(expenseBudgets)));
     }, [expenseBudgets]);
 
     const handleAddCategory = async () => {
@@ -145,7 +145,7 @@ export default function BudgetPage() {
                     </Card>
 
                     <div className="space-y-4 mt-4">
-                        {isClient && Object.entries(localBudgets).map(([category, budget]) => {
+                        {isClient && localBudgets && Object.entries(localBudgets).map(([category, budget]) => {
                             const Icon = getIconForCategory(category);
                             const { spent, percentage } = getCategoryProgress(category);
                             
