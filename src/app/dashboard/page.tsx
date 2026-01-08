@@ -9,7 +9,7 @@ import { BudgetCard } from '@/components/fintrack/budget-card';
 import { CategoryBreakdownChart } from '@/components/fintrack/category-breakdown-chart';
 import { FinTrackLayout } from '@/components/fintrack/fintrack-layout';
 import { AiFinancialInsightsCard } from '@/components/fintrack/ai-financial-insights-card';
-import { FinancialHealthCard } from '@/components/fintrack/financial-health-card';
+import { UpcomingPaymentsCard } from '@/components/fintrack/upcoming-payments-card';
 import { AiChatSheet } from '@/components/fintrack/ai-chat-sheet';
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
     <FinTrackLayout>
       <FinTrackHeader />
       <BalanceCard />
-      <FinancialHealthCard />
+      <UpcomingPaymentsCard />
       <AiFinancialInsightsCard />
       <div className="grid grid-cols-2 gap-4">
         <SavingRateCard />
