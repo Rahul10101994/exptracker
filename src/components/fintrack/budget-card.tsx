@@ -14,7 +14,7 @@ export function BudgetCard() {
 
   const { utilized, totalBudget } = useMemo(() => {
     const utilized = currentMonthTransactions
-      .filter((t) => t.type === "expense")
+      .filter((t) => t.type === "expense" || t.type === 'investment')
       .reduce((acc, t) => acc + t.amount, 0);
 
     const totalBudget = Object.values(expenseBudgets).reduce(
