@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useTransactions } from './transactions-context';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query } from 'firebase/firestore';
@@ -73,7 +73,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
         await deleteDoc(goalDoc);
     };
     
-    const getGoalProgress = (goal: Goal) => {
+    const getGoalProgress = useCallback((goal: Goal) => {
         let saved = goal.savedAmount || 0;
 
         if (goal.name.toLowerCase().includes("investment")) {
@@ -99,7 +99,7 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
         const progress = goal.targetAmount > 0 ? (saved / goal.targetAmount) * 100 : 0;
         
         return { progress, saved };
-    };
+    }, [currentMonthTransactions, transactions]);
 
     return (
         <GoalContext.Provider value={{ goals, addGoal, updateGoal, deleteGoal, getGoalProgress }}>
