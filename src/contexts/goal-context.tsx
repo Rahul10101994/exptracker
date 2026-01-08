@@ -75,27 +75,20 @@ export const GoalProvider = ({ children }: { children: ReactNode }) => {
     
     const getGoalProgress = useCallback((goal: Goal) => {
         let saved = goal.savedAmount || 0;
+        const relevantTransactions = goal.type === 'monthly' ? currentMonthTransactions : transactions;
 
-        if (goal.type === 'monthly') {
-            if (goal.name.toLowerCase().includes("investment")) {
-                saved = currentMonthTransactions
-                    .filter(t => t.category.toLowerCase() === 'investment')
-                    .reduce((sum, t) => sum + t.amount, 0);
-            } else {
-                 const income = currentMonthTransactions
-                    .filter(t => t.type === 'income')
-                    .reduce((sum, t) => sum + t.amount, 0);
-                const expense = currentMonthTransactions
-                    .filter(t => t.type === 'expense' && t.category.toLowerCase() !== 'investment')
-                    .reduce((sum, t) => sum + t.amount, 0);
-                saved = income - expense;
-            }
-        } else { // yearly or long-term
-             if (goal.name.toLowerCase().includes("investment")) {
-                saved = transactions
-                    .filter(t => t.category.toLowerCase() === 'investment')
-                    .reduce((sum, t) => sum + t.amount, 0);
-             }
+        if (goal.name.toLowerCase().includes("investment")) {
+            saved = relevantTransactions
+                .filter(t => t.category.toLowerCase() === 'investment')
+                .reduce((sum, t) => sum + t.amount, 0);
+        } else { // Generic savings goal (Income - Expense)
+            const income = relevantTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            const expense = relevantTransactions
+                .filter(t => t.type === 'expense' && t.category.toLowerCase() !== 'investment')
+                .reduce((sum, t) => sum + t.amount, 0);
+            saved = income - expense;
         }
 
         const progress = goal.targetAmount > 0 ? (saved / goal.targetAmount) * 100 : 0;
