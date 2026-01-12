@@ -65,6 +65,7 @@ export function TransactionsView() {
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
   const spendingTypeParam = searchParams.get("spendingType");
+  const typeParam = searchParams.get("type");
 
   const initialDate = fromParam ? new Date(fromParam) : new Date();
 
@@ -104,10 +105,14 @@ export function TransactionsView() {
       if (matches && spendingTypeParam) {
         matches = transaction.spendingType === spendingTypeParam;
       }
+
+      if (matches && typeParam) {
+        matches = transaction.type === typeParam;
+      }
       
       return matches;
     });
-  }, [transactions, selectedMonth, selectedYear, hasFilters, fromParam, toParam, spendingTypeParam]);
+  }, [transactions, selectedMonth, selectedYear, hasFilters, fromParam, toParam, spendingTypeParam, typeParam]);
 
   /* -------------------- DELETE -------------------- */
 
@@ -149,6 +154,9 @@ export function TransactionsView() {
             <>
               {spendingTypeParam && (
                 <>Showing <span className="font-semibold capitalize">{spendingTypeParam}</span> transactions from <br/></>
+              )}
+               {typeParam && (
+                <>Showing <span className="font-semibold capitalize">{typeParam}</span> transactions from <br/></>
               )}
               <span className="font-semibold">{format(new Date(fromParam), "PPP")}</span> to <span className="font-semibold">{format(new Date(toParam), "PPP")}</span>
             </>

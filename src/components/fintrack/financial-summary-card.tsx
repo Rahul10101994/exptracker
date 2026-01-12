@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,18 +92,27 @@ export function FinancialSummaryCard({
     );
   };
   
-  const cardContent = (
-    <Card className="border-0 shadow-lg w-full transition-all hover:shadow-xl hover:scale-[1.01]">
+  const StatLink = ({ type, value, change, children }: { type: string, value: number, change: number, children: React.ReactNode}) => {
+    const href = from && to ? `/transactions?from=${from}&to=${to}&type=${type}` : '/transactions';
+    return (
+      <Link href={href} className="block hover:bg-muted p-2 rounded-md transition-colors">
+        {children}
+      </Link>
+    )
+  }
+
+  return (
+    <Card className="border-0 shadow-lg w-full transition-all hover:shadow-xl">
         <CardHeader className="p-4 pb-2">
           <CardTitle className="text-sm sm:text-base font-medium">
             Financial Summary
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="p-4 pt-0">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Income */}
-            <div className="space-y-1">
+        <CardContent className="p-2 pt-0">
+          <div className="grid grid-cols-2 gap-2">
+            
+            <StatLink type="income" value={income} change={incomeChange}>
               <p className="text-xs text-muted-foreground">Income</p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-bold text-green-600 truncate">
@@ -110,10 +120,9 @@ export function FinancialSummaryCard({
                 </p>
                 <Trend value={incomeChange} />
               </div>
-            </div>
+            </StatLink>
 
-            {/* Expense */}
-            <div className="space-y-1">
+            <StatLink type="expense" value={expense} change={expenseChange}>
               <p className="text-xs text-muted-foreground">Expense</p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-bold text-red-600 truncate">
@@ -121,10 +130,9 @@ export function FinancialSummaryCard({
                 </p>
                 <Trend value={expenseChange} invert />
               </div>
-            </div>
+            </StatLink>
 
-            {/* Savings */}
-            <div className="space-y-1">
+            <div className="p-2">
               <p className="text-xs text-muted-foreground">Savings</p>
               <div className="flex items-center gap-2">
                 <p
@@ -139,8 +147,7 @@ export function FinancialSummaryCard({
               </div>
             </div>
 
-            {/* Investments */}
-            <div className="space-y-1">
+            <StatLink type="investment" value={investments} change={investmentChange}>
               <p className="text-xs text-muted-foreground">Investments</p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-bold text-purple-600 truncate">
@@ -148,19 +155,10 @@ export function FinancialSummaryCard({
                 </p>
                 <Trend value={investmentChange} />
               </div>
-            </div>
+            </StatLink>
+
           </div>
         </CardContent>
       </Card>
   );
-  
-  if (from && to) {
-    return (
-      <Link href={`/transactions?from=${from}&to=${to}`}>
-        {cardContent}
-      </Link>
-    );
-  }
-
-  return cardContent;
 }
