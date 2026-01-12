@@ -66,6 +66,7 @@ export function TransactionsView() {
   const toParam = searchParams.get("to");
   const spendingTypeParam = searchParams.get("spendingType");
   const typeParam = searchParams.get("type");
+  const categoryParam = searchParams.get('category');
 
   const initialDate = fromParam ? new Date(fromParam) : new Date();
 
@@ -109,10 +110,14 @@ export function TransactionsView() {
       if (matches && typeParam) {
         matches = transaction.type === typeParam;
       }
+
+      if (matches && categoryParam) {
+        matches = transaction.category.toLowerCase() === categoryParam.toLowerCase();
+      }
       
       return matches;
     });
-  }, [transactions, selectedMonth, selectedYear, hasFilters, fromParam, toParam, spendingTypeParam, typeParam]);
+  }, [transactions, selectedMonth, selectedYear, hasFilters, fromParam, toParam, spendingTypeParam, typeParam, categoryParam]);
 
   /* -------------------- DELETE -------------------- */
 
@@ -152,12 +157,16 @@ export function TransactionsView() {
         <div className="text-center text-sm text-muted-foreground bg-accent p-2 rounded-md">
           {isClient && fromParam && toParam && (
             <>
-              {spendingTypeParam && (
-                <>Showing <span className="font-semibold capitalize">{spendingTypeParam}</span> transactions from <br/></>
+              {typeParam && (
+                <>Showing <span className="font-semibold capitalize">{typeParam}</span> </>
               )}
-               {typeParam && (
-                <>Showing <span className="font-semibold capitalize">{typeParam}</span> transactions from <br/></>
+               {categoryParam && (
+                <>Showing <span className="font-semibold capitalize">{categoryParam}</span> </>
               )}
+               {spendingTypeParam && (
+                <>Showing <span className="font-semibold capitalize">{spendingTypeParam}</span> </>
+              )}
+              transactions from <br/>
               <span className="font-semibold">{format(new Date(fromParam), "PPP")}</span> to <span className="font-semibold">{format(new Date(toParam), "PPP")}</span>
             </>
           )}

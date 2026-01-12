@@ -205,7 +205,11 @@ export default function ReportPage() {
               from={periodFrom}
               to={periodTo}
             />
-            <ReportCategoryBreakdown transactions={filteredTransactions} />
+            <ReportCategoryBreakdown 
+              transactions={filteredTransactions} 
+              from={periodFrom}
+              to={periodTo}
+            />
             <BudgetBreakdownCard transactions={filteredTransactions} />
           </div>
         ) : (

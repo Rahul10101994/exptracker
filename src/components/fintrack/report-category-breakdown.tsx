@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useMemo } from "react";
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Transaction } from "@/contexts/transactions-context";
 import { Progress } from "@/components/ui/progress";
@@ -8,20 +10,24 @@ import { cn } from "@/lib/utils";
 
 export function ReportCategoryBreakdown({
   transactions,
+  from,
+  to,
 }: {
   transactions: Transaction[];
+  from?: string;
+  to?: string;
 }) {
   const { categoryData, totalExpense } = useMemo(() => {
     const categoryTotals: Record<string, number> = {};
 
     const expenses = transactions.filter(
-      (t) => t.type === "expense"
+      (t) => t.type === "expense" || t.type === "investment"
     );
 
     expenses.forEach((t) => {
-      const category =
+      const category = t.type === 'investment' ? 'Investment' : (
         t.category.charAt(0).toUpperCase() +
-        t.category.slice(1);
+        t.category.slice(1));
 
       categoryTotals[category] =
         (categoryTotals[category] || 0) + t.amount;
@@ -64,30 +70,36 @@ export function ReportCategoryBreakdown({
                   : percentage > 30
                   ? "[&>div]:bg-orange-500"
                   : "[&>div]:bg-primary";
+              
+              const type = category === 'Investment' ? 'investment' : 'expense';
+              const categoryFilter = category === 'Investment' ? '' : `&category=${category.toLowerCase()}`;
+              const href = from && to ? `/transactions?from=${from}&to=${to}&type=${type}${categoryFilter}` : '/transactions';
 
               return (
-                <div key={category} className="space-y-1">
-                  {/* Label row */}
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="font-medium truncate">
-                      {category}
-                    </span>
+                <Link href={href} key={category} className="block hover:bg-muted -m-2 p-2 rounded-lg">
+                  <div className="space-y-1">
+                    {/* Label row */}
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium truncate">
+                        {category}
+                      </span>
 
-                    <span className="text-muted-foreground whitespace-nowrap">
-                      ₹{amount.toFixed(0)} •{" "}
-                      {percentage.toFixed(0)}%
-                    </span>
+                      <span className="text-muted-foreground whitespace-nowrap">
+                        ₹{amount.toFixed(0)} •{" "}
+                        {percentage.toFixed(0)}%
+                      </span>
+                    </div>
+
+                    {/* Progress */}
+                    <Progress
+                      value={percentage}
+                      className={cn(
+                        "h-2 transition-all duration-700 ease-out",
+                        progressColor
+                      )}
+                    />
                   </div>
-
-                  {/* Progress */}
-                  <Progress
-                    value={percentage}
-                    className={cn(
-                      "h-2 transition-all duration-700 ease-out",
-                      progressColor
-                    )}
-                  />
-                </div>
+                </Link>
               );
             }
           )
