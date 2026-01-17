@@ -140,7 +140,7 @@ export function FinancialSummaryCard({
                 </p>
                 {expensePercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-red-500/80">
-                        ({expensePercentageOfIncome.toFixed(0)}%)
+                        ({expensePercentageOfIncome.toFixed(0)}% of income)
                     </p>
                 )}
               </div>
@@ -169,7 +169,7 @@ export function FinancialSummaryCard({
                 </p>
                 {investmentPercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-purple-600/80">
-                        ({investmentPercentageOfIncome.toFixed(0)}%)
+                        ({investmentPercentageOfIncome.toFixed(0)}% of income)
                     </p>
                 )}
               </div>
