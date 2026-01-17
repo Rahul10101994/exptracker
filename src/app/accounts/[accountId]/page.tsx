@@ -1,10 +1,9 @@
-
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Calendar as CalendarIcon } from "lucide-react";
 import { useAccounts } from "@/contexts/account-context";
 import { useTransactions, Transaction } from "@/contexts/transactions-context";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,41 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  isSameMonth,
+  isSameYear,
+  getYear,
+  isWithinInterval,
+  startOfDay,
+  endOfDay,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+  format,
+} from "date-fns";
+
+const months = [
+  "January", "February", "March", "April", "May", "June", 
+  "July", "August", "September", "October", "November", "December"
+];
+
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 function AccountSummarySkeleton() {
     return (
@@ -80,6 +114,14 @@ export default function AccountSummaryPage() {
   const [isSummaryDialogOpen, setIsSummaryDialogOpen] = React.useState(false);
   
   React.useEffect(() => { setIsClient(true) }, []);
+  
+  // New state for period selection
+  const [activeTab, setActiveTab] = React.useState('monthly');
+  const [selectedMonth, setSelectedMonth] = React.useState<string>(months[new Date().getMonth()]);
+  const [selectedYearForMonth, setSelectedYearForMonth] = React.useState<number>(currentYear);
+  const [selectedYear, setSelectedYear] = React.useState<number>(currentYear);
+  const [dateFrom, setDateFrom] = React.useState<Date | undefined>(startOfMonth(new Date()));
+  const [dateTo, setDateTo] = React.useState<Date | undefined>(endOfMonth(new Date()));
 
   const account = React.useMemo(() => {
     return accounts.find(a => a.id === accountId);
@@ -89,19 +131,75 @@ export default function AccountSummaryPage() {
     if (!account) return [];
     
     // Filter transactions related to this account
-    return transactions.filter(t => 
+    const allAccountTransactions = transactions.filter(t => 
       (t.type !== 'transfer' && t.account?.toLowerCase() === account.name.toLowerCase()) ||
       (t.type === 'transfer' && (t.fromAccount?.toLowerCase() === account.name.toLowerCase() || t.toAccount?.toLowerCase() === account.name.toLowerCase()))
     );
 
-  }, [transactions, account]);
+    let filtered: typeof transactions = [];
+
+    switch (activeTab) {
+      case 'monthly': {
+        const monthIndex = months.indexOf(selectedMonth);
+        const selectedDate = new Date(selectedYearForMonth, monthIndex);
+        filtered = allAccountTransactions.filter(t => {
+            const tDate = new Date(t.date);
+            return isSameMonth(tDate, selectedDate) && isSameYear(tDate, selectedDate);
+        });
+        break;
+      }
+      case 'yearly': {
+        filtered = allAccountTransactions.filter(t => getYear(new Date(t.date)) === selectedYear);
+        break;
+      }
+      case 'period': {
+        if (dateFrom && dateTo) {
+            const from = startOfDay(dateFrom);
+            const to = endOfDay(dateTo);
+            filtered = allAccountTransactions.filter(t => isWithinInterval(new Date(t.date), { start: from, end: to }));
+        }
+        break;
+      }
+    }
+    return filtered;
+  }, [transactions, account, activeTab, selectedMonth, selectedYearForMonth, selectedYear, dateFrom, dateTo]);
   
   const statementData = React.useMemo(() => {
     if (!account) return [];
     
     const chronologicalTransactions = [...accountTransactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    const periodStartDate = (() => {
+        switch (activeTab) {
+            case 'monthly':
+                return startOfMonth(new Date(selectedYearForMonth, months.indexOf(selectedMonth)));
+            case 'yearly':
+                return startOfYear(new Date(selectedYear, 0, 1));
+            case 'period':
+                return dateFrom ? startOfDay(dateFrom) : new Date();
+            default:
+                return new Date();
+        }
+    })();
 
-    let runningBalance = account.initialBalance;
+    const transactionsBeforePeriod = transactions.filter(t => {
+        const tDate = new Date(t.date);
+        const isForThisAccount = (t.type !== 'transfer' && t.account?.toLowerCase() === account.name.toLowerCase()) || (t.type === 'transfer' && (t.fromAccount?.toLowerCase() === account.name.toLowerCase() || t.toAccount?.toLowerCase() === account.name.toLowerCase()));
+        return isForThisAccount && tDate < periodStartDate;
+    });
+
+    const startingBalance = transactionsBeforePeriod.reduce((acc, t) => {
+        let amountChange = 0;
+        if (t.type === 'income') amountChange = t.amount;
+        else if (t.type === 'expense' || t.type === 'investment') amountChange = -t.amount;
+        else if (t.type === 'transfer') {
+            if (t.toAccount?.toLowerCase() === account.name.toLowerCase()) amountChange = t.amount;
+            else if (t.fromAccount?.toLowerCase() === account.name.toLowerCase()) amountChange = -t.amount;
+        }
+        return acc + amountChange;
+    }, account.initialBalance);
+
+    let runningBalance = startingBalance;
     const dataWithBalance = chronologicalTransactions.map(t => {
       let amountChange = 0;
       let debit = 0;
@@ -138,7 +236,7 @@ export default function AccountSummaryPage() {
     });
     
     return dataWithBalance.reverse();
-  }, [account, accountTransactions]);
+  }, [account, accountTransactions, transactions, activeTab, selectedMonth, selectedYearForMonth, selectedYear, dateFrom, dateTo]);
   
   const currentBalance = account ? getAccountBalance(accountId) : 0;
 
@@ -174,6 +272,78 @@ export default function AccountSummaryPage() {
                     <p className="text-3xl font-bold">₹{currentBalance.toFixed(2)}</p>
                 </CardContent>
             </Card>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                    <TabsTrigger value="yearly">Yearly</TabsTrigger>
+                    <TabsTrigger value="period">Period</TabsTrigger>
+                </TabsList>
+                <TabsContent value="monthly" className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months.map(month => (
+                                    <SelectItem key={month} value={month}>{month}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={selectedYearForMonth.toString()} onValueChange={(value) => setSelectedYearForMonth(parseInt(value))}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {years.map(year => (
+                                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </TabsContent>
+                <TabsContent value="yearly" className="space-y-4 pt-2">
+                    <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {years.map(year => (
+                                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </TabsContent>
+                <TabsContent value="period" className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn("justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateFrom ? format(dateFrom, "PPP") : <span>Pick a start date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus /></PopoverContent>
+                        </Popover>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn("justify-start text-left font-normal", !dateTo && "text-muted-foreground")}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateTo ? format(dateTo, "PPP") : <span>Pick an end date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus /></PopoverContent>
+                        </Popover>
+                    </div>
+                </TabsContent>
+            </Tabs>
 
             <Card>
                 <CardHeader>
@@ -212,7 +382,7 @@ export default function AccountSummaryPage() {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center h-24">
-                                        No transactions for this account.
+                                        No transactions for this period.
                                     </TableCell>
                                 </TableRow>
                             )}
