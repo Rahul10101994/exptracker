@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,11 @@ export function FinancialSummaryCard({
     return (investments / income) * 100;
   }, [income, investments]);
 
+  const savingsPercentageOfIncome = useMemo(() => {
+    if (income === 0) return 0;
+    return (savings / income) * 100;
+  }, [income, savings]);
+
   /* ---------- PREVIOUS MONTH ---------- */
   const { incomeChange, expenseChange, savingsChange, investmentChange } = useMemo(() => {
     const prevIncome = prevMonthTransactions
@@ -68,7 +74,8 @@ export function FinancialSummaryCard({
     const prevSavings = prevIncome - prevExpense - prevInvestments;
 
     const change = (curr: number, prev: number) => {
-      if (prev === 0) return curr > 0 ? 100 : curr < 0 ? -100 : 0;
+      if (prev === 0 && curr === 0) return 0;
+      if (prev === 0) return curr > 0 ? 100 : -100;
       return ((curr - prev) / Math.abs(prev)) * 100;
     };
 
@@ -149,7 +156,7 @@ export function FinancialSummaryCard({
                 </div>
                 {expensePercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-red-500/80">
-                        ({expensePercentageOfIncome.toFixed(0)}% of income)
+                        {expensePercentageOfIncome.toFixed(0)}% of income
                     </p>
                 )}
               </div>
@@ -157,16 +164,23 @@ export function FinancialSummaryCard({
 
             <div className="p-2">
               <p className="text-xs text-muted-foreground">Savings</p>
-              <div className="flex items-baseline gap-2">
-                <p
-                  className={cn(
-                    "text-lg font-bold truncate",
-                    savings >= 0 ? "text-blue-600" : "text-red-600"
-                  )}
-                >
-                  ₹{savings.toFixed(0)}
-                </p>
-                <Trend value={savingsChange} type="increase-is-good" />
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <p
+                    className={cn(
+                      "text-lg font-bold truncate",
+                      savings >= 0 ? "text-blue-600" : "text-red-600"
+                    )}
+                  >
+                    ₹{savings.toFixed(0)}
+                  </p>
+                  <Trend value={savingsChange} type="increase-is-good" />
+                </div>
+                 {savingsPercentageOfIncome > 0 && (
+                    <p className="text-xs font-semibold text-blue-500/80">
+                        {savingsPercentageOfIncome.toFixed(0)}% of income
+                    </p>
+                )}
               </div>
             </div>
 
@@ -181,7 +195,7 @@ export function FinancialSummaryCard({
                 </div>
                 {investmentPercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-purple-600/80">
-                        ({investmentPercentageOfIncome.toFixed(0)}% of income)
+                        {investmentPercentageOfIncome.toFixed(0)}% of income
                     </p>
                 )}
               </div>
