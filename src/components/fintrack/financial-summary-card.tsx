@@ -11,16 +11,16 @@ import { format } from "date-fns";
 
 export function FinancialSummaryCard({
   transactions,
-  prevMonthTransactions,
+  previousPeriodTransactions,
   from,
   to,
 }: {
   transactions: Transaction[];
-  prevMonthTransactions: Transaction[];
+  previousPeriodTransactions: Transaction[];
   from?: string;
   to?: string;
 }) {
-  /* ---------- CURRENT MONTH ---------- */
+  /* ---------- CURRENT PERIOD ---------- */
   const { income, expense, savings, investments } = useMemo(() => {
     const income = transactions
       .filter((t) => t.type === "income")
@@ -51,32 +51,34 @@ export function FinancialSummaryCard({
     if (income === 0) return 0;
     return (investments / income) * 100;
   }, [income, investments]);
-
+  
   const savingsPercentageOfIncome = useMemo(() => {
     if (income === 0) return 0;
     return (savings / income) * 100;
   }, [income, savings]);
 
-  /* ---------- PREVIOUS MONTH ---------- */
+  /* ---------- PREVIOUS PERIOD ---------- */
   const { incomeChange, expenseChange, savingsChange, investmentChange } = useMemo(() => {
-    const prevIncome = prevMonthTransactions
+    const prevIncome = previousPeriodTransactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + t.amount, 0);
 
-    const prevExpense = prevMonthTransactions
+    const prevExpense = previousPeriodTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + t.amount, 0);
     
-    const prevInvestments = prevMonthTransactions
+    const prevInvestments = previousPeriodTransactions
         .filter(t => t.type === 'investment')
         .reduce((sum, t) => sum + t.amount, 0);
 
     const prevSavings = prevIncome - prevExpense - prevInvestments;
 
     const change = (curr: number, prev: number) => {
-      if (prev === 0 && curr === 0) return 0;
-      if (prev === 0) return curr > 0 ? 100 : -100;
-      return ((curr - prev) / Math.abs(prev)) * 100;
+      if (prev === 0) {
+        if (curr === 0) return 0;
+        return Infinity;
+      }
+      return ((curr - prev) / prev) * 100;
     };
 
     return {
@@ -85,7 +87,7 @@ export function FinancialSummaryCard({
       savingsChange: change(savings, prevSavings),
       investmentChange: change(investments, prevInvestments),
     };
-  }, [prevMonthTransactions, income, expense, savings, investments]);
+  }, [previousPeriodTransactions, income, expense, savings, investments]);
 
 
   /* ---------- TREND ---------- */
@@ -115,7 +117,7 @@ export function FinancialSummaryCard({
     );
   };
   
-  const StatLink = ({ type, value, change, children }: { type: string, value: number, change: number, children: React.ReactNode}) => {
+  const StatLink = ({ type, children }: { type: string, children: React.ReactNode}) => {
     const href = from && to ? `/transactions?from=${from}&to=${to}&type=${type}` : '/transactions';
     return (
       <Link href={href} className="block hover:bg-muted p-2 rounded-md transition-colors">
@@ -135,7 +137,7 @@ export function FinancialSummaryCard({
         <CardContent className="p-2 pt-0">
           <div className="grid grid-cols-2 gap-2">
             
-            <StatLink type="income" value={income} change={incomeChange}>
+            <StatLink type="income">
               <p className="text-xs text-muted-foreground">Income</p>
               <div className="flex items-baseline gap-2">
                 <p className="text-lg font-bold text-green-600 truncate">
@@ -145,14 +147,14 @@ export function FinancialSummaryCard({
               </div>
             </StatLink>
 
-            <StatLink type="expense" value={expense} change={expenseChange}>
+            <StatLink type="expense">
               <p className="text-xs text-muted-foreground">Expense</p>
               <div>
                 <div className="flex items-baseline gap-2">
                   <p className="text-lg font-bold text-red-600 truncate">
                     ₹{expense.toFixed(0)}
                   </p>
-                  <Trend value={expenseChange} type="increase-is-bad" />
+                   <Trend value={expenseChange} type="increase-is-bad" />
                 </div>
                 {expensePercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-red-500/80">
@@ -176,7 +178,7 @@ export function FinancialSummaryCard({
                   </p>
                   <Trend value={savingsChange} type="increase-is-good" />
                 </div>
-                 {savingsPercentageOfIncome > 0 && (
+                {income > 0 && (
                     <p className="text-xs font-semibold text-blue-500/80">
                         {savingsPercentageOfIncome.toFixed(0)}% of income
                     </p>
@@ -184,7 +186,7 @@ export function FinancialSummaryCard({
               </div>
             </div>
 
-            <StatLink type="investment" value={investments} change={investmentChange}>
+            <StatLink type="investment">
               <p className="text-xs text-muted-foreground">Investments</p>
               <div>
                 <div className="flex items-baseline gap-2">

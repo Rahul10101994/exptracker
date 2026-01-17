@@ -9,12 +9,12 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 
 export function NeedWantBreakdownCard({
   transactions,
-  prevMonthTransactions,
+  previousPeriodTransactions,
   from,
   to,
 }: {
   transactions: Transaction[];
-  prevMonthTransactions: Transaction[];
+  previousPeriodTransactions: Transaction[];
   from?: string;
   to?: string;
 }) {
@@ -40,7 +40,7 @@ export function NeedWantBreakdownCard({
     let need = 0;
     let want = 0;
 
-    prevMonthTransactions
+    previousPeriodTransactions
       .filter((t) => t.type === "expense")
       .forEach((t) => {
         if (t.spendingType === "need") need += t.amount;
@@ -48,7 +48,7 @@ export function NeedWantBreakdownCard({
       });
 
     return { prevNeedTotal: need, prevWantTotal: want };
-  }, [prevMonthTransactions]);
+  }, [previousPeriodTransactions]);
 
   const calculateChange = (current: number, previous: number) => {
     if (previous === 0) return current > 0 ? 100 : 0;

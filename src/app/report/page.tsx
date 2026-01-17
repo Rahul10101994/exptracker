@@ -195,13 +195,13 @@ export default function ReportPage() {
           <div className="space-y-4">
             <FinancialSummaryCard 
                 transactions={filteredTransactions} 
-                prevMonthTransactions={previousPeriodTransactions}
+                previousPeriodTransactions={previousPeriodTransactions}
                 from={periodFrom}
                 to={periodTo}
             />
             <NeedWantBreakdownCard 
               transactions={filteredTransactions} 
-              prevMonthTransactions={previousPeriodTransactions}
+              previousPeriodTransactions={previousPeriodTransactions}
               from={periodFrom}
               to={periodTo}
             />
