@@ -47,7 +47,7 @@ export function CorrectBalanceDialog({
 
       toast({
         title: "Balance Corrected",
-        description: `The balance for "${account.name}" has been updated. An adjustment was made to the initial balance.`,
+        description: `A correction transaction was created for "${account.name}".`,
       });
 
       onClose();
@@ -79,7 +79,7 @@ export function CorrectBalanceDialog({
           </AlertDialogTitle>
 
           <AlertDialogDescription className="text-sm">
-            Enter the correct current balance for this account. The initial balance will be adjusted automatically.
+            Enter the correct current balance for this account. A correction transaction will be created.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

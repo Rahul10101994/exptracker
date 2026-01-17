@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import { useTransactions } from './transactions-context';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query } from 'firebase/firestore';
@@ -27,7 +27,7 @@ const AccountContext = createContext<AccountContextType | undefined>(undefined);
 
 export const AccountProvider = ({ children }: { children: ReactNode }) => {
     const [accounts, setAccounts] = useState<Account[]>([]);
-    const { transactions } = useTransactions();
+    const { transactions, addTransaction } = useTransactions();
     const userContext = useUser();
     const firestore = useFirestore();
 
@@ -67,14 +67,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         await deleteDoc(accountDoc);
     };
 
-    const getAccountBalance = useMemo(() => {
-    const balanceCache: Record<string, number> = {};
-    
-    return (accountId: string) => {
-        if (balanceCache[accountId] !== undefined) {
-            return balanceCache[accountId];
-        }
-
+    const getAccountBalance = useCallback((accountId: string) => {
         const account = accounts.find(a => a.id === accountId);
         if (!account) return 0;
     
@@ -94,9 +87,7 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
             return acc;
         }, account.initialBalance);
         
-        balanceCache[accountId] = balance;
         return balance;
-    }
     }, [accounts, transactions]);
 
 
@@ -107,10 +98,16 @@ export const AccountProvider = ({ children }: { children: ReactNode }) => {
         const currentCalculatedBalance = getAccountBalance(accountId);
         const adjustment = newBalance - currentCalculatedBalance;
         
-        const updatedAccount = {
-            initialBalance: account.initialBalance + adjustment,
+        if (adjustment !== 0) {
+            addTransaction({
+                type: adjustment > 0 ? 'income' : 'expense',
+                name: 'Balance Correction',
+                amount: Math.abs(adjustment),
+                date: new Date(),
+                category: 'correction',
+                account: account.name,
+            } as any);
         }
-        updateAccount(accountId, updatedAccount);
     };
 
     return (

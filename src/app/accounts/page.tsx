@@ -113,9 +113,11 @@ export default function AccountsPage() {
                 key={account.id}
                 className="flex items-center justify-between"
               >
-                <p className="font-semibold capitalize">
-                  {account.name}
-                </p>
+                <Link href={`/accounts/${account.id}`} className="flex items-center gap-4 flex-1 min-w-0">
+                    <p className="font-semibold capitalize truncate">
+                        {account.name}
+                    </p>
+                </Link>
 
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-muted-foreground">

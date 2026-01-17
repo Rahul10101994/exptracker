@@ -8,7 +8,7 @@ import { useUser } from '@/firebase';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy, writeBatch } from 'firebase/firestore';
 
-const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark, ArrowRightLeft } = LucideIcons;
+const { Music, ArrowUpCircle, Tv, ShoppingBag, Utensils, Bus, MoreHorizontal, Landmark, ArrowRightLeft, Milestone } = LucideIcons;
 
 export type Transaction = {
     id: string;
@@ -59,6 +59,7 @@ const categoryStyles: { [key: string]: { fgColor: string, bgColor: string } } = 
     bills: { fgColor: 'text-purple-500', bgColor: 'bg-purple-100' },
     investment: { fgColor: 'text-indigo-500', bgColor: 'bg-indigo-100' },
     transfer: { fgColor: 'text-cyan-500', bgColor: 'bg-cyan-100' },
+    correction: { fgColor: 'text-blue-500', bgColor: 'bg-blue-100' },
     other: { fgColor: 'text-gray-500', bgColor: 'bg-gray-100' },
 };
 
@@ -74,6 +75,7 @@ const initialCategoryIcons: { [key: string]: React.ElementType } = {
     bills: Tv,
     investment: Landmark,
     transfer: ArrowRightLeft,
+    correction: Milestone,
     other: MoreHorizontal
 };
 
