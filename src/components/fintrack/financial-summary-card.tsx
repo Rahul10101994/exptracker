@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -133,14 +134,14 @@ export function FinancialSummaryCard({
 
             <StatLink type="expense" value={expense} change={expenseChange}>
               <p className="text-xs text-muted-foreground">Expense</p>
-              <div className="flex items-center gap-2">
+              <div>
                 <p className="text-lg font-bold text-red-600 truncate">
                   ₹{expense.toFixed(0)}
                 </p>
                 {expensePercentageOfIncome > 0 && (
-                    <span className="text-xs font-semibold text-red-500/80">
-                        ({expensePercentageOfIncome.toFixed(0)}% of income)
-                    </span>
+                    <p className="text-xs font-semibold text-red-500/80">
+                        ({expensePercentageOfIncome.toFixed(0)}%)
+                    </p>
                 )}
               </div>
             </StatLink>
@@ -162,14 +163,14 @@ export function FinancialSummaryCard({
 
             <StatLink type="investment" value={investments} change={investmentChange}>
               <p className="text-xs text-muted-foreground">Investments</p>
-              <div className="flex items-center gap-2">
+              <div>
                 <p className="text-lg font-bold text-purple-600 truncate">
                   ₹{investments.toFixed(0)}
                 </p>
                 {investmentPercentageOfIncome > 0 && (
-                    <span className="text-xs font-semibold text-purple-600/80">
-                        ({investmentPercentageOfIncome.toFixed(0)}% of income)
-                    </span>
+                    <p className="text-xs font-semibold text-purple-600/80">
+                        ({investmentPercentageOfIncome.toFixed(0)}%)
+                    </p>
                 )}
               </div>
             </StatLink>
