@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +40,16 @@ export function FinancialSummaryCard({
       investments,
     };
   }, [transactions]);
+
+  const expensePercentageOfIncome = useMemo(() => {
+    if (income === 0) return 0;
+    return (expense / income) * 100;
+  }, [income, expense]);
+
+  const investmentPercentageOfIncome = useMemo(() => {
+    if (income === 0) return 0;
+    return (investments / income) * 100;
+  }, [income, investments]);
 
   /* ---------- PREVIOUS MONTH ---------- */
   const { incomeChange, expenseChange, savingsChange, investmentChange } = useMemo(() => {
@@ -128,7 +137,11 @@ export function FinancialSummaryCard({
                 <p className="text-lg font-bold text-red-600 truncate">
                   ₹{expense.toFixed(0)}
                 </p>
-                <Trend value={expenseChange} invert />
+                {expensePercentageOfIncome > 0 && (
+                    <span className="text-xs font-semibold text-red-500/80">
+                        ({expensePercentageOfIncome.toFixed(0)}% of income)
+                    </span>
+                )}
               </div>
             </StatLink>
 
@@ -153,7 +166,11 @@ export function FinancialSummaryCard({
                 <p className="text-lg font-bold text-purple-600 truncate">
                   ₹{investments.toFixed(0)}
                 </p>
-                <Trend value={investmentChange} />
+                {investmentPercentageOfIncome > 0 && (
+                    <span className="text-xs font-semibold text-purple-600/80">
+                        ({investmentPercentageOfIncome.toFixed(0)}% of income)
+                    </span>
+                )}
               </div>
             </StatLink>
 
