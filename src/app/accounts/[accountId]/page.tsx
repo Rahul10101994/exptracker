@@ -4,13 +4,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { useAccounts } from "@/contexts/account-context";
 import { useTransactions, Transaction } from "@/contexts/transactions-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GenerateAccountSummaryDialog } from "@/components/fintrack/generate-account-summary-dialog";
 
 function AccountSummarySkeleton() {
     return (
@@ -53,6 +54,8 @@ export default function AccountSummaryPage() {
   const { transactions, getIconForCategory } = useTransactions();
 
   const [isClient, setIsClient] = React.useState(false);
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = React.useState(false);
+  
   React.useEffect(() => { setIsClient(true) }, []);
 
   const account = React.useMemo(() => {
@@ -89,7 +92,10 @@ export default function AccountSummaryPage() {
                 <h1 className="text-lg font-bold capitalize">{account.name}</h1>
                 <p className="text-xs text-muted-foreground">Account Summary</p>
             </div>
-            <div className="w-10" />
+            <Button variant="ghost" size="icon" onClick={() => setIsSummaryDialogOpen(true)}>
+                <FileText />
+                <span className="sr-only">Generate Summary</span>
+            </Button>
         </header>
 
         <main className="p-4 space-y-4">
@@ -181,6 +187,12 @@ export default function AccountSummaryPage() {
                 </CardContent>
             </Card>
         </main>
+        
+        <GenerateAccountSummaryDialog 
+            isOpen={isSummaryDialogOpen}
+            onClose={() => setIsSummaryDialogOpen(false)}
+            accountId={accountId}
+        />
     </div>
   );
 }
