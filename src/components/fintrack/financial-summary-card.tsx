@@ -37,7 +37,7 @@ export function FinancialSummaryCard({
     return {
       income,
       expense,
-      savings: income - expense,
+      savings: income - expense - investments,
       investments,
     };
   }, [transactions]);
@@ -51,12 +51,12 @@ export function FinancialSummaryCard({
     const prevExpense = prevMonthTransactions
       .filter((t) => t.type === "expense")
       .reduce((acc, t) => acc + t.amount, 0);
-
-    const prevSavings = prevIncome - prevExpense;
-
+    
     const prevInvestments = prevMonthTransactions
         .filter(t => t.type === 'investment')
         .reduce((sum, t) => sum + t.amount, 0);
+
+    const prevSavings = prevIncome - prevExpense - prevInvestments;
 
     const change = (curr: number, prev: number) => {
       if (prev === 0) return curr > 0 ? 100 : curr < 0 ? -100 : 0;
