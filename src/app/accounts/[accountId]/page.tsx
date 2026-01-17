@@ -12,6 +12,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GenerateAccountSummaryDialog } from "@/components/fintrack/generate-account-summary-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 function AccountSummarySkeleton() {
     return (
@@ -26,20 +34,35 @@ function AccountSummarySkeleton() {
             </header>
             <main className="p-4 space-y-4">
                 <Skeleton className="h-24 w-full" />
-                <div className="space-y-4 pt-4">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Skeleton className="h-12 w-12 rounded-full" />
-                                <div className="space-y-2">
-                                    <Skeleton className="h-4 w-24" />
-                                    <Skeleton className="h-3 w-16" />
-                                </div>
-                            </div>
-                            <Skeleton className="h-5 w-16" />
-                        </div>
-                    ))}
-                </div>
+                 <Card>
+                    <CardHeader>
+                        <Skeleton className="h-6 w-48" />
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead><Skeleton className="h-5 w-16" /></TableHead>
+                                    <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                                    <TableHead className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableHead>
+                                    <TableHead className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableHead>
+                                    <TableHead className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             </main>
         </div>
     )
@@ -51,7 +74,7 @@ export default function AccountSummaryPage() {
   const accountId = params.accountId as string;
 
   const { accounts, getAccountBalance } = useAccounts();
-  const { transactions, getIconForCategory } = useTransactions();
+  const { transactions } = useTransactions();
 
   const [isClient, setIsClient] = React.useState(false);
   const [isSummaryDialogOpen, setIsSummaryDialogOpen] = React.useState(false);
@@ -72,6 +95,50 @@ export default function AccountSummaryPage() {
     );
 
   }, [transactions, account]);
+  
+  const statementData = React.useMemo(() => {
+    if (!account) return [];
+    
+    const chronologicalTransactions = [...accountTransactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    let runningBalance = account.initialBalance;
+    const dataWithBalance = chronologicalTransactions.map(t => {
+      let amountChange = 0;
+      let debit = 0;
+      let credit = 0;
+      
+      const isTransfer = t.type === 'transfer';
+      const isIncome = t.type === 'income';
+      const isExpense = t.type === 'expense' || t.type === 'investment';
+
+      if (isIncome) {
+        amountChange = t.amount;
+        credit = t.amount;
+      } else if (isExpense) {
+        amountChange = -t.amount;
+        debit = t.amount;
+      } else if (isTransfer) {
+        if (t.toAccount?.toLowerCase() === account.name.toLowerCase()) {
+          amountChange = t.amount;
+          credit = t.amount;
+        } else if (t.fromAccount?.toLowerCase() === account.name.toLowerCase()) {
+          amountChange = -t.amount;
+          debit = t.amount;
+        }
+      }
+      
+      runningBalance += amountChange;
+      
+      return {
+        ...t,
+        debit,
+        credit,
+        runningBalance
+      };
+    });
+    
+    return dataWithBalance.reverse();
+  }, [account, accountTransactions]);
   
   const currentBalance = account ? getAccountBalance(accountId) : 0;
 
@@ -110,80 +177,47 @@ export default function AccountSummaryPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Transaction History</CardTitle>
+                    <CardTitle>Account Statement</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                     {accountTransactions.length > 0 ? (
-                        accountTransactions.map((transaction) => {
-                            const Icon = getIconForCategory(transaction.category);
-                            const isIncome = transaction.type === "income";
-                            const isTransfer = transaction.type === "transfer";
-                            let amountPrefix = '-';
-                            let amountColor = 'text-red-600';
-
-                            if (isIncome) {
-                                amountPrefix = '+';
-                                amountColor = 'text-green-600';
-                            } else if (isTransfer) {
-                                if (transaction.toAccount?.toLowerCase() === account.name.toLowerCase()) {
-                                    amountPrefix = '+';
-                                    amountColor = 'text-green-600';
-                                } else {
-                                    amountPrefix = '-';
-                                    amountColor = 'text-red-600';
-                                }
-                            }
-
-                            return (
-                                <div
-                                key={transaction.id}
-                                className="flex items-center justify-between"
-                                >
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div
-                                    className={cn(
-                                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
-                                        transaction.bgColor
-                                    )}
-                                    >
-                                    <Icon
-                                        className={cn(
-                                        "h-5 w-5",
-                                        transaction.fgColor
-                                        )}
-                                    />
-                                    </div>
-
-                                    <div className="min-w-0">
-                                    <p className="text-sm font-semibold truncate">
-                                        {transaction.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground truncate">
-                                        {transaction.category} •{" "}
-                                        {new Date(transaction.date).toLocaleDateString(
-                                        "en-US",
-                                        { day: "numeric", month: "short" }
-                                        )}
-                                    </p>
-                                    </div>
-                                </div>
-                                <p
-                                    className={cn(
-                                    "text-sm font-semibold whitespace-nowrap",
-                                    amountColor
-                                    )}
-                                >
-                                    {amountPrefix}₹
-                                    {transaction.amount.toFixed(0)}
-                                </p>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="text-center text-sm text-muted-foreground py-10">
-                            No transactions for this account.
-                        </div>
-                    )}
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="pl-4">Date</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead className="text-right">Debit</TableHead>
+                                <TableHead className="text-right">Credit</TableHead>
+                                <TableHead className="text-right pr-4">Balance</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {statementData.length > 0 ? (
+                                statementData.map((tx) => (
+                                    <TableRow key={tx.id}>
+                                        <TableCell className="text-xs text-muted-foreground pl-4">
+                                          {new Date(tx.date).toLocaleDateString("en-GB", { day: '2-digit', month: 'short' })}
+                                        </TableCell>
+                                        <TableCell className="font-medium truncate max-w-24">{tx.name}</TableCell>
+                                        <TableCell className="text-right font-semibold text-red-600">
+                                            {tx.debit > 0 ? `₹${tx.debit.toFixed(2)}` : '-'}
+                                        </TableCell>
+                                        <TableCell className="text-right font-semibold text-green-600">
+                                            {tx.credit > 0 ? `₹${tx.credit.toFixed(2)}` : '-'}
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium pr-4">
+                                          ₹{tx.runningBalance.toFixed(2)}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24">
+                                        No transactions for this account.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </main>
