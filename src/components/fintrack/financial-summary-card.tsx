@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,17 +82,24 @@ export function FinancialSummaryCard({
 
 
   /* ---------- TREND ---------- */
-  const Trend = ({ value, invert = false }: { value: number; invert?: boolean }) => {
-    if (value === 0) return null;
+  const Trend = ({ value, type }: { value: number; type: 'increase-is-good' | 'increase-is-bad' }) => {
+    if (value === 0 || !isFinite(value)) return null;
 
-    const positive = invert ? value < 0 : value > 0;
-    const Icon = positive ? ArrowUp : ArrowDown;
+    const isIncrease = value > 0;
+    const Icon = isIncrease ? ArrowUp : ArrowDown;
+    
+    let colorClass = '';
+    if (type === 'increase-is-good') {
+        colorClass = isIncrease ? 'text-green-500' : 'text-red-500';
+    } else { // increase-is-bad
+        colorClass = isIncrease ? 'text-red-500' : 'text-green-500';
+    }
 
     return (
       <span
         className={cn(
           "flex items-center gap-0.5 text-[11px] font-semibold",
-          positive ? "text-green-500" : "text-red-500"
+          colorClass
         )}
       >
         <Icon className="h-3 w-3" />
@@ -124,20 +130,23 @@ export function FinancialSummaryCard({
             
             <StatLink type="income" value={income} change={incomeChange}>
               <p className="text-xs text-muted-foreground">Income</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-baseline gap-2">
                 <p className="text-lg font-bold text-green-600 truncate">
                   ₹{income.toFixed(0)}
                 </p>
-                <Trend value={incomeChange} />
+                <Trend value={incomeChange} type="increase-is-good" />
               </div>
             </StatLink>
 
             <StatLink type="expense" value={expense} change={expenseChange}>
               <p className="text-xs text-muted-foreground">Expense</p>
               <div>
-                <p className="text-lg font-bold text-red-600 truncate">
-                  ₹{expense.toFixed(0)}
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-lg font-bold text-red-600 truncate">
+                    ₹{expense.toFixed(0)}
+                  </p>
+                  <Trend value={expenseChange} type="increase-is-bad" />
+                </div>
                 {expensePercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-red-500/80">
                         ({expensePercentageOfIncome.toFixed(0)}% of income)
@@ -148,7 +157,7 @@ export function FinancialSummaryCard({
 
             <div className="p-2">
               <p className="text-xs text-muted-foreground">Savings</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-baseline gap-2">
                 <p
                   className={cn(
                     "text-lg font-bold truncate",
@@ -157,16 +166,19 @@ export function FinancialSummaryCard({
                 >
                   ₹{savings.toFixed(0)}
                 </p>
-                <Trend value={savingsChange} />
+                <Trend value={savingsChange} type="increase-is-good" />
               </div>
             </div>
 
             <StatLink type="investment" value={investments} change={investmentChange}>
               <p className="text-xs text-muted-foreground">Investments</p>
               <div>
-                <p className="text-lg font-bold text-purple-600 truncate">
-                  ₹{investments.toFixed(0)}
-                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-lg font-bold text-purple-600 truncate">
+                    ₹{investments.toFixed(0)}
+                  </p>
+                  <Trend value={investmentChange} type="increase-is-good" />
+                </div>
                 {investmentPercentageOfIncome > 0 && (
                     <p className="text-xs font-semibold text-purple-600/80">
                         ({investmentPercentageOfIncome.toFixed(0)}% of income)
