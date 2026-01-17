@@ -75,10 +75,11 @@ export function FinancialSummaryCard({
 
     const change = (curr: number, prev: number) => {
       if (prev === 0) {
-        if (curr === 0) return 0;
-        return Infinity;
+        if (curr > 0) return 100;
+        if (curr < 0) return -100;
+        return 0;
       }
-      return ((curr - prev) / prev) * 100;
+      return ((curr - prev) / Math.abs(prev)) * 100;
     };
 
     return {
@@ -92,7 +93,7 @@ export function FinancialSummaryCard({
 
   /* ---------- TREND ---------- */
   const Trend = ({ value, type }: { value: number; type: 'increase-is-good' | 'increase-is-bad' }) => {
-    if (value === 0 || !isFinite(value)) return null;
+    if (value === 0) return null;
 
     const isIncrease = value > 0;
     const Icon = isIncrease ? ArrowUp : ArrowDown;
