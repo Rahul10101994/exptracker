@@ -133,6 +133,11 @@ export default function BudgetPage() {
         return Math.max(0, percentage);
     }, [expenseToIncomePercentage, investmentToIncomePercentage, totalIncomeBudget]);
 
+    const totalSavingsAmount = React.useMemo(() => {
+        const savings = totalIncomeBudget - totalExpenseBudget - totalInvestmentBudget;
+        return Math.max(0, savings);
+    }, [totalIncomeBudget, totalExpenseBudget, totalInvestmentBudget]);
+
 
     const handleExpenseBudgetChange = (category: string, amount: number) => {
         setLocalExpenseBudgets(prev => ({
@@ -196,6 +201,7 @@ export default function BudgetPage() {
                         </CardHeader>
                         <CardContent className="p-2 pt-1">
                             <p className="text-lg font-bold text-red-600">{expenseToIncomePercentage.toFixed(0)}%</p>
+                             <p className="text-xs text-muted-foreground">₹{totalExpenseBudget.toFixed(0)}</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -204,6 +210,7 @@ export default function BudgetPage() {
                         </CardHeader>
                         <CardContent className="p-2 pt-1">
                             <p className="text-lg font-bold text-purple-600">{investmentToIncomePercentage.toFixed(0)}%</p>
+                            <p className="text-xs text-muted-foreground">₹{totalInvestmentBudget.toFixed(0)}</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -212,6 +219,7 @@ export default function BudgetPage() {
                         </CardHeader>
                         <CardContent className="p-2 pt-1">
                             <p className="text-lg font-bold text-green-600">{savingsToIncomePercentage.toFixed(0)}%</p>
+                            <p className="text-xs text-muted-foreground">₹{totalSavingsAmount.toFixed(0)}</p>
                         </CardContent>
                     </Card>
                 </div>
