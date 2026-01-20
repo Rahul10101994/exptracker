@@ -106,7 +106,9 @@ export default function BudgetPage() {
     };
 
     const totalExpenseBudget = React.useMemo(() => {
-        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
+        return Object.entries(localExpenseBudgets)
+            .filter(([key]) => key.toLowerCase() !== 'investment')
+            .reduce((sum, [, budget]) => sum + (budget?.amount || 0), 0);
     }, [localExpenseBudgets]);
     
     const totalIncomeBudget = React.useMemo(() => {
@@ -225,11 +227,11 @@ export default function BudgetPage() {
                 </div>
                 
                 <Card className="text-center">
-                    <CardHeader className="p-2">
+                    <CardHeader className="p-2 pb-1">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Total Monthly Budget</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-3 pt-0">
-                        <p className="text-3xl font-bold">₹{(totalExpenseBudget + totalInvestmentBudget).toFixed(2)}</p>
+                    <CardContent className="p-2 pt-0">
+                        <p className="text-2xl font-bold">₹{(totalExpenseBudget + totalInvestmentBudget).toFixed(2)}</p>
                         {totalIncomeBudget > 0 && (
                             <p className="text-xs text-muted-foreground">
                                 {(((totalExpenseBudget + totalInvestmentBudget) / totalIncomeBudget) * 100).toFixed(0)}% of income target
@@ -262,6 +264,7 @@ export default function BudgetPage() {
 
                     <div className="space-y-4 mt-4">
                         {isClient && Object.entries(localExpenseBudgets).map(([category, budget]) => {
+                            if (category.toLowerCase() === 'investment') return null;
                             const Icon = getIconForCategory(category);
                             const { spent, percentage } = getCategoryProgress(category, 'expense');
                             
