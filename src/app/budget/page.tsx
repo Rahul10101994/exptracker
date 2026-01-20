@@ -223,6 +223,21 @@ export default function BudgetPage() {
                         </CardContent>
                     </Card>
                 </div>
+                
+                <Card className="text-center">
+                    <CardHeader className="p-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Monthly Budget</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0">
+                        <p className="text-3xl font-bold">₹{(totalExpenseBudget + totalInvestmentBudget).toFixed(2)}</p>
+                        {totalIncomeBudget > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                {(((totalExpenseBudget + totalInvestmentBudget) / totalIncomeBudget) * 100).toFixed(0)}% of income target
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+
                 {/* ---------- EXPENSE BUDGETS ---------- */}
                 <div>
                     <div className='flex justify-between items-center mb-2'>
