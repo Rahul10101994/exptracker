@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -93,11 +92,11 @@ export default function BudgetPage() {
     };
 
     const totalExpenseBudget = React.useMemo(() => {
-        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
+        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
     }, [localExpenseBudgets]);
 
     const totalIncomeBudget = React.useMemo(() => {
-        return Object.values(localIncomeBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
+        return Object.values(localIncomeBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
     }, [localIncomeBudgets]);
 
     const handleExpenseBudgetChange = (category: string, amount: number) => {
@@ -185,7 +184,7 @@ export default function BudgetPage() {
                                             <span className={percentage > 100 ? 'text-destructive' : ''}>
                                                 ₹{(spent ?? 0).toFixed(2)}
                                             </span>
-                                             / ₹{budget.amount.toFixed(2)}
+                                             / ₹{(budget?.amount || 0).toFixed(2)}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="p-2 pt-0">
@@ -208,7 +207,7 @@ export default function BudgetPage() {
                                                 id={`budget-${category}`}
                                                 type="number"
                                                 placeholder="Set Budget"
-                                                value={budget.amount === 0 ? '' : budget.amount}
+                                                value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
                                                 onChange={(e) => handleExpenseBudgetChange(category, parseFloat(e.target.value) || 0)}
                                                 className="text-right h-8"
                                             />
@@ -260,7 +259,7 @@ export default function BudgetPage() {
                                             <span className="text-green-600">
                                                 ₹{(earned ?? 0).toFixed(2)}
                                             </span>
-                                             / ₹{budget.amount.toFixed(2)}
+                                             / ₹{(budget?.amount || 0).toFixed(2)}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="p-2 pt-0">
@@ -277,7 +276,7 @@ export default function BudgetPage() {
                                                 id={`income-budget-${category}`}
                                                 type="number"
                                                 placeholder="Set Target"
-                                                value={budget.amount === 0 ? '' : budget.amount}
+                                                value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
                                                 onChange={(e) => handleIncomeBudgetChange(category, parseFloat(e.target.value) || 0)}
                                                 className="text-right h-8"
                                             />
