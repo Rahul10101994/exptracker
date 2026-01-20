@@ -13,14 +13,17 @@ export function SavingRateCard() {
       .filter(t => t.type === 'income')
       .reduce((acc, t) => acc + t.amount, 0);
     
-    // Correctly define expenses to exclude investments
     const expense = currentMonthTransactions
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => acc + t.amount, 0);
 
+    const investments = currentMonthTransactions
+      .filter(t => t.type === 'investment')
+      .reduce((acc, t) => acc + t.amount, 0);
+
     if (income === 0) return 0;
     
-    const savings = income - expense;
+    const savings = income - expense - investments;
     // Ensure savings rate doesn't go below 0 for the display
     return Math.max(0, Math.round((savings / income) * 100));
   }, [currentMonthTransactions]);
