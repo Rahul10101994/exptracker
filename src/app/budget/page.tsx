@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -92,8 +92,20 @@ export default function BudgetPage() {
     };
 
     const totalExpenseBudget = React.useMemo(() => {
-        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
+        return Object.entries(localExpenseBudgets)
+            .filter(([category]) => category !== 'investment')
+            .reduce((sum, [, budget]) => sum + (budget?.amount || 0), 0);
     }, [localExpenseBudgets]);
+    
+    const expenseBudgetEntries = React.useMemo(() => 
+        Object.entries(localExpenseBudgets).filter(([category]) => category !== 'investment'), 
+        [localExpenseBudgets]
+    );
+
+    const investmentBudgetEntry = React.useMemo(() => 
+        Object.entries(localExpenseBudgets).find(([category]) => category === 'investment'),
+        [localExpenseBudgets]
+    );
 
     const totalIncomeBudget = React.useMemo(() => {
         return Object.values(localIncomeBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
@@ -164,7 +176,7 @@ export default function BudgetPage() {
                     </Card>
 
                     <div className="space-y-4 mt-4">
-                        {isClient && localExpenseBudgets && Object.entries(localExpenseBudgets).map(([category, budget]) => {
+                        {isClient && expenseBudgetEntries.map(([category, budget]) => {
                             const Icon = getIconForCategory(category);
                             const { spent, percentage } = getCategoryProgress(category, 'expense');
                             
@@ -184,7 +196,7 @@ export default function BudgetPage() {
                                             <span className={percentage > 100 ? 'text-destructive' : ''}>
                                                 ₹{(spent ?? 0).toFixed(2)}
                                             </span>
-                                             / ₹{(budget?.amount || 0).toFixed(2)}
+                                             / ₹{(budget?.amount ?? 0).toFixed(2)}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="p-2 pt-0">
@@ -217,6 +229,57 @@ export default function BudgetPage() {
                             )
                         })}
                     </div>
+                </div>
+
+                <Separator />
+                
+                {/* ---------- INVESTMENT BUDGET ---------- */}
+                <div>
+                     <h2 className='text-base font-semibold mb-2'>Investment Budget</h2>
+                     {isClient && investmentBudgetEntry && (() => {
+                        const [category, budget] = investmentBudgetEntry;
+                        const { spent, percentage } = getCategoryProgress(category, 'expense');
+                        const isAchieved = percentage >= 100;
+                        
+                        return (
+                            <Card key={category}>
+                                <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1 rounded-md">
+                                            <Landmark className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                        <CardTitle className="text-base capitalize">{category}</CardTitle>
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        <span className={isAchieved ? 'text-green-600' : ''}>
+                                            ₹{(spent ?? 0).toFixed(2)}
+                                        </span>
+                                         / ₹{(budget?.amount ?? 0).toFixed(2)}
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-2 pt-0">
+                                   <div className='relative'>
+                                     <div 
+                                         className={`absolute top-0 left-0 h-2 rounded-full ${isAchieved ? 'bg-green-500' : 'bg-purple-500'}`}
+                                         style={{ width: `${Math.min(percentage, 100)}%`, transition: 'width 0.3s' }}
+                                     ></div>
+                                     <div className={`h-2 w-full rounded-full ${isAchieved ? 'bg-green-500/20' : 'bg-purple-500/20'}`}></div>
+                                   </div>
+                                    <div className="mt-2">
+                                        <Label htmlFor={`budget-${category}`} className="sr-only">Set Budget for {category}</Label>
+                                        <Input
+                                            id={`budget-${category}`}
+                                            type="number"
+                                            placeholder="Set Budget"
+                                            value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
+                                            onChange={(e) => handleExpenseBudgetChange(category, parseFloat(e.target.value) || 0)}
+                                            className="text-right h-8"
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })()}
                 </div>
 
                 <Separator />
@@ -259,7 +322,7 @@ export default function BudgetPage() {
                                             <span className="text-green-600">
                                                 ₹{(earned ?? 0).toFixed(2)}
                                             </span>
-                                             / ₹{(budget?.amount || 0).toFixed(2)}
+                                             / ₹{(budget?.amount ?? 0).toFixed(2)}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="p-2 pt-0">
@@ -341,3 +404,4 @@ export default function BudgetPage() {
         </FinTrackLayout>
     );
 }
+    
