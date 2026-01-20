@@ -105,17 +105,17 @@ const smartCategoryMap: Record<string, string> = {
 export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addTransaction } = useTransactions();
   const { accounts } = useAccounts();
-  const { expenseBudgets, incomeCategories } = useBudget();
+  const { expenseBudgets, incomeBudgets } = useBudget();
 
   const categories = React.useMemo(() => {
     const expenseCategories = Object.keys(expenseBudgets);
     return {
-        income: incomeCategories,
+        income: Object.keys(incomeBudgets),
         expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
         investment: ["Stocks", "Mutual Funds", "Crypto", "Other"],
         transfer: ["Transfer"],
     }
-  }, [expenseBudgets, incomeCategories]);
+  }, [expenseBudgets, incomeBudgets]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -351,7 +351,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                     <Select
                     value={field.value}
                     onValueChange={field.onChange}
-                    disabled={!transactionType || transactionType === 'investment'}
+                    disabled={!transactionType || transactionType === 'investment' || transactionType === 'transfer'}
                     >
                     <FormControl>
                         <SelectTrigger className="h-11">
@@ -359,7 +359,7 @@ export function AddTransactionForm({ onSubmit }: { onSubmit?: () => void }) {
                         </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                        {transactionType &&
+                        {transactionType && categories[transactionType] &&
                         categories[transactionType].map((c: string) => (
                             <SelectItem key={c} value={c.toLowerCase()}>
                             {c}

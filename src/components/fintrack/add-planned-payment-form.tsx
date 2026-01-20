@@ -71,16 +71,16 @@ const smartCategoryMap: Record<string, string> = {
 export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addPlannedPayment } = usePlannedPayments();
   const { accounts } = useAccounts();
-  const { expenseBudgets, incomeCategories } = useBudget();
+  const { expenseBudgets, incomeBudgets } = useBudget();
 
   const categories = React.useMemo(() => {
     const expenseCategories = Object.keys(expenseBudgets);
     return {
-        income: incomeCategories,
+        income: Object.keys(incomeBudgets),
         expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
         investment: ["Stocks", "Mutual Funds", "Crypto", "Other"],
     }
-  }, [expenseBudgets, incomeCategories]);
+  }, [expenseBudgets, incomeBudgets]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({

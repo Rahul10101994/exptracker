@@ -34,8 +34,9 @@ type LocalBudgets = {
 export default function BudgetPage() {
     const { 
         expenseBudgets, 
-        incomeCategories,
-        setExpenseBudgets, 
+        incomeBudgets,
+        setExpenseBudgets,
+        setIncomeBudgets, 
         addExpenseCategory, 
         deleteExpenseCategory, 
         addIncomeCategory, 
@@ -47,7 +48,8 @@ export default function BudgetPage() {
     const [newCategory, setNewCategory] = React.useState('');
     const [newCategoryType, setNewCategoryType] = React.useState<'expense' | 'income'>('expense');
     
-    const [localBudgets, setLocalBudgets] = React.useState<LocalBudgets>({});
+    const [localExpenseBudgets, setLocalExpenseBudgets] = React.useState<LocalBudgets>({});
+    const [localIncomeBudgets, setLocalIncomeBudgets] = React.useState<LocalBudgets>({});
     const [categoryToDelete, setCategoryToDelete] = React.useState<{name: string, type: 'expense' | 'income'} | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const [isSaving, setIsSaving] = React.useState(false);
@@ -57,9 +59,12 @@ export default function BudgetPage() {
     }, []);
 
     React.useEffect(() => {
-        // Deep copy to prevent mutation issues
-        setLocalBudgets(JSON.parse(JSON.stringify(expenseBudgets)));
+        setLocalExpenseBudgets(JSON.parse(JSON.stringify(expenseBudgets)));
     }, [expenseBudgets]);
+
+    React.useEffect(() => {
+        setLocalIncomeBudgets(JSON.parse(JSON.stringify(incomeBudgets)));
+    }, [incomeBudgets]);
 
     const handleAddCategory = async () => {
         if (newCategory.trim()) {
@@ -87,12 +92,23 @@ export default function BudgetPage() {
         }
     };
 
-    const totalBudget = React.useMemo(() => {
-        return Object.values(localBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
-    }, [localBudgets]);
+    const totalExpenseBudget = React.useMemo(() => {
+        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
+    }, [localExpenseBudgets]);
 
-    const handleBudgetChange = (category: string, amount: number) => {
-        setLocalBudgets(prev => ({
+    const totalIncomeBudget = React.useMemo(() => {
+        return Object.values(localIncomeBudgets).reduce((sum, budget) => sum + (budget.amount || 0), 0);
+    }, [localIncomeBudgets]);
+
+    const handleExpenseBudgetChange = (category: string, amount: number) => {
+        setLocalExpenseBudgets(prev => ({
+            ...prev,
+            [category]: { amount }
+        }));
+    };
+
+    const handleIncomeBudgetChange = (category: string, amount: number) => {
+        setLocalIncomeBudgets(prev => ({
             ...prev,
             [category]: { amount }
         }));
@@ -100,7 +116,10 @@ export default function BudgetPage() {
 
     const handleSave = async () => {
         setIsSaving(true);
-        await setExpenseBudgets(localBudgets);
+        await Promise.all([
+            setExpenseBudgets(localExpenseBudgets),
+            setIncomeBudgets(localIncomeBudgets)
+        ]);
         setIsSaving(false);
         toast({
             title: "Budgets Saved",
@@ -123,12 +142,12 @@ export default function BudgetPage() {
                         <span className="sr-only">Back</span>
                     </Link>
                 </Button>
-                <h1 className="text-lg font-bold text-foreground mx-auto">Manage Categories</h1>
+                <h1 className="text-lg font-bold text-foreground mx-auto">Manage Budgets</h1>
                  <div className="w-10"></div>
             </header>
 
-            <div className="space-y-6 pb-16">
-                {/* ---------- EXPENSE CATEGORIES ---------- */}
+            <div className="space-y-6 pb-24">
+                {/* ---------- EXPENSE BUDGETS ---------- */}
                 <div>
                     <div className='flex justify-between items-center mb-2'>
                         <h2 className='text-base font-semibold'>Expense Budgets</h2>
@@ -138,17 +157,17 @@ export default function BudgetPage() {
                     </div>
                     <Card className="text-center">
                         <CardHeader className="p-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Budget</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expense Budget</CardTitle>
                         </CardHeader>
                         <CardContent className="p-3 pt-0">
-                            <p className="text-3xl font-bold">₹{totalBudget.toFixed(2)}</p>
+                            <p className="text-3xl font-bold">₹{totalExpenseBudget.toFixed(2)}</p>
                         </CardContent>
                     </Card>
 
                     <div className="space-y-4 mt-4">
-                        {isClient && localBudgets && Object.entries(localBudgets).map(([category, budget]) => {
+                        {isClient && localExpenseBudgets && Object.entries(localExpenseBudgets).map(([category, budget]) => {
                             const Icon = getIconForCategory(category);
-                            const { spent, percentage } = getCategoryProgress(category);
+                            const { spent, percentage } = getCategoryProgress(category, 'expense');
                             
                             return (
                                 <Card key={category}>
@@ -164,7 +183,7 @@ export default function BudgetPage() {
                                         </div>
                                         <div className="text-sm text-muted-foreground">
                                             <span className={percentage > 100 ? 'text-destructive' : ''}>
-                                                ₹{spent.toFixed(2)}
+                                                ₹{(spent ?? 0).toFixed(2)}
                                             </span>
                                              / ₹{budget.amount.toFixed(2)}
                                         </div>
@@ -190,7 +209,7 @@ export default function BudgetPage() {
                                                 type="number"
                                                 placeholder="Set Budget"
                                                 value={budget.amount === 0 ? '' : budget.amount}
-                                                onChange={(e) => handleBudgetChange(category, parseFloat(e.target.value) || 0)}
+                                                onChange={(e) => handleExpenseBudgetChange(category, parseFloat(e.target.value) || 0)}
                                                 className="text-right h-8"
                                             />
                                         </div>
@@ -199,43 +218,81 @@ export default function BudgetPage() {
                             )
                         })}
                     </div>
-                     <div className='mt-4'>
-                        <Button onClick={handleSave} className="w-full" disabled={isSaving}>
-                            {isSaving ? 'Saving...' : 'Save Budget Changes'}
-                        </Button>
-                    </div>
                 </div>
 
                 <Separator />
 
-                {/* ---------- INCOME CATEGORIES ---------- */}
+                {/* ---------- INCOME BUDGETS ---------- */}
                 <div>
                      <div className='flex justify-between items-center mb-2'>
-                        <h2 className='text-base font-semibold'>Income Categories</h2>
+                        <h2 className='text-base font-semibold'>Income Budgets</h2>
                         <Button variant="ghost" size="icon" onClick={() => openAddCategoryDialog('income')}>
                             <PlusCircle className='h-5 w-5'/>
                         </Button>
                     </div>
-                    <Card>
-                        <CardContent className="pt-6 space-y-4">
-                            {isClient && incomeCategories.map((category) => {
-                                const Icon = getIconForCategory(category);
-                                return (
-                                <div key={category} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                         <Icon className="h-5 w-5 text-muted-foreground" />
-                                        <span className="font-medium capitalize">{category}</span>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete({ name: category, type: 'income' })}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            )})}
-                            {isClient && incomeCategories.length === 0 && (
-                                <p className="text-center text-muted-foreground">No income categories defined.</p>
-                            )}
+                    <Card className="text-center">
+                        <CardHeader className="p-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Income Target</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-0">
+                            <p className="text-3xl font-bold">₹{totalIncomeBudget.toFixed(2)}</p>
                         </CardContent>
                     </Card>
+
+                    <div className="space-y-4 mt-4">
+                        {isClient && localIncomeBudgets && Object.entries(localIncomeBudgets).map(([category, budget]) => {
+                            const Icon = getIconForCategory(category);
+                            const { earned, percentage } = getCategoryProgress(category, 'income');
+                            
+                            return (
+                                <Card key={category}>
+                                    <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1 rounded-md">
+                                                <Icon className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                            <CardTitle className="text-base capitalize">{category}</CardTitle>
+                                             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete({ name: category, type: 'income' })}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                            <span className="text-green-600">
+                                                ₹{(earned ?? 0).toFixed(2)}
+                                            </span>
+                                             / ₹{budget.amount.toFixed(2)}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-2 pt-0">
+                                       <div className='relative'>
+                                         <div 
+                                             className="absolute top-0 left-0 h-2 rounded-full bg-green-500"
+                                             style={{ width: `${Math.min(percentage, 100)}%`, transition: 'width 0.3s' }}
+                                         ></div>
+                                         <div className="h-2 w-full rounded-full bg-green-500/20"></div>
+                                       </div>
+                                        <div className="mt-2">
+                                            <Label htmlFor={`income-budget-${category}`} className="sr-only">Set Target for {category}</Label>
+                                            <Input
+                                                id={`income-budget-${category}`}
+                                                type="number"
+                                                placeholder="Set Target"
+                                                value={budget.amount === 0 ? '' : budget.amount}
+                                                onChange={(e) => handleIncomeBudgetChange(category, parseFloat(e.target.value) || 0)}
+                                                className="text-right h-8"
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                <div className='mt-4'>
+                    <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+                        {isSaving ? 'Saving...' : 'Save All Budgets'}
+                    </Button>
                 </div>
             </div>
 
@@ -254,7 +311,7 @@ export default function BudgetPage() {
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <Input 
-                        placeholder="e.g. Entertainment"
+                        placeholder="e.g. Side Hustle"
                         value={newCategory}
                         onChange={(e) => setNewCategory(e.target.value)}
                     />
