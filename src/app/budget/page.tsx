@@ -117,6 +117,11 @@ export default function BudgetPage() {
         return Object.values(localInvestmentBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
     }, [localInvestmentBudgets]);
     
+    const expenseToIncomePercentage = React.useMemo(() => {
+        if (totalIncomeBudget === 0) return 0;
+        return (totalExpenseBudget / totalIncomeBudget) * 100;
+    }, [totalExpenseBudget, totalIncomeBudget]);
+
     const investmentToIncomePercentage = React.useMemo(() => {
         if (totalIncomeBudget === 0) return 0;
         return (totalInvestmentBudget / totalIncomeBudget) * 100;
@@ -192,6 +197,11 @@ export default function BudgetPage() {
                         </CardHeader>
                         <CardContent className="p-3 pt-0">
                             <p className="text-3xl font-bold">₹{totalExpenseBudget.toFixed(2)}</p>
+                            {expenseToIncomePercentage > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                    {expenseToIncomePercentage.toFixed(0)}% of income target
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
 
