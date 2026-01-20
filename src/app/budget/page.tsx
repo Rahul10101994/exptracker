@@ -106,7 +106,9 @@ export default function BudgetPage() {
     };
 
     const totalExpenseBudget = React.useMemo(() => {
-        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
+        return Object.entries(localExpenseBudgets)
+            .filter(([category]) => category.toLowerCase() !== 'investment')
+            .reduce((sum, [, budget]) => sum + (budget?.amount || 0), 0);
     }, [localExpenseBudgets]);
     
     const totalIncomeBudget = React.useMemo(() => {

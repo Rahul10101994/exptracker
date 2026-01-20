@@ -125,13 +125,14 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
-    const deleteExpenseCategory = async (category: string) => {
-        const newBudgets = { ...expenseBudgets };
-        const keyToDelete = Object.keys(newBudgets).find(k => k.toLowerCase() === category.toLowerCase());
-        if (keyToDelete) {
-            delete newBudgets[keyToDelete];
-            await setExpenseBudgets(newBudgets);
+    const deleteExpenseCategory = async (categoryToDelete: string) => {
+        const newBudgets: Budgets = {};
+        for (const category in expenseBudgets) {
+            if (category.toLowerCase() !== categoryToDelete.toLowerCase()) {
+                newBudgets[category] = expenseBudgets[category];
+            }
         }
+        await setExpenseBudgets(newBudgets);
     };
 
     const addIncomeCategory = async (category: string) => {
