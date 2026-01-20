@@ -10,11 +10,11 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function InvestmentCard() {
-  const { expenseBudgets } = useBudget();
+  const { investmentBudgets } = useBudget();
   const { currentMonthTransactions } = useTransactions();
 
   const { budgetAmount, spent, progress } = useMemo(() => {
-    const budget = expenseBudgets['investment']?.amount || 0;
+    const budget = Object.values(investmentBudgets).reduce((sum, b) => sum + b.amount, 0);
     
     const investmentSpent = currentMonthTransactions
       .filter(t => t.type === 'investment')
@@ -27,7 +27,7 @@ export function InvestmentCard() {
       spent: investmentSpent,
       progress: progressPercentage
     };
-  }, [expenseBudgets, currentMonthTransactions]);
+  }, [investmentBudgets, currentMonthTransactions]);
 
 
   if (budgetAmount <= 0) {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -34,22 +35,27 @@ export default function BudgetPage() {
     const { 
         expenseBudgets, 
         incomeBudgets,
+        investmentBudgets,
         setExpenseBudgets,
         setIncomeBudgets, 
+        setInvestmentBudgets,
         addExpenseCategory, 
         deleteExpenseCategory, 
         addIncomeCategory, 
         deleteIncomeCategory,
+        addInvestmentCategory,
+        deleteInvestmentCategory,
         getCategoryProgress 
     } = useBudget();
 
     const { getIconForCategory } = useTransactions();
     const [newCategory, setNewCategory] = React.useState('');
-    const [newCategoryType, setNewCategoryType] = React.useState<'expense' | 'income'>('expense');
+    const [newCategoryType, setNewCategoryType] = React.useState<'expense' | 'income' | 'investment'>('expense');
     
     const [localExpenseBudgets, setLocalExpenseBudgets] = React.useState<LocalBudgets>({});
     const [localIncomeBudgets, setLocalIncomeBudgets] = React.useState<LocalBudgets>({});
-    const [categoryToDelete, setCategoryToDelete] = React.useState<{name: string, type: 'expense' | 'income'} | null>(null);
+    const [localInvestmentBudgets, setLocalInvestmentBudgets] = React.useState<LocalBudgets>({});
+    const [categoryToDelete, setCategoryToDelete] = React.useState<{name: string, type: 'expense' | 'income' | 'investment'} | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const [isSaving, setIsSaving] = React.useState(false);
 
@@ -64,13 +70,19 @@ export default function BudgetPage() {
     React.useEffect(() => {
         setLocalIncomeBudgets(JSON.parse(JSON.stringify(incomeBudgets)));
     }, [incomeBudgets]);
+    
+    React.useEffect(() => {
+        setLocalInvestmentBudgets(JSON.parse(JSON.stringify(investmentBudgets)));
+    }, [investmentBudgets]);
 
     const handleAddCategory = async () => {
         if (newCategory.trim()) {
             if (newCategoryType === 'expense') {
                 await addExpenseCategory(newCategory.trim());
-            } else {
+            } else if (newCategoryType === 'income') {
                 await addIncomeCategory(newCategory.trim());
+            } else if (newCategoryType === 'investment') {
+                await addInvestmentCategory(newCategory.trim());
             }
             setNewCategory('');
         }
@@ -80,8 +92,10 @@ export default function BudgetPage() {
         if (categoryToDelete) {
             if (categoryToDelete.type === 'expense') {
                 await deleteExpenseCategory(categoryToDelete.name);
-            } else {
+            } else if (categoryToDelete.type === 'income') {
                 await deleteIncomeCategory(categoryToDelete.name);
+            } else if (categoryToDelete.type === 'investment') {
+                await deleteInvestmentCategory(categoryToDelete.name);
             }
             toast({
                 title: "Category Deleted",
@@ -92,24 +106,17 @@ export default function BudgetPage() {
     };
 
     const totalExpenseBudget = React.useMemo(() => {
-        return Object.entries(localExpenseBudgets)
-            .filter(([category]) => category !== 'investment')
-            .reduce((sum, [, budget]) => sum + (budget?.amount || 0), 0);
+        return Object.values(localExpenseBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
     }, [localExpenseBudgets]);
     
-    const expenseBudgetEntries = React.useMemo(() => 
-        Object.entries(localExpenseBudgets).filter(([category]) => category !== 'investment'), 
-        [localExpenseBudgets]
-    );
-
-    const investmentBudgetEntry = React.useMemo(() => 
-        Object.entries(localExpenseBudgets).find(([category]) => category === 'investment'),
-        [localExpenseBudgets]
-    );
-
     const totalIncomeBudget = React.useMemo(() => {
         return Object.values(localIncomeBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
     }, [localIncomeBudgets]);
+
+    const totalInvestmentBudget = React.useMemo(() => {
+        return Object.values(localInvestmentBudgets).reduce((sum, budget) => sum + (budget?.amount || 0), 0);
+    }, [localInvestmentBudgets]);
+
 
     const handleExpenseBudgetChange = (category: string, amount: number) => {
         setLocalExpenseBudgets(prev => ({
@@ -124,12 +131,20 @@ export default function BudgetPage() {
             [category]: { amount }
         }));
     };
+    
+    const handleInvestmentBudgetChange = (category: string, amount: number) => {
+        setLocalInvestmentBudgets(prev => ({
+            ...prev,
+            [category]: { amount }
+        }));
+    };
 
     const handleSave = async () => {
         setIsSaving(true);
         await Promise.all([
             setExpenseBudgets(localExpenseBudgets),
-            setIncomeBudgets(localIncomeBudgets)
+            setIncomeBudgets(localIncomeBudgets),
+            setInvestmentBudgets(localInvestmentBudgets)
         ]);
         setIsSaving(false);
         toast({
@@ -138,7 +153,7 @@ export default function BudgetPage() {
         });
     };
     
-    const openAddCategoryDialog = (type: 'expense' | 'income') => {
+    const openAddCategoryDialog = (type: 'expense' | 'income' | 'investment') => {
         setNewCategoryType(type);
         const trigger = document.getElementById('add-category-trigger');
         trigger?.click();
@@ -176,7 +191,7 @@ export default function BudgetPage() {
                     </Card>
 
                     <div className="space-y-4 mt-4">
-                        {isClient && expenseBudgetEntries.map(([category, budget]) => {
+                        {isClient && Object.entries(localExpenseBudgets).map(([category, budget]) => {
                             const Icon = getIconForCategory(category);
                             const { spent, percentage } = getCategoryProgress(category, 'expense');
                             
@@ -233,53 +248,72 @@ export default function BudgetPage() {
 
                 <Separator />
                 
-                {/* ---------- INVESTMENT BUDGET ---------- */}
+                {/* ---------- INVESTMENT BUDGETS ---------- */}
                 <div>
-                     <h2 className='text-base font-semibold mb-2'>Investment Budget</h2>
-                     {isClient && investmentBudgetEntry && (() => {
-                        const [category, budget] = investmentBudgetEntry;
-                        const { spent, percentage } = getCategoryProgress(category, 'expense');
-                        const isAchieved = percentage >= 100;
-                        
-                        return (
-                            <Card key={category}>
-                                <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-1 rounded-md">
-                                            <Landmark className="h-5 w-5 text-muted-foreground" />
+                     <div className='flex justify-between items-center mb-2'>
+                        <h2 className='text-base font-semibold'>Investment Budgets</h2>
+                        <Button variant="ghost" size="icon" onClick={() => openAddCategoryDialog('investment')}>
+                            <PlusCircle className='h-5 w-5'/>
+                        </Button>
+                    </div>
+                     <Card className="text-center">
+                        <CardHeader className="p-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total Investment Target</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-0">
+                            <p className="text-3xl font-bold">₹{totalInvestmentBudget.toFixed(2)}</p>
+                        </CardContent>
+                    </Card>
+
+                    <div className="space-y-4 mt-4">
+                        {isClient && Object.entries(localInvestmentBudgets).map(([category, budget]) => {
+                            const Icon = getIconForCategory(category);
+                            const { spent, percentage } = getCategoryProgress(category, 'investment');
+                            const isAchieved = percentage >= 100;
+                            
+                            return (
+                                <Card key={category}>
+                                    <CardHeader className="p-2 pb-1 flex-row items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1 rounded-md">
+                                                <Icon className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                            <CardTitle className="text-base capitalize">{category}</CardTitle>
+                                             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => setCategoryToDelete({ name: category, type: 'investment' })}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </div>
-                                        <CardTitle className="text-base capitalize">{category}</CardTitle>
-                                    </div>
-                                    <div className="text-sm text-muted-foreground">
-                                        <span className={isAchieved ? 'text-green-600' : ''}>
-                                            ₹{(spent ?? 0).toFixed(2)}
-                                        </span>
-                                         / ₹{(budget?.amount ?? 0).toFixed(2)}
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-2 pt-0">
-                                   <div className='relative'>
-                                     <div 
-                                         className={`absolute top-0 left-0 h-2 rounded-full ${isAchieved ? 'bg-green-500' : 'bg-purple-500'}`}
-                                         style={{ width: `${Math.min(percentage, 100)}%`, transition: 'width 0.3s' }}
-                                     ></div>
-                                     <div className={`h-2 w-full rounded-full ${isAchieved ? 'bg-green-500/20' : 'bg-purple-500/20'}`}></div>
-                                   </div>
-                                    <div className="mt-2">
-                                        <Label htmlFor={`budget-${category}`} className="sr-only">Set Budget for {category}</Label>
-                                        <Input
-                                            id={`budget-${category}`}
-                                            type="number"
-                                            placeholder="Set Budget"
-                                            value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
-                                            onChange={(e) => handleExpenseBudgetChange(category, parseFloat(e.target.value) || 0)}
-                                            className="text-right h-8"
-                                        />
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )
-                    })()}
+                                        <div className="text-sm text-muted-foreground">
+                                            <span className={isAchieved ? 'text-green-600' : ''}>
+                                                ₹{(spent ?? 0).toFixed(2)}
+                                            </span>
+                                             / ₹{(budget?.amount ?? 0).toFixed(2)}
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-2 pt-0">
+                                       <div className='relative'>
+                                         <div 
+                                             className={`absolute top-0 left-0 h-2 rounded-full ${isAchieved ? 'bg-green-500' : 'bg-purple-500'}`}
+                                             style={{ width: `${Math.min(percentage, 100)}%`, transition: 'width 0.3s' }}
+                                         ></div>
+                                         <div className={`h-2 w-full rounded-full ${isAchieved ? 'bg-green-500/20' : 'bg-purple-500/20'}`}></div>
+                                       </div>
+                                        <div className="mt-2">
+                                            <Label htmlFor={`investment-budget-${category}`} className="sr-only">Set Budget for {category}</Label>
+                                            <Input
+                                                id={`investment-budget-${category}`}
+                                                type="number"
+                                                placeholder="Set Budget"
+                                                value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
+                                                onChange={(e) => handleInvestmentBudgetChange(category, parseFloat(e.target.value) || 0)}
+                                                className="text-right h-8"
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )
+                        })}
+                    </div>
                 </div>
 
                 <Separator />
@@ -302,7 +336,7 @@ export default function BudgetPage() {
                     </Card>
 
                     <div className="space-y-4 mt-4">
-                        {isClient && localIncomeBudgets && Object.entries(localIncomeBudgets).map(([category, budget]) => {
+                        {isClient && Object.entries(localIncomeBudgets).map(([category, budget]) => {
                             const Icon = getIconForCategory(category);
                             const { earned, percentage } = getCategoryProgress(category, 'income');
                             
@@ -404,4 +438,3 @@ export default function BudgetPage() {
         </FinTrackLayout>
     );
 }
-    

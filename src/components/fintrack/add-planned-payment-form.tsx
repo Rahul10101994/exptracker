@@ -71,16 +71,15 @@ const smartCategoryMap: Record<string, string> = {
 export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
   const { addPlannedPayment } = usePlannedPayments();
   const { accounts } = useAccounts();
-  const { expenseBudgets, incomeBudgets } = useBudget();
+  const { expenseBudgets, incomeBudgets, investmentBudgets } = useBudget();
 
   const categories = React.useMemo(() => {
-    const expenseCategories = Object.keys(expenseBudgets);
     return {
         income: Object.keys(incomeBudgets),
-        expense: expenseCategories.map(c => c.charAt(0).toUpperCase() + c.slice(1)),
-        investment: ["Stocks", "Mutual Funds", "Crypto", "Other"],
+        expense: Object.keys(expenseBudgets).map(c => c.charAt(0).toUpperCase() + c.slice(1)),
+        investment: Object.keys(investmentBudgets),
     }
-  }, [expenseBudgets, incomeBudgets]);
+  }, [expenseBudgets, incomeBudgets, investmentBudgets]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -100,7 +99,7 @@ export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
 
   React.useEffect(() => {
     if (transactionType === 'investment') {
-        form.setValue('category', 'investment');
+        // User now selects category for investment
     } else {
         if (transactionType === 'income') {
             form.setValue("spendingType", undefined);
@@ -255,7 +254,7 @@ export function AddPlannedPaymentForm({ onSubmit }: { onSubmit?: () => void }) {
                   <Select
                   value={field.value}
                   onValueChange={field.onChange}
-                  disabled={!transactionType || transactionType === 'investment'}
+                  disabled={!transactionType}
                   >
                   <FormControl>
                       <SelectTrigger className="h-11">

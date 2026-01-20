@@ -25,12 +25,8 @@ export function ReportCategoryBreakdown({
     );
 
     expenses.forEach((t) => {
-      const category = t.type === 'investment' ? 'Investment' : (
-        t.category.charAt(0).toUpperCase() +
-        t.category.slice(1));
-
-      categoryTotals[category] =
-        (categoryTotals[category] || 0) + t.amount;
+      const category = t.category.charAt(0).toUpperCase() + t.category.slice(1);
+      categoryTotals[category] = (categoryTotals[category] || 0) + t.amount;
     });
 
     const totalExpense = expenses.reduce(
@@ -71,8 +67,9 @@ export function ReportCategoryBreakdown({
                   ? "[&>div]:bg-orange-500"
                   : "[&>div]:bg-primary";
               
-              const type = category === 'Investment' ? 'investment' : 'expense';
-              const categoryFilter = category === 'Investment' ? '' : `&category=${category.toLowerCase()}`;
+              const transaction = transactions.find(t => t.category.toLowerCase() === category.toLowerCase());
+              const type = transaction?.type || 'expense';
+              const categoryFilter = `&category=${category.toLowerCase()}`;
               const href = from && to ? `/transactions?from=${from}&to=${to}&type=${type}${categoryFilter}` : '/transactions';
 
               return (

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -17,18 +18,23 @@ type Budgets = {
 interface BudgetsData {
     expenses: Budgets;
     income: Budgets;
+    investments: Budgets;
 }
 
 interface BudgetContextType {
     expenseBudgets: Budgets;
     incomeBudgets: Budgets;
+    investmentBudgets: Budgets;
     setExpenseBudgets: (budgets: Budgets) => Promise<void>;
     setIncomeBudgets: (budgets: Budgets) => Promise<void>;
+    setInvestmentBudgets: (budgets: Budgets) => Promise<void>;
     addExpenseCategory: (category: string) => Promise<void>;
     deleteExpenseCategory: (category: string) => Promise<void>;
     addIncomeCategory: (category: string) => Promise<void>;
     deleteIncomeCategory: (category: string) => Promise<void>;
-    getCategoryProgress: (category: string, type: 'expense' | 'income') => { spent?: number; earned?: number; percentage: number };
+    addInvestmentCategory: (category: string) => Promise<void>;
+    deleteInvestmentCategory: (category: string) => Promise<void>;
+    getCategoryProgress: (category: string, type: 'expense' | 'income' | 'investment') => { spent?: number; earned?: number; percentage: number };
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
@@ -40,7 +46,6 @@ const initialBudgets: BudgetsData = {
         shopping: { amount: 300 },
         bills: { amount: 200 },
         subscription: { amount: 50 },
-        investment: { amount: 8000 },
         other: { amount: 100 },
     },
     income: {
@@ -48,6 +53,10 @@ const initialBudgets: BudgetsData = {
         "Salary": { amount: 50000 },
         "Bonus": { amount: 0 },
         "Other": { amount: 100 },
+    },
+    investments: {
+        "Stocks": { amount: 8000 },
+        "Mutual Funds": { amount: 5000 },
     }
 };
 
@@ -55,6 +64,7 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     const { currentMonthTransactions } = useTransactions();
     const [expenseBudgets, setExpenseBudgetsState] = useState<Budgets>(initialBudgets.expenses);
     const [incomeBudgets, setIncomeBudgetsState] = useState<Budgets>(initialBudgets.income);
+    const [investmentBudgets, setInvestmentBudgetsState] = useState<Budgets>(initialBudgets.investments);
     const userContext = useUser();
     const firestore = useFirestore();
 
@@ -66,16 +76,19 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
                     const data = docSnap.data() as BudgetsData;
                     setExpenseBudgetsState(data.expenses || {});
                     setIncomeBudgetsState(data.income || {});
+                    setInvestmentBudgetsState(data.investments || {});
                 } else {
                     setDoc(budgetDocRef, initialBudgets);
                     setExpenseBudgetsState(initialBudgets.expenses);
                     setIncomeBudgetsState(initialBudgets.income);
+                    setInvestmentBudgetsState(initialBudgets.investments);
                 }
             });
             return () => unsubscribe();
         } else {
             setExpenseBudgetsState(initialBudgets.expenses);
             setIncomeBudgetsState(initialBudgets.income);
+            setInvestmentBudgetsState(initialBudgets.investments);
         }
     }, [firestore, userContext]);
 
@@ -94,6 +107,11 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     const setIncomeBudgets = async (newBudgets: Budgets) => {
         setIncomeBudgetsState(newBudgets); // Optimistic update
         await saveData({ income: newBudgets });
+    };
+
+    const setInvestmentBudgets = async (newBudgets: Budgets) => {
+        setInvestmentBudgetsState(newBudgets); // Optimistic update
+        await saveData({ investments: newBudgets });
     };
     
     const addExpenseCategory = async (category: string) => {
@@ -135,7 +153,28 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const getCategoryProgress = (category: string, type: 'expense' | 'income') => {
+    const addInvestmentCategory = async (category: string) => {
+        const titleCaseCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        const existingKey = Object.keys(investmentBudgets).find(k => k.toLowerCase() === titleCaseCategory.toLowerCase());
+        if (!existingKey) {
+            const newBudgets = {
+                ...investmentBudgets,
+                [titleCaseCategory]: { amount: 0 }
+            };
+            await setInvestmentBudgets(newBudgets);
+        }
+    };
+    
+    const deleteInvestmentCategory = async (category: string) => {
+        const newBudgets = { ...investmentBudgets };
+        const keyToDelete = Object.keys(newBudgets).find(k => k.toLowerCase() === category.toLowerCase());
+        if (keyToDelete) {
+            delete newBudgets[keyToDelete];
+            await setInvestmentBudgets(newBudgets);
+        }
+    };
+
+    const getCategoryProgress = (category: string, type: 'expense' | 'income' | 'investment') => {
         if (type === 'income') {
             const budgetAmount = incomeBudgets[category]?.amount || 0;
             const earned = currentMonthTransactions
@@ -144,13 +183,20 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
             const percentage = budgetAmount > 0 ? (earned / budgetAmount) * 100 : 0;
             return { earned, percentage };
         } 
+
+        if (type === 'investment') {
+            const budgetAmount = investmentBudgets[category]?.amount || 0;
+            const spent = currentMonthTransactions
+                .filter(t => t.type === 'investment' && t.category.toLowerCase() === category.toLowerCase())
+                .reduce((sum, t) => sum + t.amount, 0);
+            const percentage = budgetAmount > 0 ? (spent / budgetAmount) * 100 : 0;
+            return { spent, percentage };
+        }
+        
         // else it's expense
         const budgetAmount = expenseBudgets[category]?.amount || 0;
         const spent = currentMonthTransactions
-            .filter(t => 
-                (t.type === 'expense' && t.category.toLowerCase() === category.toLowerCase()) ||
-                (t.type === 'investment' && category.toLowerCase() === 'investment')
-            )
+            .filter(t => t.type === 'expense' && t.category.toLowerCase() === category.toLowerCase())
             .reduce((sum, t) => sum + t.amount, 0);
         
         const percentage = budgetAmount > 0 ? (spent / budgetAmount) * 100 : 0;
@@ -162,12 +208,16 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         <BudgetContext.Provider value={{ 
             expenseBudgets, 
             incomeBudgets,
+            investmentBudgets,
             setExpenseBudgets, 
             setIncomeBudgets,
+            setInvestmentBudgets,
             addExpenseCategory, 
             deleteExpenseCategory,
             addIncomeCategory,
             deleteIncomeCategory, 
+            addInvestmentCategory,
+            deleteInvestmentCategory,
             getCategoryProgress 
         }}>
             {children}
