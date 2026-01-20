@@ -10,20 +10,26 @@ import { useMemo } from "react";
 
 export function BudgetCard() {
   const { currentMonthTransactions } = useTransactions();
-  const { expenseBudgets } = useBudget();
+  const { expenseBudgets, investmentBudgets } = useBudget();
 
   const { utilized, totalBudget } = useMemo(() => {
     const utilized = currentMonthTransactions
       .filter((t) => t.type === "expense" || t.type === 'investment')
       .reduce((acc, t) => acc + t.amount, 0);
 
-    const totalBudget = Object.values(expenseBudgets).reduce(
+    const totalExpenseBudget = Object.values(expenseBudgets).reduce(
       (acc, budget) => acc + budget.amount,
       0
     );
+    const totalInvestmentBudget = Object.values(investmentBudgets).reduce(
+      (acc, budget) => acc + budget.amount,
+      0
+    );
+    const totalBudget = totalExpenseBudget + totalInvestmentBudget;
+
 
     return { utilized, totalBudget };
-  }, [currentMonthTransactions, expenseBudgets]);
+  }, [currentMonthTransactions, expenseBudgets, investmentBudgets]);
 
   const progress =
     totalBudget > 0 ? (utilized / totalBudget) * 100 : 0;
