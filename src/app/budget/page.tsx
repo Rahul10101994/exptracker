@@ -233,16 +233,21 @@ export default function BudgetPage() {
                                          )}
                                          <div className="h-2 w-full rounded-full bg-primary/20"></div>
                                        </div>
-                                        <div className="mt-2">
-                                            <Label htmlFor={`budget-${category}`} className="sr-only">Set Budget for {category}</Label>
+                                        <div className="mt-2 flex items-center gap-2">
                                             <Input
                                                 id={`budget-${category}`}
                                                 type="number"
                                                 placeholder="Set Budget"
                                                 value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
                                                 onChange={(e) => handleExpenseBudgetChange(category, parseFloat(e.target.value) || 0)}
-                                                className="text-right h-8"
+                                                className="text-right h-8 flex-1"
                                             />
+                                            <div className="w-20 text-center text-sm font-medium text-muted-foreground bg-muted/50 rounded-md h-8 flex items-center justify-center">
+                                                {totalExpenseBudget > 0 && (budget?.amount ?? 0) > 0
+                                                    ? `${(((budget?.amount ?? 0) / totalExpenseBudget) * 100).toFixed(0)}%`
+                                                    : '0%'
+                                                }
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -308,16 +313,21 @@ export default function BudgetPage() {
                                          ></div>
                                          <div className={`h-2 w-full rounded-full ${isAchieved ? 'bg-green-500/20' : 'bg-purple-500/20'}`}></div>
                                        </div>
-                                        <div className="mt-2">
-                                            <Label htmlFor={`investment-budget-${category}`} className="sr-only">Set Budget for {category}</Label>
+                                        <div className="mt-2 flex items-center gap-2">
                                             <Input
                                                 id={`investment-budget-${category}`}
                                                 type="number"
-                                                placeholder="Set Budget"
+                                                placeholder="Set Target"
                                                 value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
                                                 onChange={(e) => handleInvestmentBudgetChange(category, parseFloat(e.target.value) || 0)}
-                                                className="text-right h-8"
+                                                className="text-right h-8 flex-1"
                                             />
+                                            <div className="w-20 text-center text-sm font-medium text-muted-foreground bg-muted/50 rounded-md h-8 flex items-center justify-center">
+                                                {totalInvestmentBudget > 0 && (budget?.amount ?? 0) > 0
+                                                    ? `${(((budget?.amount ?? 0) / totalInvestmentBudget) * 100).toFixed(0)}%`
+                                                    : '0%'
+                                                }
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -377,16 +387,21 @@ export default function BudgetPage() {
                                          ></div>
                                          <div className="h-2 w-full rounded-full bg-green-500/20"></div>
                                        </div>
-                                        <div className="mt-2">
-                                            <Label htmlFor={`income-budget-${category}`} className="sr-only">Set Target for {category}</Label>
+                                        <div className="mt-2 flex items-center gap-2">
                                             <Input
                                                 id={`income-budget-${category}`}
                                                 type="number"
                                                 placeholder="Set Target"
                                                 value={budget?.amount === 0 ? '' : (budget?.amount ?? '')}
                                                 onChange={(e) => handleIncomeBudgetChange(category, parseFloat(e.target.value) || 0)}
-                                                className="text-right h-8"
+                                                className="text-right h-8 flex-1"
                                             />
+                                            <div className="w-20 text-center text-sm font-medium text-muted-foreground bg-muted/50 rounded-md h-8 flex items-center justify-center">
+                                                {totalIncomeBudget > 0 && (budget?.amount ?? 0) > 0
+                                                    ? `${(((budget?.amount ?? 0) / totalIncomeBudget) * 100).toFixed(0)}%`
+                                                    : '0%'
+                                                }
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
