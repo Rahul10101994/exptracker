@@ -127,6 +127,12 @@ export default function BudgetPage() {
         return (totalInvestmentBudget / totalIncomeBudget) * 100;
     }, [totalInvestmentBudget, totalIncomeBudget]);
 
+    const savingsToIncomePercentage = React.useMemo(() => {
+        if (totalIncomeBudget === 0) return 0;
+        const percentage = 100 - expenseToIncomePercentage - investmentToIncomePercentage;
+        return Math.max(0, percentage);
+    }, [expenseToIncomePercentage, investmentToIncomePercentage, totalIncomeBudget]);
+
 
     const handleExpenseBudgetChange = (category: string, amount: number) => {
         setLocalExpenseBudgets(prev => ({
@@ -183,6 +189,32 @@ export default function BudgetPage() {
             </header>
 
             <div className="space-y-6 pb-24">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                    <Card>
+                        <CardHeader className="p-2 pb-0">
+                            <CardTitle className="text-xs font-medium text-muted-foreground">Expenses</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-2 pt-1">
+                            <p className="text-lg font-bold text-red-600">{expenseToIncomePercentage.toFixed(0)}%</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="p-2 pb-0">
+                            <CardTitle className="text-xs font-medium text-muted-foreground">Invest</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-2 pt-1">
+                            <p className="text-lg font-bold text-purple-600">{investmentToIncomePercentage.toFixed(0)}%</p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="p-2 pb-0">
+                            <CardTitle className="text-xs font-medium text-muted-foreground">Savings</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-2 pt-1">
+                            <p className="text-lg font-bold text-green-600">{savingsToIncomePercentage.toFixed(0)}%</p>
+                        </CardContent>
+                    </Card>
+                </div>
                 {/* ---------- EXPENSE BUDGETS ---------- */}
                 <div>
                     <div className='flex justify-between items-center mb-2'>
@@ -197,7 +229,7 @@ export default function BudgetPage() {
                         </CardHeader>
                         <CardContent className="p-3 pt-0">
                             <p className="text-3xl font-bold">₹{totalExpenseBudget.toFixed(2)}</p>
-                            {expenseToIncomePercentage > 0 && (
+                            {totalIncomeBudget > 0 && (
                                 <p className="text-xs text-muted-foreground">
                                     {expenseToIncomePercentage.toFixed(0)}% of income target
                                 </p>
@@ -282,7 +314,7 @@ export default function BudgetPage() {
                         </CardHeader>
                         <CardContent className="p-3 pt-0">
                             <p className="text-3xl font-bold">₹{totalInvestmentBudget.toFixed(2)}</p>
-                            {investmentToIncomePercentage > 0 && (
+                            {totalIncomeBudget > 0 && (
                                 <p className="text-xs text-muted-foreground">
                                     {investmentToIncomePercentage.toFixed(0)}% of income target
                                 </p>
