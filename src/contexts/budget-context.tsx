@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useTransactions } from './transactions-context';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc, deleteField } from 'firebase/firestore';
 
 type Budget = {
     amount: number;
@@ -126,13 +126,18 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
     };
     
     const deleteExpenseCategory = async (categoryToDelete: string) => {
-        const newBudgets: Budgets = {};
-        for (const category in expenseBudgets) {
-            if (category.toLowerCase() !== categoryToDelete.toLowerCase()) {
-                newBudgets[category] = expenseBudgets[category];
-            }
+        if (!firestore || !userContext?.user) return;
+        const keyToDelete = Object.keys(expenseBudgets).find(k => k.toLowerCase() === categoryToDelete.toLowerCase());
+        if (keyToDelete) {
+            const newBudgets = { ...expenseBudgets };
+            delete newBudgets[keyToDelete];
+            setExpenseBudgetsState(newBudgets);
+
+            const budgetDocRef = doc(firestore, 'users', userContext.user.uid, 'budgets', 'main');
+            await updateDoc(budgetDocRef, {
+                [`expenses.${keyToDelete}`]: deleteField()
+            });
         }
-        await setExpenseBudgets(newBudgets);
     };
 
     const addIncomeCategory = async (category: string) => {
@@ -147,12 +152,18 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const deleteIncomeCategory = async (category: string) => {
-        const newIncomeBudgets = { ...incomeBudgets };
-        const keyToDelete = Object.keys(newIncomeBudgets).find(k => k.toLowerCase() === category.toLowerCase());
+    const deleteIncomeCategory = async (categoryToDelete: string) => {
+        if (!firestore || !userContext?.user) return;
+        const keyToDelete = Object.keys(incomeBudgets).find(k => k.toLowerCase() === categoryToDelete.toLowerCase());
         if (keyToDelete) {
-            delete newIncomeBudgets[keyToDelete];
-            await setIncomeBudgets(newIncomeBudgets);
+            const newBudgets = { ...incomeBudgets };
+            delete newBudgets[keyToDelete];
+            setIncomeBudgetsState(newBudgets);
+
+            const budgetDocRef = doc(firestore, 'users', userContext.user.uid, 'budgets', 'main');
+            await updateDoc(budgetDocRef, {
+                [`income.${keyToDelete}`]: deleteField()
+            });
         }
     };
 
@@ -168,12 +179,18 @@ export const BudgetProvider = ({ children }: { children: ReactNode }) => {
         }
     };
     
-    const deleteInvestmentCategory = async (category: string) => {
-        const newBudgets = { ...investmentBudgets };
-        const keyToDelete = Object.keys(newBudgets).find(k => k.toLowerCase() === category.toLowerCase());
+    const deleteInvestmentCategory = async (categoryToDelete: string) => {
+        if (!firestore || !userContext?.user) return;
+        const keyToDelete = Object.keys(investmentBudgets).find(k => k.toLowerCase() === categoryToDelete.toLowerCase());
         if (keyToDelete) {
+            const newBudgets = { ...investmentBudgets };
             delete newBudgets[keyToDelete];
-            await setInvestmentBudgets(newBudgets);
+            setInvestmentBudgetsState(newBudgets);
+
+            const budgetDocRef = doc(firestore, 'users', userContext.user.uid, 'budgets', 'main');
+            await updateDoc(budgetDocRef, {
+                [`investments.${keyToDelete}`]: deleteField()
+            });
         }
     };
 
